@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centered Bean</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="centered">
+        <img id="bean" src="bean.svg" alt="Bean" onclick="explodeBeans()">
+    </div>
+    <script>
+        function explodeBeans() {
+            const container = document.querySelector('.centered');
+            for (let i = 0; i < 10; i++) {
+                const newBean = document.createElement('img');
+                newBean.src = 'bean.svg';
+                newBean.style.position = 'absolute';
+                newBean.style.width = '50px';
+                newBean.style.height = '50px';
+                newBean.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
+                newBean.style.opacity = '0';
+
+                // Initial position at the center
+                newBean.style.transform = 'translate(0, 0) scale(0.5)';
+
+                container.appendChild(newBean);
+
+                // Random position around the original bean
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 100 + 50;
+
+                // Trigger the animation
+                setTimeout(() => {
+                    newBean.style.opacity = '1';
+                    newBean.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(1)`;
+                }, 0);
+
+                // Remove the bean after animation
+                setTimeout(() => {
+                    newBean.style.opacity = '0';
+                    setTimeout(() => {
+                        container.removeChild(newBean);
+                    }, 1000);
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
