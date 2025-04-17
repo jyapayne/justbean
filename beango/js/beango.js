@@ -8,6 +8,10 @@ const LS_CELL_ITEMS = 'beango_cellItems'; // Original items from textarea/file
 const LS_DISPLAYED_ITEMS = 'beango_displayedItems'; // Items currently shown on the board
 const LS_MARKED_INDICES = 'beango_markedIndices';
 const LS_CONFIG_OPEN = 'beango_configOpen'; // Changed from minimized
+const LS_BACKGROUND_COLOR = 'beango_backgroundColor'; // New key
+
+// --- Default Values ---
+const DEFAULT_BACKGROUND_COLOR = '#F0F0F0'; // Light gray
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -49,6 +53,11 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 // --- Functions ---
 
+// --- Function to set the HTML background color ---
+function setBackgroundColor(color) {
+    document.documentElement.style.backgroundColor = color;
+}
+
 function toggleConfig() {
     const pane = document.getElementById('config-pane');
     const isOpen = pane.classList.contains('config-pane-open');
@@ -62,6 +71,36 @@ function toggleConfig() {
         pane.classList.add('config-pane-open');
         localStorage.setItem(LS_CONFIG_OPEN, 'true');
     }
+    // Optionally reset config pane state too?
+    // localStorage.removeItem(LS_CONFIG_OPEN);
+    localStorage.removeItem(LS_BACKGROUND_COLOR); // Remove saved color
+
+    // Reset global variables
+    currentItems = [];
+    displayedItems = [];
+
+    // Reset form inputs
+    document.getElementById('board-size').value = 5; // Default size
+    document.getElementById('cell-contents').value = '';
+    document.getElementById('file-input').value = ''; // Clear file input
+    document.getElementById('background-color-picker').value = DEFAULT_BACKGROUND_COLOR; // Reset color picker
+
+    // Clear the board display
+    const board = document.getElementById('bingo-board');
+    board.innerHTML = '<div class="bingo-cell">Settings Reset. Generate a new board!</div>';
+    board.style.gridTemplateColumns = ''; // Clear grid style
+
+    // Reset container width to default - REMOVED
+    // updateBoardContainerMaxWidth(5); // Assuming 5 is the default size
+    // updateBoardContainerMaxWidth(5, '#board-header');
+    // Also clear any inline max-width set by equalizeCellSizes
+    const boardContainer = document.getElementById('bingo-board-container');
+    const boardHeader = document.getElementById('board-header');
+    if (boardContainer) boardContainer.style.maxWidth = '';
+    if (boardHeader) boardHeader.style.maxWidth = '';
+
+    setBackgroundColor(DEFAULT_BACKGROUND_COLOR); // Reset background color
+    showNotification('Settings and board reset.', 'success');
 }
 
 document.getElementById('file-input').addEventListener('change', function(event) {
@@ -243,6 +282,7 @@ function resetSettings() {
     localStorage.removeItem(LS_MARKED_INDICES);
     // Optionally reset config pane state too?
     // localStorage.removeItem(LS_CONFIG_OPEN);
+    localStorage.removeItem(LS_BACKGROUND_COLOR); // Remove saved color
 
     // Reset global variables
     currentItems = [];
@@ -252,6 +292,7 @@ function resetSettings() {
     document.getElementById('board-size').value = 5; // Default size
     document.getElementById('cell-contents').value = '';
     document.getElementById('file-input').value = ''; // Clear file input
+    document.getElementById('background-color-picker').value = DEFAULT_BACKGROUND_COLOR; // Reset color picker
 
     // Clear the board display
     const board = document.getElementById('bingo-board');
@@ -267,6 +308,7 @@ function resetSettings() {
     if (boardContainer) boardContainer.style.maxWidth = '';
     if (boardHeader) boardHeader.style.maxWidth = '';
 
+    setBackgroundColor(DEFAULT_BACKGROUND_COLOR); // Reset background color
     showNotification('Settings and board reset.', 'success');
 }
 
@@ -295,6 +337,7 @@ function loadFromLocalStorage() {
     const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
     const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
     const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === 'true';
+    const savedBackgroundColor = localStorage.getItem(LS_BACKGROUND_COLOR);
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -309,6 +352,16 @@ function loadFromLocalStorage() {
     // Restore Config Inputs
     const size = parseInt(savedSize, 10); // Parse size here
     document.getElementById('board-size').value = savedSize;
+
+    // Restore Background Color
+    const colorPicker = document.getElementById('background-color-picker');
+    if (savedBackgroundColor) {
+        colorPicker.value = savedBackgroundColor;
+        setBackgroundColor(savedBackgroundColor);
+    } else {
+        colorPicker.value = DEFAULT_BACKGROUND_COLOR;
+        setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
+    }
 
     // Update container width based on loaded size - REMOVED
     // updateBoardContainerMaxWidth(size);
@@ -514,5 +567,17 @@ function explodeBeans() {
     }
 }
 
-// --- Event Listener for Page Load ---
-document.addEventListener('DOMContentLoaded', loadFromLocalStorage);
+// --- Event Listener for Page Load & Color Picker ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadFromLocalStorage();
+
+    // Add listener for the color picker
+    const colorPicker = document.getElementById('background-color-picker');
+    if (colorPicker) {
+        colorPicker.addEventListener('input', (event) => {
+            const newColor = event.target.value;
+            setBackgroundColor(newColor);
+            localStorage.setItem(LS_BACKGROUND_COLOR, newColor);
+        });
+    }
+});
