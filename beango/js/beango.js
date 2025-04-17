@@ -71,36 +71,6 @@ function toggleConfig() {
         pane.classList.add('config-pane-open');
         localStorage.setItem(LS_CONFIG_OPEN, 'true');
     }
-    // Optionally reset config pane state too?
-    // localStorage.removeItem(LS_CONFIG_OPEN);
-    localStorage.removeItem(LS_BACKGROUND_COLOR); // Remove saved color
-
-    // Reset global variables
-    currentItems = [];
-    displayedItems = [];
-
-    // Reset form inputs
-    document.getElementById('board-size').value = 5; // Default size
-    document.getElementById('cell-contents').value = '';
-    document.getElementById('file-input').value = ''; // Clear file input
-    document.getElementById('background-color-picker').value = DEFAULT_BACKGROUND_COLOR; // Reset color picker
-
-    // Clear the board display
-    const board = document.getElementById('bingo-board');
-    board.innerHTML = '<div class="bingo-cell">Settings Reset. Generate a new board!</div>';
-    board.style.gridTemplateColumns = ''; // Clear grid style
-
-    // Reset container width to default - REMOVED
-    // updateBoardContainerMaxWidth(5); // Assuming 5 is the default size
-    // updateBoardContainerMaxWidth(5, '#board-header');
-    // Also clear any inline max-width set by equalizeCellSizes
-    const boardContainer = document.getElementById('bingo-board-container');
-    const boardHeader = document.getElementById('board-header');
-    if (boardContainer) boardContainer.style.maxWidth = '';
-    if (boardHeader) boardHeader.style.maxWidth = '';
-
-    setBackgroundColor(DEFAULT_BACKGROUND_COLOR); // Reset background color
-    showNotification('Settings and board reset.', 'success');
 }
 
 document.getElementById('file-input').addEventListener('change', function(event) {
@@ -298,6 +268,7 @@ function resetSettings() {
     const board = document.getElementById('bingo-board');
     board.innerHTML = '<div class="bingo-cell">Settings Reset. Generate a new board!</div>';
     board.style.gridTemplateColumns = ''; // Clear grid style
+    board.style.gridAutoRows = ''; // Also clear gridAutoRows
 
     // Reset container width to default - REMOVED
     // updateBoardContainerMaxWidth(5); // Assuming 5 is the default size
