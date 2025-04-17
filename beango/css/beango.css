@@ -1,0 +1,72 @@
+/* Basic styling for the board */
+.centered h1 {
+    margin-bottom: 0px;
+}
+
+html {
+    background: linear-gradient(135deg, #ff7e5f, #feb47b); /* Modern gradient background */
+}
+
+.bingo-board {
+    display: grid;
+    gap: 4px; /* Adjust gap as needed */
+}
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+#bean {
+    width: 60px;
+    height: 60px;
+}
+.bingo-cell {
+    border: 1px solid #8B4513; /* Brown border */
+    text-align: center;
+    padding: 8px;
+    background-color: #F5F5DC; /* Beige background */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    min-width: 80px; /* Add minimum width */
+    aspect-ratio: 1 / 1; /* Ensure square cells */
+    /* Add transition for background color changes */
+    transition: background-color 0.2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.config-pane {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    max-height: 500px; /* Adjust as needed */
+    overflow: hidden;
+    opacity: 1;
+}
+.config-pane.minimized {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-width: 0;
+}
+
+/* Configuration Pane Styling */
+.config-pane-closed {
+    transform: translateX(100%); /* Hide off-screen to the right */
+}
+
+.config-pane-open {
+    transform: translateX(0); /* Slide in from the right */
+}
+
+/* Ensure transition is applied (already added in HTML via Tailwind classes) */
+/* #config-pane {
+    transition: transform 0.3s ease-in-out;
+} */
+
+/* Basic styling for the board */
+#bingo-board-container {
+}
