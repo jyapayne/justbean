@@ -29,14 +29,40 @@ html {
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-    min-width: 80px; /* Add minimum width */
-    aspect-ratio: 1 / 1; /* Ensure square cells */
     /* Add transition for background color changes */
-    transition: background-color 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out, filter 0.15s ease-in-out;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 8px;
 }
+
+/* Add darken filter on hover */
+.bingo-cell:hover {
+    filter: brightness(85%);
+}
+
+/* Style for when a cell is actively being clicked */
+.bingo-cell:active {
+    transform: scale(0.95); /* Scale down slightly */
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add subtle inset shadow */
+    background-color: #e0e0d1; /* Slightly darker beige */
+}
+
+/* Style for permanently marked cells */
+.bingo-cell.marked {
+    background-color: #fde047; /* Tailwind yellow-300 */
+    /* Optional: Add other persistent styles like a stronger border */
+    /* border-color: #ca8a04; */ /* Tailwind yellow-600 */
+}
+
+/* Style for when a MARKED cell is actively being clicked */
+.bingo-cell.marked:active {
+    transform: scale(0.95); /* Keep the same transform */
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2); /* Keep the same shadow */
+    background-color: #facc15; /* Slightly darker yellow (Tailwind yellow-400) */
+}
+
 .config-pane {
     transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
     max-height: 500px; /* Adjust as needed */

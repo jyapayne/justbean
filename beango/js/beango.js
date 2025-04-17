@@ -105,10 +105,6 @@ function generateBoard() {
     }
     sizeInput.value = size; // Ensure value reflects parsed int
 
-    // Update container width based on size
-    updateBoardContainerMaxWidth(size);
-    updateBoardContainerMaxWidth(size, '#board-header');
-
     // Get items from input and store them as the canonical list
     currentItems = getItemsFromInput();
     localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save original items immediately
@@ -142,11 +138,11 @@ function generateBoard() {
 
     const board = document.getElementById('bingo-board');
     board.innerHTML = ''; // Clear previous board
-    board.style.gridTemplateColumns = `repeat(${size}, minmax(80px, 1fr))`;
+    board.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
 
     displayedItems.forEach((item, index) => {
         const cell = document.createElement('div');
-        cell.classList.add('bingo-cell', 'cursor-pointer', 'hover:bg-green-200');
+        cell.classList.add('bingo-cell', 'cursor-pointer');
         cell.textContent = item;
         cell.dataset.index = index; // Add index for saving marks
         cell.onclick = () => selectCell(cell);
@@ -154,6 +150,7 @@ function generateBoard() {
     });
 
     clearMarks(false); // Clear previous marks visually but don't save yet
+    equalizeCellSizes(); // Add this call
     saveBoardState(); // Save the newly generated state
     showNotification(notificationMessage, notificationType);
 }
@@ -210,14 +207,14 @@ function randomizeBoard() {
 }
 
 function selectCell(cell) {
-    cell.classList.toggle('bg-yellow-300'); // Toggle mark style directly
+    cell.classList.toggle('marked'); // Toggle the dedicated 'marked' class
     saveBoardState(); // Save updated marks immediately after click
 }
 
 function clearMarks(save = true) {
     const cells = document.querySelectorAll('#bingo-board .bingo-cell');
     cells.forEach(cell => {
-        cell.classList.remove('bg-yellow-300', 'ring-2', 'ring-blue-500'); // Remove ring class here too
+        cell.classList.remove('marked', 'ring-2', 'ring-blue-500'); // Use 'marked' class
     });
     if (save) {
         saveBoardState(); // Save cleared marks
@@ -261,15 +258,21 @@ function resetSettings() {
     board.innerHTML = '<div class="bingo-cell">Settings Reset. Generate a new board!</div>';
     board.style.gridTemplateColumns = ''; // Clear grid style
 
-    // Reset container width to default
-    updateBoardContainerMaxWidth(5); // Assuming 5 is the default size
-    updateBoardContainerMaxWidth(5, '#board-header');
+    // Reset container width to default - REMOVED
+    // updateBoardContainerMaxWidth(5); // Assuming 5 is the default size
+    // updateBoardContainerMaxWidth(5, '#board-header');
+    // Also clear any inline max-width set by equalizeCellSizes
+    const boardContainer = document.getElementById('bingo-board-container');
+    const boardHeader = document.getElementById('board-header');
+    if (boardContainer) boardContainer.style.maxWidth = '';
+    if (boardHeader) boardHeader.style.maxWidth = '';
+
     showNotification('Settings and board reset.', 'success');
 }
 
 // --- Helper to get indices of marked cells ---
 function getMarkedIndices() {
-    const markedCells = document.querySelectorAll('#bingo-board .bingo-cell.bg-yellow-300');
+    const markedCells = document.querySelectorAll('#bingo-board .bingo-cell.marked'); // Use 'marked' class selector
     const indices = [];
     markedCells.forEach(cell => {
         // Ensure dataset.index exists and is a valid number
@@ -307,9 +310,9 @@ function loadFromLocalStorage() {
     const size = parseInt(savedSize, 10); // Parse size here
     document.getElementById('board-size').value = savedSize;
 
-    // Update container width based on loaded size
-    updateBoardContainerMaxWidth(size);
-    updateBoardContainerMaxWidth(size, '#board-header');
+    // Update container width based on loaded size - REMOVED
+    // updateBoardContainerMaxWidth(size);
+    // updateBoardContainerMaxWidth(size, '#board-header');
 
     if (savedItemsText) {
         try {
@@ -349,21 +352,22 @@ function loadFromLocalStorage() {
 
         const board = document.getElementById('bingo-board');
         board.innerHTML = ''; // Clear placeholder
-        board.style.gridTemplateColumns = `repeat(${size}, minmax(80px, 1fr))`;
+        board.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
 
         const markedIndices = savedMarkedIndices ? JSON.parse(savedMarkedIndices) : [];
 
         displayedItems.forEach((item, index) => {
             const cell = document.createElement('div');
-            cell.classList.add('bingo-cell', 'cursor-pointer', 'hover:bg-green-200');
+            cell.classList.add('bingo-cell', 'cursor-pointer');
             cell.textContent = item;
             cell.dataset.index = index; // Ensure index is set for loading marks correctly
             cell.onclick = () => selectCell(cell);
             if (markedIndices.includes(index)) {
-                cell.classList.add('bg-yellow-300'); // Apply saved mark
+                cell.classList.add('marked'); // Apply saved mark using 'marked' class
             }
             board.appendChild(cell);
         });
+        equalizeCellSizes(); // Add this call
     } else {
          // If no saved board state, show the default message
          const board = document.getElementById('bingo-board');
@@ -374,8 +378,8 @@ function loadFromLocalStorage() {
     }
 }
 
-// --- Helper to manage board container width ---
-function updateBoardContainerMaxWidth(size, element = '#bingo-board-container') {
+// --- Helper to manage board container width --- DEPRECATED
+/* function updateBoardContainerMaxWidth(size, element = '#bingo-board-container') {
     const container = document.querySelector(element);
 
     if (!container) return;
@@ -401,6 +405,77 @@ function updateBoardContainerMaxWidth(size, element = '#bingo-board-container') 
         maxWidthClass = 'max-w-5xl'; // Cap here, rely on scroll for larger
     }
     container.classList.add(maxWidthClass);
+} */
+
+// --- Function to make all cells square and equal size ---
+function equalizeCellSizes() {
+    const board = document.getElementById('bingo-board');
+    const cells = board?.querySelectorAll('.bingo-cell');
+    if (!board || !cells || cells.length === 0) return;
+
+    // Try to determine grid size (number of columns)
+    let size = 0;
+    try {
+        const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
+        size = gridStyle.split(' ').length;
+    } catch (e) {
+        console.error('Could not determine grid size from styles.', e);
+        // Fallback: try getting from input (less reliable if called before input update)
+        const sizeInput = document.getElementById('board-size');
+        size = sizeInput ? parseInt(sizeInput.value, 10) : 0;
+        if (!size || isNaN(size)) {
+             showNotification('Cannot determine grid size to resize container.', 'warning');
+             return; // Cannot calculate container width without size
+        }
+    }
+
+    if (size <= 0) {
+        showNotification('Invalid grid size found, cannot resize container.', 'warning');
+        return;
+    }
+
+    let maxDimension = 0;
+    const gap = 4; // From CSS: .bingo-board { gap: 4px; }
+
+    // First pass: Find the largest dimension
+    cells.forEach(cell => {
+        // Reset any previously set inline styles to get natural size
+        cell.style.width = '';
+        cell.style.height = '';
+        // Force reflow/recalc if needed (might not be strictly necessary here)
+        // cell.offsetHeight;
+        const width = cell.offsetWidth;
+        const height = cell.offsetHeight;
+        maxDimension = Math.max(maxDimension, width, height);
+    });
+
+    // Second pass: Apply sizing to the grid container, not individual cells
+    /* REMOVED loop applying styles to individual cells
+    cells.forEach(cell => {
+        cell.style.width = `${maxDimension}px`;
+        cell.style.height = `${maxDimension}px`;
+    });
+    */
+
+    // Set grid column width and auto row height based on max dimension
+    board.style.gridTemplateColumns = `repeat(${size}, ${maxDimension}px)`;
+    board.style.gridAutoRows = `${maxDimension}px`;
+
+    // Calculate total board width needed (including gaps AND container padding)
+    const containerPadding = 32; // Based on p-4 class (1rem = 16px, left + right = 32px)
+    const totalWidth = (maxDimension * size) + (gap * (size - 1)) + containerPadding;
+
+    // Update container max-width
+    const boardContainer = document.getElementById('bingo-board-container');
+    const boardHeader = document.getElementById('board-header');
+
+    if (boardContainer) {
+        boardContainer.style.maxWidth = `${totalWidth}px`;
+    }
+    if (boardHeader) {
+        // Keep header consistent with board container width
+        boardHeader.style.maxWidth = `${totalWidth}px`;
+    }
 }
 
 function explodeBeans() {
