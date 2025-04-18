@@ -27,7 +27,7 @@
         </div>
 
         <!-- Bingo Board Container -->
-        <div id="bingo-board-container" class="w-full max-w-2xl bg-white p-4 rounded-b-lg shadow-md mb-4">
+        <div id="bingo-board-container" class="w-full max-w-2xl p-4 rounded-b-lg shadow-md mb-4">
             <div id="bingo-board" class="bingo-board">
                 <!-- Cells will be generated here -->
                 <div class="bingo-cell">Loading...</div>
@@ -90,6 +90,16 @@
                     <div id="header-text-settings">
                         <label for="header-text-input" class="block text-sm font-medium text-gray-700">Header Text (Optional):</label>
                         <input type="text" id="header-text-input" name="header-text-input" value="Beango!" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <div class="mt-2">
+                            <label for="header-text-color-picker" class="block text-sm font-medium text-gray-700">Header Text Color:</label>
+                            <div class="flex items-center space-x-2 mt-1">
+                                 <input type="color" id="header-text-color-picker" name="header-text-color-picker" value="#15803d" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                                 <div class="w-20">
+                                     <label for="header-text-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                     <input type="number" id="header-text-color-opacity-input" name="header-text-color-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                                 </div>
+                             </div>
+                        </div>
                     </div>
                     <div id="header-image-settings">
                         <label for="header-image-url-input" class="block text-sm font-medium text-gray-700">Header Image URL (Optional):</label>
@@ -114,16 +124,34 @@
                     </div>
                     <div id="solid-color-settings">
                         <label for="background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
-                        <input type="color" id="background-color-picker" name="background-color-picker" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        <div class="flex items-center space-x-2 mt-1">
+                             <input type="color" id="background-color-picker" name="background-color-picker" value="#ff7e5f" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                             <div class="w-20">
+                                 <label for="background-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                 <input type="number" id="background-color-opacity-input" name="background-color-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                             </div>
+                         </div>
                     </div>
                     <div id="gradient-color-settings" class="space-y-2 hidden">
                          <div>
                              <label for="gradient-color-1" class="block text-sm font-medium text-gray-700">Gradient Start Color:</label>
-                             <input type="color" id="gradient-color-1" name="gradient-color-1" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                              <div class="flex items-center space-x-2 mt-1">
+                                 <input type="color" id="gradient-color-1" name="gradient-color-1" value="#ff7e5f" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                                 <div class="w-20">
+                                     <label for="gradient-color-1-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                     <input type="number" id="gradient-color-1-opacity-input" name="gradient-color-1-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                                 </div>
+                             </div>
                          </div>
                          <div>
                              <label for="gradient-color-2" class="block text-sm font-medium text-gray-700">Gradient End Color:</label>
-                             <input type="color" id="gradient-color-2" name="gradient-color-2" value="#feb47b" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                             <div class="flex items-center space-x-2 mt-1">
+                                 <input type="color" id="gradient-color-2" name="gradient-color-2" value="#feb47b" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                                 <div class="w-20">
+                                     <label for="gradient-color-2-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                     <input type="number" id="gradient-color-2-opacity-input" name="gradient-color-2-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                                 </div>
+                              </div>
                          </div>
                          <div>
                              <label for="gradient-direction" class="block text-sm font-medium text-gray-700">Gradient Direction:</label>
@@ -145,32 +173,31 @@
             <details class="config-section">
                 <summary class="config-summary">Marked Cell Style</summary>
                  <div class="config-content space-y-4 pt-2">
-                    <div class="mt-1 flex space-x-4 mb-2">
-                        <label class="inline-flex items-center">
-                            <input type="radio" class="form-radio text-green-600" name="marked-style-type" value="color" checked>
-                            <span class="ml-2">Color</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" class="form-radio text-green-600" name="marked-style-type" value="image">
-                            <span class="ml-2">Image URL</span>
-                        </label>
-                    </div>
                     <div id="marked-color-settings">
-                        <label for="marked-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Color:</label>
-                        <input type="color" id="marked-color-picker" name="marked-color-picker" value="#fde047" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        <label for="marked-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Background Color:</label>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <input type="color" id="marked-color-picker" name="marked-color-picker" value="#fde047" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                             <div class="w-20">
+                                 <label for="marked-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                 <input type="number" id="marked-color-opacity-input" name="marked-color-opacity-input" min="0" max="100" value="80" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                             </div>
+                        </div>
                     </div>
-                    <div id="marked-image-settings" class="hidden">
-                        <label for="marked-image-url-input" class="block text-sm font-medium text-gray-700">Marked Cell Image URL:</label>
+                    <div id="marked-image-settings">
+                        <label for="marked-image-url-input" class="block text-sm font-medium text-gray-700">Marked Cell Background Image URL (Optional):</label>
                         <input type="url" id="marked-image-url-input" name="marked-image-url-input" placeholder="https://example.com/marker.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                         <p class="mt-1 text-xs text-gray-500">If set, this image is layered over the background color.</p>
                     </div>
                     <div class="mt-2">
                         <label for="marked-border-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Border Color:</label>
-                        <input type="color" id="marked-border-color-picker" name="marked-border-color-picker" value="#ca8a04" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
-                    </div>
-                    <div class="mt-2">
-                        <label for="marked-opacity-input" class="block text-sm font-medium text-gray-700">Marked Cell Opacity (%):</label>
-                        <input type="number" id="marked-opacity-input" name="marked-opacity-input" min="0" max="100" value="80" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                    </div>
+                         <div class="flex items-center space-x-2 mt-1">
+                            <input type="color" id="marked-border-color-picker" name="marked-border-color-picker" value="#ca8a04" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                             <div class="w-20">
+                                 <label for="marked-border-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                 <input type="number" id="marked-border-opacity-input" name="marked-border-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                             </div>
+                         </div>
+                     </div>
                 </div>
             </details>
 
@@ -179,15 +206,48 @@
                 <div class="config-content space-y-4 pt-2">
                     <div>
                         <label for="cell-border-color-picker" class="block text-sm font-medium text-gray-700">Border Color:</label>
-                        <input type="color" id="cell-border-color-picker" name="cell-border-color-picker" value="#8B4513" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                         <div class="flex items-center space-x-2 mt-1">
+                            <input type="color" id="cell-border-color-picker" name="cell-border-color-picker" value="#8B4513" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                            <div class="w-20">
+                                <label for="cell-border-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                <input type="number" id="cell-border-opacity-input" name="cell-border-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                            </div>
+                        </div>
                     </div>
                      <div>
                         <label for="cell-background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
-                        <input type="color" id="cell-background-color-picker" name="cell-background-color-picker" value="#F5F5DC" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                         <div class="flex items-center space-x-2 mt-1">
+                            <input type="color" id="cell-background-color-picker" name="cell-background-color-picker" value="#F5F5DC" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                             <div class="w-20">
+                                <label for="cell-background-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                <input type="number" id="cell-background-opacity-input" name="cell-background-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                            </div>
+                         </div>
                     </div>
                      <div>
                         <label for="cell-background-image-url-input" class="block text-sm font-medium text-gray-700">Background Image URL (Optional):</label>
                         <input type="url" id="cell-background-image-url-input" name="cell-background-image-url-input" placeholder="Clear to use background color" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-section">
+                <summary class="config-summary">Board Background Style</summary>
+                 <div class="config-content space-y-4 pt-2">
+                     <div>
+                        <label for="board-bg-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
+                         <div class="flex items-center space-x-2 mt-1">
+                            <input type="color" id="board-bg-color-picker" name="board-bg-color-picker" value="#ffffff" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                            <div class="w-20">
+                                <label for="board-bg-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
+                                <input type="number" id="board-bg-color-opacity-input" name="board-bg-color-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                     <div>
+                        <label for="board-bg-image-url-input" class="block text-sm font-medium text-gray-700">Background Image URL (Optional):</label>
+                        <input type="url" id="board-bg-image-url-input" name="board-bg-image-url-input" placeholder="Overrides background color" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                         <p class="mt-1 text-xs text-gray-500">If set, opacity still applies to the image.</p>
                     </div>
                 </div>
             </details>

@@ -10,36 +10,56 @@ const LS_MARKED_INDICES = 'beango_markedIndices';
 const LS_CONFIG_OPEN = 'beango_configOpen'; // Changed from minimized
 const LS_BACKGROUND_TYPE = 'beango_backgroundType'; // 'solid' or 'gradient'
 const LS_SOLID_COLOR = 'beango_solidColor';
+const LS_SOLID_COLOR_OPACITY = 'beango_solidColorOpacity'; // New
 const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
+const LS_GRADIENT_COLOR_1_OPACITY = 'beango_gradientColor1Opacity'; // New
 const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
+const LS_GRADIENT_COLOR_2_OPACITY = 'beango_gradientColor2Opacity'; // New
 const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
 const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
 const LS_HEADER_TEXT = 'beango_headerText';
 const LS_HEADER_IMAGE_URL = 'beango_headerImageUrl';
-const LS_MARKED_STYLE_TYPE = 'beango_markedStyleType'; // 'color' or 'image'
+const LS_HEADER_TEXT_COLOR = 'beango_headerTextColor';
+const LS_HEADER_TEXT_COLOR_OPACITY = 'beango_headerTextColorOpacity'; // New
 const LS_MARKED_COLOR = 'beango_markedColor';
+const LS_MARKED_COLOR_OPACITY = 'beango_markedColorOpacity'; // New (replaces LS_MARKED_OPACITY)
 const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
-const LS_MARKED_OPACITY = 'beango_markedOpacity'; // Stored as 0-100
 const LS_CELL_BORDER_COLOR = 'beango_cellBorderColor';
+const LS_CELL_BORDER_OPACITY = 'beango_cellBorderOpacity'; // New
 const LS_CELL_BG_COLOR = 'beango_cellBgColor';
+const LS_CELL_BG_OPACITY = 'beango_cellBgOpacity'; // New
 const LS_CELL_BG_IMAGE_URL = 'beango_cellBgImageUrl';
-const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor'; // New key
+const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor';
+const LS_MARKED_BORDER_OPACITY = 'beango_markedBorderOpacity'; // New
+const LS_BOARD_BG_COLOR = 'beango_boardBgColor';
+const LS_BOARD_BG_COLOR_OPACITY = 'beango_boardBgColorOpacity'; // New (replaces LS_BOARD_BG_OPACITY)
+const LS_BOARD_BG_IMAGE_URL = 'beango_boardBgImageUrl';
 
 // --- Default Values ---
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
+const DEFAULT_SOLID_COLOR_OPACITY = 100; // New
 const DEFAULT_GRADIENT_COLOR_1 = '#ff7e5f'; // From main page gradient
+const DEFAULT_GRADIENT_COLOR_1_OPACITY = 100; // New
 const DEFAULT_GRADIENT_COLOR_2 = '#feb47b'; // From main page gradient
+const DEFAULT_GRADIENT_COLOR_2_OPACITY = 100; // New
 const DEFAULT_GRADIENT_DIRECTION = '135deg'; // From main page gradient
 const DEFAULT_HEADER_TEXT = 'Beango!'; // REVERTED default back to Beango!
 const DEFAULT_HEADER_IMAGE_URL = ''; // No default image
-const DEFAULT_MARKED_STYLE_TYPE = 'color';
+const DEFAULT_HEADER_TEXT_COLOR = '#15803d'; // Tailwind green-700 (approx)
+const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; // New
 const DEFAULT_MARKED_COLOR = '#fde047'; // Default yellow
+const DEFAULT_MARKED_COLOR_OPACITY = 80; // New (replaces DEFAULT_MARKED_OPACITY)
 const DEFAULT_MARKED_IMAGE_URL = '';
-const DEFAULT_MARKED_OPACITY = 80; // Default 80%
 const DEFAULT_CELL_BORDER_COLOR = '#8B4513'; // Default brown
+const DEFAULT_CELL_BORDER_OPACITY = 100; // New
 const DEFAULT_CELL_BG_COLOR = '#F5F5DC'; // Default beige
+const DEFAULT_CELL_BG_OPACITY = 100; // New
 const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
 const DEFAULT_MARKED_BORDER_COLOR = '#ca8a04'; // Default darker yellow/orange (Tailwind yellow-600)
+const DEFAULT_MARKED_BORDER_OPACITY = 100; // New
+const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
+const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // New (replaces DEFAULT_BOARD_BG_OPACITY)
+const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -79,6 +99,32 @@ function showNotification(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
+// --- Helper Function ---
+function hexToRgba(hex, opacityPercent = 100) {
+    // Remove hash if it exists
+    hex = hex.replace('#', '');
+
+    // Handle short hex codes
+    if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('');
+    }
+
+    // Ensure hex is 6 digits
+    if (hex.length !== 6) {
+        console.warn(`Invalid hex color: ${hex}. Using fallback.`);
+        hex = '000000'; // Default to black on error
+    }
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Clamp and normalize opacity
+    const opacity = Math.max(0, Math.min(100, opacityPercent)) / 100;
+
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
 // --- Functions ---
 
 // --- Function to set the HTML background (solid or gradient) ---
@@ -93,29 +139,34 @@ function setBackground() {
 
     if (backgroundType === 'solid') {
         const color = solidColorPicker.value;
-        backgroundValue = color;
-        htmlStyle.background = color; // Set solid color as background
+        const opacity = parseInt(document.getElementById('background-color-opacity-input').value, 10);
+        backgroundValue = hexToRgba(color, opacity);
+        htmlStyle.background = backgroundValue; // Set solid color as background
         htmlStyle.backgroundRepeat = 'no-repeat';
         htmlStyle.backgroundAttachment = 'fixed';
     } else { // gradient
         const color1 = gradientColor1Picker.value;
+        const opacity1 = parseInt(document.getElementById('gradient-color-1-opacity-input').value, 10);
         const color2 = gradientColor2Picker.value;
+        const opacity2 = parseInt(document.getElementById('gradient-color-2-opacity-input').value, 10);
         const direction = gradientDirectionSelect.value;
+
+        const rgba1 = hexToRgba(color1, opacity1);
+        const rgba2 = hexToRgba(color2, opacity2);
+
         let gradientValue;
         if (direction === 'radial') {
-            gradientValue = `radial-gradient(circle, ${color1}, ${color2})`;
-        } else if (direction.includes('deg')) { // Handle degree values
-            gradientValue = `linear-gradient(${direction}, ${color1}, ${color2})`;
-        } else {
-            gradientValue = `linear-gradient(${direction}, ${color1}, ${color2})`;
+            gradientValue = `radial-gradient(circle, ${rgba1}, ${rgba2})`;
+        } else { // Handles 'deg' and direction keywords
+            gradientValue = `linear-gradient(${direction}, ${rgba1}, ${rgba2})`;
         }
         backgroundValue = gradientValue;
         htmlStyle.background = gradientValue;
         htmlStyle.backgroundRepeat = 'no-repeat';
         htmlStyle.backgroundAttachment = 'fixed';
     }
-    htmlStyle.background = backgroundValue; // Apply the calculated background
-    return backgroundValue; // Return the CSS value for injection
+    // htmlStyle.background = backgroundValue; // Already set inside if/else
+    return backgroundValue; // Return the CSS value for injection (might need adjustment?)
 }
 
 // --- Function to manage visibility of background controls ---
@@ -140,16 +191,22 @@ function saveBackgroundSettings() {
 
     if (backgroundType === 'solid') {
         localStorage.setItem(LS_SOLID_COLOR, document.getElementById('background-color-picker').value);
-        // Optionally remove gradient keys to keep localStorage clean
+        localStorage.setItem(LS_SOLID_COLOR_OPACITY, document.getElementById('background-color-opacity-input').value);
+        // Optionally remove gradient keys
         localStorage.removeItem(LS_GRADIENT_COLOR_1);
+        localStorage.removeItem(LS_GRADIENT_COLOR_1_OPACITY);
         localStorage.removeItem(LS_GRADIENT_COLOR_2);
+        localStorage.removeItem(LS_GRADIENT_COLOR_2_OPACITY);
         localStorage.removeItem(LS_GRADIENT_DIRECTION);
     } else {
         localStorage.setItem(LS_GRADIENT_COLOR_1, document.getElementById('gradient-color-1').value);
+        localStorage.setItem(LS_GRADIENT_COLOR_1_OPACITY, document.getElementById('gradient-color-1-opacity-input').value);
         localStorage.setItem(LS_GRADIENT_COLOR_2, document.getElementById('gradient-color-2').value);
+        localStorage.setItem(LS_GRADIENT_COLOR_2_OPACITY, document.getElementById('gradient-color-2-opacity-input').value);
         localStorage.setItem(LS_GRADIENT_DIRECTION, document.getElementById('gradient-direction').value);
         // Optionally remove solid key
         localStorage.removeItem(LS_SOLID_COLOR);
+        localStorage.removeItem(LS_SOLID_COLOR_OPACITY);
     }
 }
 
@@ -190,41 +247,16 @@ function getItemsFromInput() {
 
 // --- Save current marked style settings to localStorage ---
 function saveMarkedStyleSettings() {
-    const styleType = document.querySelector('input[name="marked-style-type"]:checked').value;
-    localStorage.setItem(LS_MARKED_STYLE_TYPE, styleType);
+    localStorage.setItem(LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
+    localStorage.setItem(LS_MARKED_COLOR_OPACITY, document.getElementById('marked-color-opacity-input').value);
+    localStorage.setItem(LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
 
-    if (styleType === 'color') {
-        localStorage.setItem(LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
-        // Optionally remove image URL if switching to color
-        // localStorage.removeItem(LS_MARKED_IMAGE_URL);
-    } else { // image
-        localStorage.setItem(LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
-        // Optionally remove color if switching to image
-        // localStorage.removeItem(LS_MARKED_COLOR);
-    }
-    // Always save opacity
-    let opacity = parseInt(document.getElementById('marked-opacity-input').value, 10);
-    if (isNaN(opacity) || opacity < 0) opacity = 0;
-    if (opacity > 100) opacity = 100;
-    localStorage.setItem(LS_MARKED_OPACITY, opacity);
-    // Save marked border color
+    // Save marked border color and its opacity
     localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
-}
-
-// --- Function to manage visibility of marked style controls ---
-function toggleMarkedStyleInputs() {
-    const styleType = document.querySelector('input[name="marked-style-type"]:checked').value;
-    const colorSettings = document.getElementById('marked-color-settings');
-    const imageSettings = document.getElementById('marked-image-settings');
-
-    if (styleType === 'color') {
-        colorSettings.style.display = 'block';
-        imageSettings.style.display = 'none';
-    } else { // image
-        colorSettings.style.display = 'none';
-        imageSettings.style.display = 'block';
-    }
-    // Opacity input is always visible
+    let borderOpacity = parseInt(document.getElementById('marked-border-opacity-input').value, 10);
+     if (isNaN(borderOpacity) || borderOpacity < 0) borderOpacity = 0;
+     if (borderOpacity > 100) borderOpacity = 100;
+    localStorage.setItem(LS_MARKED_BORDER_OPACITY, borderOpacity);
 }
 
 // --- Apply saved marked styles to a cell ---
@@ -232,43 +264,37 @@ function applyMarkedCellStyle(cell) {
     if (!cell) return;
 
     const isMarked = cell.classList.contains('marked');
-    const styleType = localStorage.getItem(LS_MARKED_STYLE_TYPE) || DEFAULT_MARKED_STYLE_TYPE;
-    const opacityValue = (parseInt(localStorage.getItem(LS_MARKED_OPACITY), 10) || DEFAULT_MARKED_OPACITY) / 100;
+    const color = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
+    const colorOpacity = parseInt(localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY, 10);
+    const imageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
+    const borderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
+    const borderOpacity = parseInt(localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY, 10);
 
-    // Reset styles first
-    cell.style.backgroundColor = ''; // Use CSS default
+    // Reset potentially conflicting styles before applying new ones
+    cell.style.backgroundColor = '';
     cell.style.backgroundImage = '';
-    cell.style.backgroundSize = '';
-    cell.style.backgroundPosition = '';
-    cell.style.backgroundRepeat = '';
-    cell.style.opacity = ''; // Use CSS default
+    // Don't reset border color here, let applyCellStyle handle default if unmarked
 
     if (isMarked) {
-        cell.style.opacity = opacityValue;
+        // Apply marked border color + opacity
+        cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
 
-        if (styleType === 'color') {
-            const color = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
-            cell.style.backgroundColor = color;
-        } else { // image
-            const imageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
-            if (imageUrl) {
-                cell.style.backgroundImage = `url('${imageUrl}')`;
-                cell.style.backgroundSize = 'cover'; // Or 'contain', 'auto', etc.
-                cell.style.backgroundPosition = 'center center';
-                cell.style.backgroundRepeat = 'no-repeat';
-                // Set a fallback background color in case the image fails to load or is transparent
-                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; // Slightly visible white
-            } else {
-                // Fallback to default color if image URL is empty
-                cell.style.backgroundColor = DEFAULT_MARKED_COLOR;
-            }
+        // Always apply the background color + opacity
+        cell.style.backgroundColor = hexToRgba(color, colorOpacity);
+
+        // Apply background image if URL exists
+        if (imageUrl && imageUrl.trim() !== '') {
+            cell.style.backgroundImage = `url('${imageUrl}')`;
+            cell.style.backgroundSize = 'cover'; // Or adjust as needed
+            cell.style.backgroundPosition = 'center center';
+            cell.style.backgroundRepeat = 'no-repeat';
+        } else {
+            // Explicitly clear background image if no URL
+            cell.style.backgroundImage = 'none';
         }
-        // Apply marked border color
-        const markedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
-        cell.style.borderColor = markedBorderColor;
+
     } else {
-        // If unmarked, ensure all styles are fully reset (already done above)
-        // Then re-apply default styles
+        // If unmarked, re-apply default styles (which resets bg color, bg image, border color)
         applyCellStyle(cell);
     }
 }
@@ -285,6 +311,8 @@ function refreshMarkedCellStyles() {
 function saveHeaderSettings() {
     localStorage.setItem(LS_HEADER_TEXT, document.getElementById('header-text-input').value);
     localStorage.setItem(LS_HEADER_IMAGE_URL, document.getElementById('header-image-url-input').value);
+    localStorage.setItem(LS_HEADER_TEXT_COLOR, document.getElementById('header-text-color-picker').value);
+    localStorage.setItem(LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-input').value);
 }
 
 // --- Function to update the header display ---
@@ -309,8 +337,17 @@ function updateHeaderDisplay() {
     // Add text if it exists
     if (hasText) {
         const h1 = document.createElement("h1");
-        h1.className = "text-4xl font-bold text-green-800"; // Keep existing style
+        h1.className = "text-4xl font-bold"; // Keep other styles
         h1.textContent = headerText;
+        let headerTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
+        if (headerTextColor === null) { // Check if key exists before applying default
+            headerTextColor = DEFAULT_HEADER_TEXT_COLOR;
+        }
+        let headerTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY);
+         if (headerTextOpacity === null) {
+             headerTextOpacity = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+         }
+        h1.style.color = hexToRgba(headerTextColor, parseInt(headerTextOpacity, 10));
         headerContainer.appendChild(h1);
     }
 
@@ -352,7 +389,9 @@ function addDefaultBean(container) {
 // --- Save current default cell style settings to localStorage ---
 function saveCellStyleSettings() {
     localStorage.setItem(LS_CELL_BORDER_COLOR, document.getElementById('cell-border-color-picker').value);
+    localStorage.setItem(LS_CELL_BORDER_OPACITY, document.getElementById('cell-border-opacity-input').value);
     localStorage.setItem(LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
+    localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-input').value);
     localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
 }
 
@@ -361,24 +400,25 @@ function applyCellStyle(cell) {
     if (!cell || cell.classList.contains('marked')) return; // Only apply to non-marked cells
 
     const borderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
+    const borderOpacity = parseInt(localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY, 10);
     const bgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
+    const bgOpacity = parseInt(localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY, 10);
     const bgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
 
-    cell.style.borderColor = borderColor;
+    cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
+    cell.style.opacity = ''; // Reset direct opacity, handled by color
 
     if (bgImageUrl) {
         cell.style.backgroundImage = `url('${bgImageUrl}')`;
-        cell.style.backgroundSize = 'cover'; // Default to cover, adjust if needed
+        cell.style.backgroundSize = 'cover';
         cell.style.backgroundPosition = 'center center';
         cell.style.backgroundRepeat = 'no-repeat';
-        // Set fallback color slightly transparently
-        cell.style.backgroundColor = 'rgba(245, 245, 220, 0.8)'; // Default beige slightly transparent
+        // Set fallback color with its specific opacity
+        cell.style.backgroundColor = hexToRgba(bgColor, bgOpacity);
     } else {
         cell.style.backgroundImage = ''; // Clear image if URL is removed
-        cell.style.backgroundColor = bgColor;
+        cell.style.backgroundColor = hexToRgba(bgColor, bgOpacity);
     }
-    // Ensure opacity is reset if it was somehow set (e.g., during marking/unmarking)
-    cell.style.opacity = '';
 }
 
 // --- Re-apply default styles to all non-marked cells ---
@@ -387,6 +427,42 @@ function refreshCellStyles() {
     cells.forEach(cell => {
         applyCellStyle(cell); // Re-apply based on current settings
     });
+}
+
+// --- Save board background settings to localStorage ---
+function saveBoardBgSettings() {
+    localStorage.setItem(LS_BOARD_BG_COLOR, document.getElementById('board-bg-color-picker').value);
+    localStorage.setItem(LS_BOARD_BG_IMAGE_URL, document.getElementById('board-bg-image-url-input').value);
+    let opacity = parseInt(document.getElementById('board-bg-color-opacity-input').value, 10); // Use new ID
+    if (isNaN(opacity) || opacity < 0) opacity = 0;
+    if (opacity > 100) opacity = 100;
+    localStorage.setItem(LS_BOARD_BG_COLOR_OPACITY, opacity); // Use new key
+}
+
+// --- Apply board background style ---
+function applyBoardBgStyle() {
+    const container = document.getElementById('bingo-board-container');
+    if (!container) return;
+
+    const bgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
+    const bgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
+    const opacityValue = parseInt(localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY, 10);
+
+    // Apply opacity - REMOVED direct opacity setting
+    // container.style.opacity = opacityValue;
+
+    // Apply background image or color
+    if (bgImageUrl) {
+        container.style.backgroundImage = `url('${bgImageUrl}')`;
+        container.style.backgroundSize = 'cover';
+        container.style.backgroundPosition = 'center center';
+        container.style.backgroundRepeat = 'no-repeat';
+        // Apply background color with its opacity as fallback / see-through
+        container.style.backgroundColor = hexToRgba(bgColor, opacityValue);
+    } else {
+        container.style.backgroundImage = 'none';
+        container.style.backgroundColor = hexToRgba(bgColor, opacityValue);
+    }
 }
 
 // Helper to save board state
@@ -405,6 +481,7 @@ function saveBoardState() {
     saveHeaderSettings(); // Save header settings from inputs
     saveMarkedStyleSettings(); // Save marked cell style settings
     saveCellStyleSettings(); // Save default cell style settings
+    saveBoardBgSettings(); // Save board background settings
 }
 
 function generateBoard() {
@@ -503,23 +580,27 @@ function generateBoard() {
     // Reset background inputs to defaults
     document.querySelector('input[name="background-type"][value="gradient"]').checked = true; // Default to gradient
     document.getElementById('background-color-picker').value = DEFAULT_SOLID_COLOR;
+    document.getElementById('background-color-opacity-input').value = DEFAULT_SOLID_COLOR_OPACITY;
     document.getElementById('gradient-color-1').value = DEFAULT_GRADIENT_COLOR_1;
+    document.getElementById('gradient-color-1-opacity-input').value = DEFAULT_GRADIENT_COLOR_1_OPACITY;
     document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
+    document.getElementById('gradient-color-2-opacity-input').value = DEFAULT_GRADIENT_COLOR_2_OPACITY;
     document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
     toggleBackgroundControls(); // Ensure correct controls are visible
 
     // Reset header inputs to defaults
     document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
     document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
+    document.getElementById('header-text-color-picker').value = DEFAULT_HEADER_TEXT_COLOR;
+    document.getElementById('header-text-color-opacity-input').value = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
     updateHeaderDisplay(); // Apply default header display
 
     // Reset marked style inputs to defaults
-    document.querySelector('input[name="marked-style-type"][value="color"]').checked = true;
     document.getElementById('marked-color-picker').value = DEFAULT_MARKED_COLOR;
+    document.getElementById('marked-color-opacity-input').value = DEFAULT_MARKED_COLOR_OPACITY;
     document.getElementById('marked-image-url-input').value = DEFAULT_MARKED_IMAGE_URL;
-    document.getElementById('marked-opacity-input').value = DEFAULT_MARKED_OPACITY;
     document.getElementById('marked-border-color-picker').value = DEFAULT_MARKED_BORDER_COLOR;
-    toggleMarkedStyleInputs(); // Ensure correct marked style inputs are visible
+    document.getElementById('marked-border-opacity-input').value = DEFAULT_MARKED_BORDER_OPACITY;
     refreshMarkedCellStyles(); // Apply default styles (which is none, effectively)
 
     // Clear the board display
@@ -631,16 +712,20 @@ function resetSettings() {
     // localStorage.removeItem(LS_BACKGROUND_TYPE);
     // localStorage.removeItem(LS_SOLID_COLOR);
     // localStorage.removeItem(LS_GRADIENT_COLOR_1);
+    // localStorage.removeItem(LS_GRADIENT_COLOR_1_OPACITY);
     // localStorage.removeItem(LS_GRADIENT_COLOR_2);
+    // localStorage.removeItem(LS_GRADIENT_COLOR_2_OPACITY);
     // localStorage.removeItem(LS_GRADIENT_DIRECTION);
     // localStorage.removeItem(LS_HEADER_TEXT);
     // localStorage.removeItem(LS_HEADER_IMAGE_URL);
     // localStorage.removeItem(LS_MARKED_STYLE_TYPE);
     // localStorage.removeItem(LS_MARKED_COLOR);
     // localStorage.removeItem(LS_MARKED_IMAGE_URL);
-    // localStorage.removeItem(LS_MARKED_OPACITY);
+    // localStorage.removeItem(LS_MARKED_COLOR_OPACITY);
     // localStorage.removeItem(LS_CELL_BORDER_COLOR); // Keep style on board reset
+    // localStorage.removeItem(LS_CELL_BORDER_OPACITY);
     // localStorage.removeItem(LS_CELL_BG_COLOR);
+    // localStorage.removeItem(LS_CELL_BG_OPACITY);
     // localStorage.removeItem(LS_CELL_BG_IMAGE_URL);
 
     // Reset global variables for board content
@@ -712,14 +797,24 @@ function loadFromLocalStorage() {
         savedHeaderText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
     }
     const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
-    const savedMarkedStyleType = localStorage.getItem(LS_MARKED_STYLE_TYPE) || DEFAULT_MARKED_STYLE_TYPE;
+    let savedHeaderTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
+    if (savedHeaderTextColor === null) {
+        savedHeaderTextColor = DEFAULT_HEADER_TEXT_COLOR;
+    }
+    const savedHeaderTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY) || DEFAULT_HEADER_TEXT_COLOR_OPACITY;
     const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
+    const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
     const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
-    const savedMarkedOpacity = localStorage.getItem(LS_MARKED_OPACITY) || DEFAULT_MARKED_OPACITY;
     const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
+    const savedCellBorderOpacity = localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY;
     const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
+    const savedCellBgOpacity = localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY;
     const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
     const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
+    const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
+    const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
+    const savedBoardBgColorOpacity = localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY;
+    const savedBoardBgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -812,8 +907,11 @@ function loadFromLocalStorage() {
     // --- Restore Background Settings ---
     const savedBackgroundType = localStorage.getItem(LS_BACKGROUND_TYPE) || 'gradient'; // Default to gradient
     const savedSolidColor = localStorage.getItem(LS_SOLID_COLOR) || DEFAULT_SOLID_COLOR;
+    const savedSolidColorOpacity = localStorage.getItem(LS_SOLID_COLOR_OPACITY) || DEFAULT_SOLID_COLOR_OPACITY;
     const savedGradientColor1 = localStorage.getItem(LS_GRADIENT_COLOR_1) || DEFAULT_GRADIENT_COLOR_1;
+    const savedGradientColor1Opacity = localStorage.getItem(LS_GRADIENT_COLOR_1_OPACITY) || DEFAULT_GRADIENT_COLOR_1_OPACITY;
     const savedGradientColor2 = localStorage.getItem(LS_GRADIENT_COLOR_2) || DEFAULT_GRADIENT_COLOR_2;
+    const savedGradientColor2Opacity = localStorage.getItem(LS_GRADIENT_COLOR_2_OPACITY) || DEFAULT_GRADIENT_COLOR_2_OPACITY;
     const savedGradientDirection = localStorage.getItem(LS_GRADIENT_DIRECTION) || DEFAULT_GRADIENT_DIRECTION;
 
     // Set radio button
@@ -821,8 +919,11 @@ function loadFromLocalStorage() {
 
     // Set input values
     document.getElementById('background-color-picker').value = savedSolidColor;
+    document.getElementById('background-color-opacity-input').value = savedSolidColorOpacity;
     document.getElementById('gradient-color-1').value = savedGradientColor1;
+    document.getElementById('gradient-color-1-opacity-input').value = savedGradientColor1Opacity;
     document.getElementById('gradient-color-2').value = savedGradientColor2;
+    document.getElementById('gradient-color-2-opacity-input').value = savedGradientColor2Opacity;
     document.getElementById('gradient-direction').value = savedGradientDirection;
 
     // Show/hide controls and apply background
@@ -833,25 +934,34 @@ function loadFromLocalStorage() {
     // --- Restore Header Settings ---
     document.getElementById('header-text-input').value = savedHeaderText;
     document.getElementById('header-image-url-input').value = savedHeaderImageUrl;
+    document.getElementById('header-text-color-picker').value = savedHeaderTextColor;
+    document.getElementById('header-text-color-opacity-input').value = savedHeaderTextOpacity;
     updateHeaderDisplay(); // Apply the loaded header
     // --- End Restore Header Settings ---
 
     // --- Restore Marked Style Settings ---
-    document.querySelector(`input[name="marked-style-type"][value="${savedMarkedStyleType}"]`).checked = true;
     document.getElementById('marked-color-picker').value = savedMarkedColor;
+    document.getElementById('marked-color-opacity-input').value = savedMarkedColorOpacity;
     document.getElementById('marked-image-url-input').value = savedMarkedImageUrl;
-    document.getElementById('marked-opacity-input').value = savedMarkedOpacity;
     document.getElementById('marked-border-color-picker').value = savedMarkedBorderColor;
-    toggleMarkedStyleInputs(); // Show/hide correct inputs
-    // Styles are applied during board creation loop above
-    // --- End Restore Marked Style Settings ---
+    document.getElementById('marked-border-opacity-input').value = savedMarkedBorderOpacity;
+    refreshMarkedCellStyles(); // Apply the loaded marked styles
 
     // --- Restore Default Cell Style Settings ---
     document.getElementById('cell-border-color-picker').value = savedCellBorderColor;
+    document.getElementById('cell-border-opacity-input').value = savedCellBorderOpacity;
     document.getElementById('cell-background-color-picker').value = savedCellBgColor;
+    document.getElementById('cell-background-opacity-input').value = savedCellBgOpacity;
     document.getElementById('cell-background-image-url-input').value = savedCellBgImageUrl;
     // Styles are applied during board creation loop above
     // --- End Restore Default Cell Style Settings ---
+
+    // --- Restore Board Background Settings ---
+    document.getElementById('board-bg-color-picker').value = savedBoardBgColor;
+    document.getElementById('board-bg-image-url-input').value = savedBoardBgImageUrl;
+    document.getElementById('board-bg-color-opacity-input').value = savedBoardBgColorOpacity;
+    applyBoardBgStyle(); // Apply loaded style
+    // --- End Restore Board Background Settings ---
 
     // Restore the textarea with the original user input if available
     if (savedOriginalItemsText) {
@@ -887,13 +997,35 @@ function loadFromLocalStorage() {
         saveCellStyleSettings();
         refreshCellStyles(); // Update all non-marked cells
     });
+    document.getElementById('cell-border-opacity-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
     document.getElementById('cell-background-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-opacity-input').addEventListener('input', () => {
         saveCellStyleSettings();
         refreshCellStyles();
     });
     document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
         saveCellStyleSettings();
         refreshCellStyles();
+    });
+
+    // --- Add Event Listeners for Board Background Controls ---
+    document.getElementById('board-bg-color-picker').addEventListener('input', () => {
+        saveBoardBgSettings();
+        applyBoardBgStyle();
+    });
+    document.getElementById('board-bg-image-url-input').addEventListener('input', () => {
+        saveBoardBgSettings();
+        applyBoardBgStyle();
+    });
+    document.getElementById('board-bg-color-opacity-input').addEventListener('input', () => {
+        saveBoardBgSettings();
+        applyBoardBgStyle();
     });
 
     // --- Other Listeners ---
@@ -1073,15 +1205,27 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackground();
         saveBackgroundSettings();
     });
+    document.getElementById('background-color-opacity-input').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
     document.getElementById('gradient-color-1').addEventListener('input', () => {
         setBackground();
         saveBackgroundSettings();
     });
-    document.getElementById('gradient-color-2').addEventListener('input', () => {
+     document.getElementById('gradient-color-1-opacity-input').addEventListener('input', () => {
         setBackground();
         saveBackgroundSettings();
     });
-    document.getElementById('gradient-direction').addEventListener('change', () => {
+     document.getElementById('gradient-color-2').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
+      document.getElementById('gradient-color-2-opacity-input').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
+     document.getElementById('gradient-direction').addEventListener('change', () => {
         setBackground();
         saveBackgroundSettings();
     });
@@ -1095,16 +1239,21 @@ document.addEventListener('DOMContentLoaded', () => {
         saveHeaderSettings();       // Save the new URL first
         updateHeaderDisplay(); // Then update display from saved state
     });
+    document.getElementById('header-text-color-picker').addEventListener('input', () => {
+        saveHeaderSettings();
+        updateHeaderDisplay();
+    });
+    document.getElementById('header-text-color-opacity-input').addEventListener('input', () => {
+        saveHeaderSettings();
+        updateHeaderDisplay();
+    });
 
     // --- Add Event Listeners for Marked Style Controls ---
-    document.querySelectorAll('input[name="marked-style-type"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            toggleMarkedStyleInputs();
-            saveMarkedStyleSettings(); // Save the new setting
-            refreshMarkedCellStyles(); // Update existing marked cells
-        });
-    });
     document.getElementById('marked-color-picker').addEventListener('input', () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById('marked-color-opacity-input').addEventListener('input', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
@@ -1112,13 +1261,49 @@ document.addEventListener('DOMContentLoaded', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
-    document.getElementById('marked-opacity-input').addEventListener('input', () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
     document.getElementById('marked-border-color-picker').addEventListener('input', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
+    });
+     document.getElementById('marked-border-opacity-input').addEventListener('input', () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+
+    // --- Add Event Listeners for Default Cell Style Controls ---
+    document.getElementById('cell-border-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById('cell-border-opacity-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById('cell-background-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-opacity-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+
+    // --- Add Event Listeners for Board Background Controls ---
+    document.getElementById('board-bg-color-picker').addEventListener('input', () => {
+        saveBoardBgSettings();
+        applyBoardBgStyle();
+    });
+    document.getElementById('board-bg-image-url-input').addEventListener('input', () => {
+        saveBoardBgSettings();
+        applyBoardBgStyle();
+    });
+    document.getElementById('board-bg-color-opacity-input').addEventListener('input', () => {
+        saveBoardBgSettings();
+        applyBoardBgStyle();
     });
 
     // --- Other Listeners ---
