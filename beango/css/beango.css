@@ -3,6 +3,10 @@
     margin-bottom: 0px;
 }
 
+#board-header {
+    /* Background color/opacity set by JS */
+}
+
 html,
 body {
     min-height: 100vh;

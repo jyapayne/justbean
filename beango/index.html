@@ -17,7 +17,7 @@
     <!-- Main Content Area (Board and Controls) -->
     <div class="w-full flex flex-col items-center justify-center p-4 overflow-y-auto">
         <!-- Updated Header Section -->
-        <div id="board-header" class="bg-white rounded-t-lg pt-4 pb-4 w-full max-w-2xl flex justify-center items-center gap-4">
+        <div id="board-header" class="rounded-t-lg pt-4 pb-4 w-full max-w-2xl flex justify-center items-center gap-4">
              <!-- Content will be dynamically added by JS -->
              <div id="custom-header-content" class="flex justify-center items-center gap-4">
                  <!-- Default content (can be replaced) -->
@@ -111,6 +111,16 @@
                         <label for="header-image-url-input" class="block text-sm font-medium text-gray-700">Header Image URL (Optional):</label>
                         <input type="url" id="header-image-url-input" name="header-image-url-input" placeholder="Leave blank to use default bean with text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                         <p class="mt-1 text-xs text-gray-500">If text is also provided, image appears next to it.</p>
+                    </div>
+                     <div class="border-t pt-4 mt-4">
+                         <label for="header-bg-color-picker" class="block text-sm font-medium text-gray-700">Header Background Color:</label>
+                         <div class="flex items-center space-x-2 mt-1">
+                            <input type="color" id="header-bg-color-picker" name="header-bg-color-picker" value="#ffffff" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                            <div class="w-28 flex flex-col items-center">
+                                <label for="header-bg-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="header-bg-opacity-value">100</span>%</label>
+                                <input type="range" id="header-bg-opacity-slider" name="header-bg-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </details>

@@ -21,6 +21,8 @@ const LS_HEADER_TEXT = 'beango_headerText';
 const LS_HEADER_IMAGE_URL = 'beango_headerImageUrl';
 const LS_HEADER_TEXT_COLOR = 'beango_headerTextColor';
 const LS_HEADER_TEXT_COLOR_OPACITY = 'beango_headerTextColorOpacity'; // New
+const LS_HEADER_BG_COLOR = 'beango_headerBgColor';
+const LS_HEADER_BG_OPACITY = 'beango_headerBgOpacity';
 const LS_MARKED_COLOR = 'beango_markedColor';
 const LS_MARKED_COLOR_OPACITY = 'beango_markedColorOpacity'; // New (replaces LS_MARKED_OPACITY)
 const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
@@ -49,6 +51,8 @@ const DEFAULT_HEADER_TEXT = 'Beango!'; // REVERTED default back to Beango!
 const DEFAULT_HEADER_IMAGE_URL = ''; // No default image
 const DEFAULT_HEADER_TEXT_COLOR = '#15803d'; // Tailwind green-700 (approx)
 const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; // New
+const DEFAULT_HEADER_BG_COLOR = '#ffffff';
+const DEFAULT_HEADER_BG_OPACITY = 100;
 const DEFAULT_MARKED_COLOR = '#fde047'; // Default yellow
 const DEFAULT_MARKED_COLOR_OPACITY = 80; // New (replaces DEFAULT_MARKED_OPACITY)
 const DEFAULT_MARKED_IMAGE_URL = '';
@@ -325,6 +329,20 @@ function saveHeaderSettings() {
     localStorage.setItem(LS_HEADER_IMAGE_URL, document.getElementById('header-image-url-input').value);
     localStorage.setItem(LS_HEADER_TEXT_COLOR, document.getElementById('header-text-color-picker').value);
     localStorage.setItem(LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-slider').value);
+    // Save header background
+    localStorage.setItem(LS_HEADER_BG_COLOR, document.getElementById('header-bg-color-picker').value);
+    localStorage.setItem(LS_HEADER_BG_OPACITY, document.getElementById('header-bg-opacity-slider').value);
+}
+
+// --- Function to apply header background style ---
+function applyHeaderBgStyle() {
+    const headerElement = document.getElementById('board-header');
+    if (!headerElement) return;
+
+    const bgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
+    const opacity = parseInt(localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY, 10);
+
+    headerElement.style.backgroundColor = hexToRgba(bgColor, opacity);
 }
 
 // --- Function to update the header display ---
@@ -832,6 +850,8 @@ function loadFromLocalStorage() {
         savedHeaderTextColor = DEFAULT_HEADER_TEXT_COLOR;
     }
     const savedHeaderTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY) || DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+    const savedHeaderBgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
+    const savedHeaderBgOpacity = localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY;
     const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
     const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
     const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
@@ -978,7 +998,12 @@ function loadFromLocalStorage() {
     document.getElementById('header-text-color-picker').value = savedHeaderTextColor;
     document.getElementById('header-text-color-opacity-slider').value = savedHeaderTextOpacity;
     if(document.getElementById('header-text-color-opacity-value')) document.getElementById('header-text-color-opacity-value').textContent = savedHeaderTextOpacity; // Update display span
-    updateHeaderDisplay(); // Apply the loaded header
+    // Restore header background inputs
+    document.getElementById('header-bg-color-picker').value = savedHeaderBgColor;
+    document.getElementById('header-bg-opacity-slider').value = savedHeaderBgOpacity;
+    if(document.getElementById('header-bg-opacity-value')) document.getElementById('header-bg-opacity-value').textContent = savedHeaderBgOpacity;
+    applyHeaderBgStyle(); // Apply header background style
+    updateHeaderDisplay(); // Apply the loaded header content
     // --- End Restore Header Settings ---
 
     // --- Restore Marked Style Settings ---
@@ -1357,6 +1382,15 @@ document.addEventListener('DOMContentLoaded', () => {
         saveHeaderSettings();
         updateHeaderDisplay();
     });
+    document.getElementById('header-bg-color-picker').addEventListener('input', () => {
+        saveHeaderSettings();
+        applyHeaderBgStyle();
+    });
+    document.getElementById('header-bg-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('header-bg-opacity-value')) document.getElementById('header-bg-opacity-value').textContent = e.target.value;
+        saveHeaderSettings();
+        applyHeaderBgStyle();
+    });
 
     // --- Add Event Listeners for Marked Style Controls ---
     document.getElementById('marked-color-picker').addEventListener('input', () => {
@@ -1430,6 +1464,35 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBoardBgSettings();
         applyBoardBgStyle();
     });
+
+    // --- Search Listener ---
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const cells = document.querySelectorAll('#bingo-board .bingo-cell');
+
+            // Split search term into words
+            const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
+
+            cells.forEach(cell => {
+                const textSpan = cell.querySelector('.bingo-cell-text');
+                let isMatch = false;
+                if (textSpan && searchWords.length > 0) {
+                    const cellText = textSpan.textContent.trim().toLowerCase();
+                    // Check if ALL search words are included in the cell text
+                    isMatch = searchWords.every(word => cellText.includes(word));
+                }
+
+                // Add or remove highlight based on match status
+                if (isMatch) {
+                    cell.classList.add('highlighted');
+                } else {
+                    cell.classList.remove('highlighted');
+                }
+            });
+        });
+    }
 
     // --- Other Listeners ---
     window.addEventListener('resize', equalizeCellSizes);
