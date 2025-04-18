@@ -16,6 +16,10 @@ const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
 const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
 const LS_HEADER_TYPE = 'beango_headerType'; // 'text' or 'image'
 const LS_HEADER_CONTENT = 'beango_headerContent'; // Text string or Image URL
+const LS_MARKED_STYLE_TYPE = 'beango_markedStyleType'; // 'color' or 'image'
+const LS_MARKED_COLOR = 'beango_markedColor';
+const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
+const LS_MARKED_OPACITY = 'beango_markedOpacity'; // Stored as 0-100
 
 // --- Default Values ---
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
@@ -25,6 +29,10 @@ const DEFAULT_GRADIENT_DIRECTION = '135deg'; // From main page gradient
 const DEFAULT_HEADER_TYPE = 'text';
 const DEFAULT_HEADER_TEXT = 'Beango!';
 const DEFAULT_HEADER_IMAGE_URL = ''; // No default image
+const DEFAULT_MARKED_STYLE_TYPE = 'color';
+const DEFAULT_MARKED_COLOR = '#fde047'; // Default yellow
+const DEFAULT_MARKED_IMAGE_URL = '';
+const DEFAULT_MARKED_OPACITY = 80; // Default 80%
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -173,6 +181,92 @@ function getItemsFromInput() {
     return text ? text.split('\n').map(item => item.trim()).filter(item => item) : [];
 }
 
+// --- Save current marked style settings to localStorage ---
+function saveMarkedStyleSettings() {
+    const styleType = document.querySelector('input[name="marked-style-type"]:checked').value;
+    localStorage.setItem(LS_MARKED_STYLE_TYPE, styleType);
+
+    if (styleType === 'color') {
+        localStorage.setItem(LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
+        // Optionally remove image URL if switching to color
+        // localStorage.removeItem(LS_MARKED_IMAGE_URL);
+    } else { // image
+        localStorage.setItem(LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
+        // Optionally remove color if switching to image
+        // localStorage.removeItem(LS_MARKED_COLOR);
+    }
+    // Always save opacity
+    let opacity = parseInt(document.getElementById('marked-opacity-input').value, 10);
+    if (isNaN(opacity) || opacity < 0) opacity = 0;
+    if (opacity > 100) opacity = 100;
+    localStorage.setItem(LS_MARKED_OPACITY, opacity);
+}
+
+// --- Function to manage visibility of marked style controls ---
+function toggleMarkedStyleInputs() {
+    const styleType = document.querySelector('input[name="marked-style-type"]:checked').value;
+    const colorSettings = document.getElementById('marked-color-settings');
+    const imageSettings = document.getElementById('marked-image-settings');
+
+    if (styleType === 'color') {
+        colorSettings.style.display = 'block';
+        imageSettings.style.display = 'none';
+    } else { // image
+        colorSettings.style.display = 'none';
+        imageSettings.style.display = 'block';
+    }
+    // Opacity input is always visible
+}
+
+// --- Apply saved marked styles to a cell ---
+function applyMarkedCellStyle(cell) {
+    if (!cell) return;
+
+    const isMarked = cell.classList.contains('marked');
+    const styleType = localStorage.getItem(LS_MARKED_STYLE_TYPE) || DEFAULT_MARKED_STYLE_TYPE;
+    const opacityValue = (parseInt(localStorage.getItem(LS_MARKED_OPACITY), 10) || DEFAULT_MARKED_OPACITY) / 100;
+
+    // Reset styles first
+    cell.style.backgroundColor = ''; // Use CSS default
+    cell.style.backgroundImage = '';
+    cell.style.backgroundSize = '';
+    cell.style.backgroundPosition = '';
+    cell.style.backgroundRepeat = '';
+    cell.style.opacity = ''; // Use CSS default
+
+    if (isMarked) {
+        cell.style.opacity = opacityValue;
+
+        if (styleType === 'color') {
+            const color = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
+            cell.style.backgroundColor = color;
+        } else { // image
+            const imageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
+            if (imageUrl) {
+                cell.style.backgroundImage = `url('${imageUrl}')`;
+                cell.style.backgroundSize = 'cover'; // Or 'contain', 'auto', etc.
+                cell.style.backgroundPosition = 'center center';
+                cell.style.backgroundRepeat = 'no-repeat';
+                // Set a fallback background color in case the image fails to load or is transparent
+                cell.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; // Slightly visible white
+            } else {
+                // Fallback to default color if image URL is empty
+                cell.style.backgroundColor = DEFAULT_MARKED_COLOR;
+            }
+        }
+    } else {
+        // If unmarked, ensure all styles are fully reset (already done above)
+    }
+}
+
+// --- Re-apply styles to all currently marked cells ---
+function refreshMarkedCellStyles() {
+    const markedCells = document.querySelectorAll('#bingo-board .bingo-cell.marked');
+    markedCells.forEach(cell => {
+        applyMarkedCellStyle(cell); // Re-apply based on current settings
+    });
+}
+
 // Helper to save board state
 function saveBoardState() {
     const sizeInput = document.getElementById('board-size');
@@ -187,6 +281,7 @@ function saveBoardState() {
     localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Save user's raw input from textarea
     saveBackgroundSettings(); // Save background settings from inputs
     saveHeaderSettings(); // Save header settings from inputs
+    saveMarkedStyleSettings(); // Save marked cell style settings
 }
 
 function generateBoard() {
@@ -246,7 +341,7 @@ function generateBoard() {
         board.appendChild(cell);
     });
 
-    clearMarks(false); // Clear previous marks visually but don't save yet
+    clearMarks(false); // Clear previous marks visually AND their styles, but don't save yet
     equalizeCellSizes(); // Add this call
     // saveBoardState(); // REMOVED first call - Save the newly generated board state (size, items, displayed, marks)
 
@@ -267,7 +362,7 @@ function generateBoard() {
     showNotification(notificationMessage, notificationType);
 
     // *** Save the complete final state just before reload ***
-    saveBoardState(); // Includes size, items, displayed, marks, original items, background, header
+    saveBoardState(); // Includes size, items, displayed, marks, original items, background, header, marked style
 
     // Reload the page to ensure correct rendering based on saved state
     location.reload();
@@ -295,6 +390,14 @@ function generateBoard() {
     document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
     toggleHeaderInputs(); // Ensure correct header inputs are visible
     updateHeaderDisplay(); // Apply default header display
+
+    // Reset marked style inputs to defaults
+    document.querySelector('input[name="marked-style-type"][value="color"]').checked = true;
+    document.getElementById('marked-color-picker').value = DEFAULT_MARKED_COLOR;
+    document.getElementById('marked-image-url-input').value = DEFAULT_MARKED_IMAGE_URL;
+    document.getElementById('marked-opacity-input').value = DEFAULT_MARKED_OPACITY;
+    toggleMarkedStyleInputs(); // Ensure correct marked style inputs are visible
+    refreshMarkedCellStyles(); // Apply default styles (which is none, effectively)
 
     // Clear the board display
     const boardHeader = document.getElementById('board-header');
@@ -357,13 +460,19 @@ function randomizeBoard() {
 
 function selectCell(cell) {
     cell.classList.toggle('marked'); // Toggle the dedicated 'marked' class
+    applyMarkedCellStyle(cell);   // Apply/remove styles based on new state and settings
     saveBoardState(); // Save updated marks immediately after click
 }
 
 function clearMarks(save = true) {
     const cells = document.querySelectorAll('#bingo-board .bingo-cell');
     cells.forEach(cell => {
-        cell.classList.remove('marked', 'ring-2', 'ring-blue-500'); // Use 'marked' class
+        if (cell.classList.contains('marked')) {
+            cell.classList.remove('marked');
+            applyMarkedCellStyle(cell); // Reset styles for this cell
+        }
+        // Ensure styles are reset even if class was somehow missing
+        applyMarkedCellStyle(cell);
     });
     if (save) {
         saveBoardState(); // Save cleared marks
@@ -385,61 +494,62 @@ function shuffleArray(array) {
 
 // Function to reset settings and clear board
 function resetSettings() {
-    // Clear localStorage relevant to the board
+    // Clear localStorage relevant ONLY to the board structure/content
     localStorage.removeItem(LS_BOARD_SIZE);
-    localStorage.removeItem(LS_CELL_ITEMS);
-    localStorage.removeItem(LS_DISPLAYED_ITEMS);
+    localStorage.removeItem(LS_CELL_ITEMS); // The items configured for the board (padded/sliced)
+    localStorage.removeItem(LS_DISPLAYED_ITEMS); // The current layout
     localStorage.removeItem(LS_MARKED_INDICES);
-    localStorage.removeItem(LS_ORIGINAL_ITEMS); // Clear saved raw input
-    // Optionally reset config pane state too?
-    // localStorage.removeItem(LS_CONFIG_OPEN);
-    localStorage.removeItem(LS_BACKGROUND_TYPE);
-    localStorage.removeItem(LS_SOLID_COLOR);
-    localStorage.removeItem(LS_GRADIENT_COLOR_1);
-    localStorage.removeItem(LS_GRADIENT_COLOR_2);
-    localStorage.removeItem(LS_GRADIENT_DIRECTION);
+    localStorage.removeItem(LS_ORIGINAL_ITEMS); // User's raw input
 
-    // Reset global variables
+    // DO NOT clear these:
+    // localStorage.removeItem(LS_CONFIG_OPEN);
+    // localStorage.removeItem(LS_BACKGROUND_TYPE);
+    // localStorage.removeItem(LS_SOLID_COLOR);
+    // localStorage.removeItem(LS_GRADIENT_COLOR_1);
+    // localStorage.removeItem(LS_GRADIENT_COLOR_2);
+    // localStorage.removeItem(LS_GRADIENT_DIRECTION);
+    // localStorage.removeItem(LS_HEADER_TYPE);
+    // localStorage.removeItem(LS_HEADER_CONTENT);
+    // localStorage.removeItem(LS_MARKED_STYLE_TYPE);
+    // localStorage.removeItem(LS_MARKED_COLOR);
+    // localStorage.removeItem(LS_MARKED_IMAGE_URL);
+    // localStorage.removeItem(LS_MARKED_OPACITY);
+
+    // Reset global variables for board content
     currentItems = [];
     displayedItems = [];
 
-    // Reset form inputs
+    // Reset ONLY board-related form inputs
     document.getElementById('board-size').value = 5; // Default size
     document.getElementById('cell-contents').value = '';
     document.getElementById('file-input').value = ''; // Clear file input
 
-    // Reset background inputs to defaults
-    document.querySelector('input[name="background-type"][value="gradient"]').checked = true; // Default to gradient
-    document.getElementById('background-color-picker').value = DEFAULT_SOLID_COLOR;
-    document.getElementById('gradient-color-1').value = DEFAULT_GRADIENT_COLOR_1;
-    document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
-    document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
-    toggleBackgroundControls(); // Ensure correct controls are visible
-
-    // Reset header inputs to defaults
-    document.querySelector('input[name="header-type"][value="text"]').checked = true;
-    document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
-    document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
-    toggleHeaderInputs(); // Ensure correct header inputs are visible
-    updateHeaderDisplay(); // Apply default header display
+    // DO NOT reset background inputs
+    // DO NOT reset header inputs
+    // DO NOT reset marked style inputs
 
     // Clear the board display
     const board = document.getElementById('bingo-board');
-    board.innerHTML = '<div class="bingo-cell">Settings Reset. Generate a new board!</div>';
+    board.innerHTML = '<div class="bingo-cell">Board Reset. Generate a new board!</div>';
     board.style.gridTemplateColumns = ''; // Clear grid style
     board.style.gridAutoRows = ''; // Also clear gridAutoRows
 
-    // Reset container width to default - REMOVED
-    // updateBoardContainerMaxWidth(5); // Assuming 5 is the default size
-    // updateBoardContainerMaxWidth(5, '#board-header');
-    // Also clear any inline max-width set by equalizeCellSizes
+    // Reset container width to default
     const boardContainer = document.getElementById('bingo-board-container');
     const boardHeader = document.getElementById('board-header');
-    if (boardContainer) boardContainer.style.maxWidth = '';
-    if (boardHeader) boardHeader.style.maxWidth = '';
+    if (boardContainer) boardContainer.style.maxWidth = ''; // Let it resize naturally or via equalize
+    if (boardHeader) boardHeader.style.maxWidth = ''; // Let it resize naturally or via equalize
+    // Call equalize after potentially changing board content/size
+    equalizeCellSizes();
 
-    setBackground(); // Apply default background
-    showNotification('Settings and board reset.', 'success');
+    // DO NOT reset background - keep current style
+    // setBackground();
+    // DO NOT reset header display - keep current style
+    // updateHeaderDisplay();
+    // DO NOT refresh marked styles - keep current style
+    // refreshMarkedCellStyles();
+
+    showNotification('Board settings reset. Generate a new board to apply.', 'success');
 }
 
 // --- Helper to get indices of marked cells ---
@@ -470,6 +580,10 @@ function loadFromLocalStorage() {
     const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
     const savedHeaderType = localStorage.getItem(LS_HEADER_TYPE) || DEFAULT_HEADER_TYPE;
     const savedHeaderContent = localStorage.getItem(LS_HEADER_CONTENT) || (savedHeaderType === 'text' ? DEFAULT_HEADER_TEXT : DEFAULT_HEADER_IMAGE_URL);
+    const savedMarkedStyleType = localStorage.getItem(LS_MARKED_STYLE_TYPE) || DEFAULT_MARKED_STYLE_TYPE;
+    const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
+    const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
+    const savedMarkedOpacity = localStorage.getItem(LS_MARKED_OPACITY) || DEFAULT_MARKED_OPACITY;
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -523,6 +637,8 @@ function loadFromLocalStorage() {
             cell.onclick = () => selectCell(cell);
             if (markedIndices.includes(index)) {
                 cell.classList.add('marked'); // Apply saved mark using 'marked' class
+                // Apply dynamic styles AFTER adding the class
+                applyMarkedCellStyle(cell);
             }
             board.appendChild(cell);
         });
@@ -567,6 +683,15 @@ function loadFromLocalStorage() {
     toggleHeaderInputs(); // Show/hide the correct input fields
     updateHeaderDisplay(); // Apply the loaded header
     // --- End Restore Header Settings ---
+
+    // --- Restore Marked Style Settings ---
+    document.querySelector(`input[name="marked-style-type"][value="${savedMarkedStyleType}"]`).checked = true;
+    document.getElementById('marked-color-picker').value = savedMarkedColor;
+    document.getElementById('marked-image-url-input').value = savedMarkedImageUrl;
+    document.getElementById('marked-opacity-input').value = savedMarkedOpacity;
+    toggleMarkedStyleInputs(); // Show/hide correct inputs
+    // Styles are applied during board creation loop above
+    // --- End Restore Marked Style Settings ---
 
     // Restore the textarea with the original user input if available
     if (savedOriginalItemsText) {
@@ -753,11 +878,12 @@ function explodeBeans() {
     }
 }
 
-// --- Event Listener for Page Load & Color Picker ---
+// --- Consolidated Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Load state first thing
     loadFromLocalStorage();
 
-    // Add listeners for background controls
+    // --- Add Event Listeners for Background Controls ---
     document.querySelectorAll('input[name="background-type"]').forEach(radio => {
         radio.addEventListener('change', () => {
             toggleBackgroundControls();
@@ -765,48 +891,62 @@ document.addEventListener('DOMContentLoaded', () => {
             saveBackgroundSettings();
         });
     });
-
     document.getElementById('background-color-picker').addEventListener('input', () => {
         setBackground();
         saveBackgroundSettings();
     });
-
     document.getElementById('gradient-color-1').addEventListener('input', () => {
         setBackground();
         saveBackgroundSettings();
     });
-
-     document.getElementById('gradient-color-2').addEventListener('input', () => {
+    document.getElementById('gradient-color-2').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
+    document.getElementById('gradient-direction').addEventListener('change', () => {
         setBackground();
         saveBackgroundSettings();
     });
 
-     document.getElementById('gradient-direction').addEventListener('change', () => {
-        setBackground();
-        saveBackgroundSettings();
-    });
-
-    // Header listeners
+    // --- Add Event Listeners for Header Controls ---
     document.querySelectorAll('input[name="header-type"]').forEach(radio => {
         radio.addEventListener('change', () => {
             toggleHeaderInputs();
-            // Update display immediately on type change - Order changed
             saveHeaderSettings();       // Save the new type first
             updateHeaderDisplay(); // Then update display from saved state
         });
     });
     document.getElementById('header-text-input').addEventListener('input', () => {
-        // Order changed
         saveHeaderSettings();       // Save the new text first
         updateHeaderDisplay(); // Then update display from saved state
     });
     document.getElementById('header-image-url-input').addEventListener('input', () => {
-        // Order changed
         saveHeaderSettings();       // Save the new URL first
         updateHeaderDisplay(); // Then update display from saved state
     });
 
-    // Call equalizeCellSizes on resize and load
+    // --- Add Event Listeners for Marked Style Controls ---
+    document.querySelectorAll('input[name="marked-style-type"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            toggleMarkedStyleInputs();
+            saveMarkedStyleSettings(); // Save the new setting
+            refreshMarkedCellStyles(); // Update existing marked cells
+        });
+    });
+    document.getElementById('marked-color-picker').addEventListener('input', () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById('marked-image-url-input').addEventListener('input', () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById('marked-opacity-input').addEventListener('input', () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+
+    // --- Other Listeners ---
     window.addEventListener('resize', equalizeCellSizes);
     equalizeCellSizes(); // Initial call after load
 });

@@ -58,90 +58,130 @@
     <div id="config-pane" class="w-80 bg-white p-6 shadow-lg fixed top-0 right-0 h-full z-20 overflow-y-auto transition-transform duration-300 ease-in-out config-pane-closed">
         <h2 class="text-xl font-semibold text-green-700 mb-4">Configuration</h2>
         <div class="space-y-4">
-            <div>
-                <label for="board-size" class="block text-sm font-medium text-gray-700">Board Size (e.g., 5 for 5x5):</label>
-                <input type="number" id="board-size" name="board-size" min="1" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-            </div>
-            <div>
-                <label for="cell-contents" class="block text-sm font-medium text-gray-700">Cell Contents (one item per line):</label>
-                <textarea id="cell-contents" name="cell-contents" rows="10" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Enter bingo items here, one per line..."></textarea>
-            </div>
-            <div>
-                <label for="file-input" class="block text-sm font-medium text-gray-700">Or Upload File:</label>
-                <input type="file" id="file-input" name="file-input" accept=".txt" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
-            </div>
 
-            <!-- Header Customization -->
-            <div class="border-t pt-4 mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Header Customization:</label>
-                <div class="mt-1 flex space-x-4 mb-2">
-                    <label class="inline-flex items-center">
-                        <input type="radio" class="form-radio text-green-600" name="header-type" value="text" checked>
-                        <span class="ml-2">Text</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" class="form-radio text-green-600" name="header-type" value="image">
-                        <span class="ml-2">Image URL</span>
-                    </label>
-                </div>
-                <div id="header-text-settings">
-                    <label for="header-text-input" class="block text-sm font-medium text-gray-700">Header Text:</label>
-                    <input type="text" id="header-text-input" name="header-text-input" value="Beango!" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                    <p class="mt-1 text-xs text-gray-500">The bean image will appear next to the text.</p>
-                </div>
-                <div id="header-image-settings" class="hidden">
-                    <label for="header-image-url-input" class="block text-sm font-medium text-gray-700">Header Image URL:</label>
-                    <input type="url" id="header-image-url-input" name="header-image-url-input" placeholder="https://example.com/image.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                </div>
-            </div>
-            <!-- End Header Customization -->
+            <details class="config-section" open>
+                <summary class="config-summary">Board Settings</summary>
+                <div class="config-content space-y-4 pt-2">
+                    <div>
+                        <label for="board-size" class="block text-sm font-medium text-gray-700">Board Size (e.g., 5 for 5x5):</label>
+                        <input type="number" id="board-size" name="board-size" min="1" value="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="cell-contents" class="block text-sm font-medium text-gray-700">Cell Contents (one item per line):</label>
+                        <textarea id="cell-contents" name="cell-contents" rows="10" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Enter bingo items here, one per line..."></textarea>
+                    </div>
+                    <div>
+                        <label for="file-input" class="block text-sm font-medium text-gray-700">Or Upload File:</label>
+                        <input type="file" id="file-input" name="file-input" accept=".txt" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                    </div>
+                    <!-- Moved Buttons -->
+                    <button onclick="generateBoard()" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                         Apply Settings & Generate
+                    </button>
+                    <button onclick="resetSettings()" class="w-full mt-2 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+                         Reset Board Only
+                    </button>
+                 </div>
+            </details>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Background Type:</label>
-                <div class="mt-1 flex space-x-4">
-                    <label class="inline-flex items-center">
-                        <input type="radio" class="form-radio text-green-600" name="background-type" value="solid">
-                        <span class="ml-2">Solid</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" class="form-radio text-green-600" name="background-type" value="gradient" checked>
-                        <span class="ml-2">Gradient</span>
-                    </label>
+            <details class="config-section">
+                <summary class="config-summary">Header Customization</summary>
+                <div class="config-content space-y-4 pt-2">
+                    <div class="mt-1 flex space-x-4 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" class="form-radio text-green-600" name="header-type" value="text" checked>
+                            <span class="ml-2">Text</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" class="form-radio text-green-600" name="header-type" value="image">
+                            <span class="ml-2">Image URL</span>
+                        </label>
+                    </div>
+                    <div id="header-text-settings">
+                        <label for="header-text-input" class="block text-sm font-medium text-gray-700">Header Text:</label>
+                        <input type="text" id="header-text-input" name="header-text-input" value="Beango!" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <p class="mt-1 text-xs text-gray-500">The bean image will appear next to the text.</p>
+                    </div>
+                    <div id="header-image-settings" class="hidden">
+                        <label for="header-image-url-input" class="block text-sm font-medium text-gray-700">Header Image URL:</label>
+                        <input type="url" id="header-image-url-input" name="header-image-url-input" placeholder="https://example.com/image.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    </div>
                 </div>
-            </div>
-            <div id="solid-color-settings">
-                <label for="background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
-                <input type="color" id="background-color-picker" name="background-color-picker" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
-            </div>
-            <div id="gradient-color-settings" class="space-y-2 hidden">
-                 <div>
-                     <label for="gradient-color-1" class="block text-sm font-medium text-gray-700">Gradient Start Color:</label>
-                     <input type="color" id="gradient-color-1" name="gradient-color-1" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
-                 </div>
-                 <div>
-                     <label for="gradient-color-2" class="block text-sm font-medium text-gray-700">Gradient End Color:</label>
-                     <input type="color" id="gradient-color-2" name="gradient-color-2" value="#feb47b" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
-                 </div>
-                 <div>
-                     <label for="gradient-direction" class="block text-sm font-medium text-gray-700">Gradient Direction:</label>
-                     <select id="gradient-direction" name="gradient-direction" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                         <option value="to bottom">Top to Bottom</option>
-                         <option value="to right">Left to Right</option>
-                         <option value="to top">Bottom to Top</option>
-                         <option value="to left">Right to Left</option>
-                         <option value="to top right">Bottom Left to Top Right</option>
-                         <option value="to bottom left">Top Right to Bottom Left</option>
-                         <option value="135deg" selected>Diagonal (135deg)</option>
-                         <option value="radial">Radial (Circle)</option>
-                     </select>
-                 </div>
-            </div>
-             <button onclick="generateBoard()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                 Apply Settings & Generate
-            </button>
-             <button onclick="resetSettings()" class="w-full mt-2 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
-                 Reset Settings & Board
-            </button>
+            </details>
+
+             <details class="config-section">
+                <summary class="config-summary">Background Style</summary>
+                <div class="config-content space-y-4 pt-2">
+                    <div class="mt-1 flex space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" class="form-radio text-green-600" name="background-type" value="solid">
+                            <span class="ml-2">Solid</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" class="form-radio text-green-600" name="background-type" value="gradient" checked>
+                            <span class="ml-2">Gradient</span>
+                        </label>
+                    </div>
+                    <div id="solid-color-settings">
+                        <label for="background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
+                        <input type="color" id="background-color-picker" name="background-color-picker" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div id="gradient-color-settings" class="space-y-2 hidden">
+                         <div>
+                             <label for="gradient-color-1" class="block text-sm font-medium text-gray-700">Gradient Start Color:</label>
+                             <input type="color" id="gradient-color-1" name="gradient-color-1" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                         </div>
+                         <div>
+                             <label for="gradient-color-2" class="block text-sm font-medium text-gray-700">Gradient End Color:</label>
+                             <input type="color" id="gradient-color-2" name="gradient-color-2" value="#feb47b" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                         </div>
+                         <div>
+                             <label for="gradient-direction" class="block text-sm font-medium text-gray-700">Gradient Direction:</label>
+                             <select id="gradient-direction" name="gradient-direction" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                 <option value="to bottom">Top to Bottom</option>
+                                 <option value="to right">Left to Right</option>
+                                 <option value="to top">Bottom to Top</option>
+                                 <option value="to left">Right to Left</option>
+                                 <option value="to top right">Bottom Left to Top Right</option>
+                                 <option value="to bottom left">Top Right to Bottom Left</option>
+                                 <option value="135deg" selected>Diagonal (135deg)</option>
+                                 <option value="radial">Radial (Circle)</option>
+                             </select>
+                         </div>
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-section">
+                <summary class="config-summary">Marked Cell Style</summary>
+                 <div class="config-content space-y-4 pt-2">
+                    <div class="mt-1 flex space-x-4 mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="radio" class="form-radio text-green-600" name="marked-style-type" value="color" checked>
+                            <span class="ml-2">Color</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" class="form-radio text-green-600" name="marked-style-type" value="image">
+                            <span class="ml-2">Image URL</span>
+                        </label>
+                    </div>
+                    <div id="marked-color-settings">
+                        <label for="marked-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Color:</label>
+                        <input type="color" id="marked-color-picker" name="marked-color-picker" value="#fde047" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div id="marked-image-settings" class="hidden">
+                        <label for="marked-image-url-input" class="block text-sm font-medium text-gray-700">Marked Cell Image URL:</label>
+                        <input type="url" id="marked-image-url-input" name="marked-image-url-input" placeholder="https://example.com/marker.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    </div>
+                    <div class="mt-2">
+                         <label for="marked-opacity-input" class="block text-sm font-medium text-gray-700">Marked Cell Opacity (%):</label>
+                         <input type="number" id="marked-opacity-input" name="marked-opacity-input" min="0" max="100" value="80" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    </div>
+                </div>
+            </details>
+
+            <!-- Buttons outside sections -->
+            <!-- REMOVED BUTTONS FROM HERE -->
         </div>
     </div>
 
