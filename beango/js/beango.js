@@ -285,7 +285,7 @@ function resetSettings() {
 
 // --- Helper to get indices of marked cells ---
 function getMarkedIndices() {
-    const markedCells = document.querySelectorAll('#bingo-board .bingo-cell.marked'); // Use 'marked' class selector
+    const markedCells = document.querySelectorAll('#bingo-board .bingo-cell.marked');
     const indices = [];
     markedCells.forEach(cell => {
         // Ensure dataset.index exists and is a valid number
@@ -504,23 +504,23 @@ function equalizeCellSizes() {
 
 function explodeBeans() {
     const container = document.querySelector('.centered');
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 20; i++) {
         const newBean = document.createElement('img');
         newBean.src = '../bean.svg';
         newBean.style.position = 'absolute';
-        newBean.style.width = '50px';
-        newBean.style.height = '50px';
+        newBean.style.width = '25px';
+        newBean.style.height = '25px';
         newBean.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
         newBean.style.opacity = '0';
 
-        // Initial position at the center
-        newBean.style.transform = 'translate(0, 0) scale(0.5)';
+        // Initial position at the center of the img tag
+        newBean.style.transform = 'translate(100px, 0) scale(0.5)';
 
         container.appendChild(newBean);
 
         // Random position around the original bean
         const angle = Math.random() * 2 * Math.PI;
-        const distance = Math.random() * 100 + 50;
+        const distance = Math.random() * 100 + 50+100;
 
         // Trigger the animation
         setTimeout(() => {
