@@ -1805,78 +1805,79 @@ function exportSettings() {
 }
 
 function importSettings() {
-    const settingsJson = document.getElementById('settings-json');
-    let parsedSettings;
-    try {
-        parsedSettings = JSON.parse(settingsJson.value);
-        if (typeof parsedSettings !== 'object' || parsedSettings === null) {
-             throw new Error('Imported data is not a valid JSON object.');
-        }
-    } catch (e) {
-        showNotification(`Error parsing settings JSON: ${e.message}`, 'error');
-        return;
-    }
+    // Create a temporary file input element
+    const tempInput = document.createElement('input');
+    tempInput.type = 'file';
+    tempInput.accept = '.json,.txt'; // Accept JSON or text files
+    tempInput.style.display = 'none'; // Hide the element
 
-    if (confirm('Importing these settings will OVERWRITE your current settings and reload the page. Are you sure you want to continue?')) {
-        const prefix = 'beango_';
-        const keysToRemove = [];
-
-        // 1. Clear existing beango settings first
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.startsWith(prefix)) {
-                keysToRemove.push(key);
-            }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-
-        // 2. Import new settings
-        let importCount = 0;
-        for (const key in parsedSettings) {
-            // Basic validation: Ensure the key starts with the prefix and has a value
-            if (key.startsWith(prefix) && parsedSettings.hasOwnProperty(key) && parsedSettings[key] !== undefined && parsedSettings[key] !== null) {
-                const value = parsedSettings[key];
-                // Store arrays/objects as JSON strings, others as plain strings
-                const valueToStore = (typeof value === 'object') ? JSON.stringify(value) : String(value);
-                localStorage.setItem(key, valueToStore);
-                importCount++;
-            } else {
-                console.warn(`Skipping import for invalid key or value: ${key}`);
-            }
-        }
-
-        showNotification(`Successfully imported ${importCount} settings. Reloading...`, 'success', 1500);
-
-        // Use a short delay before reload
-        setTimeout(() => {
-             location.reload();
-        }, 1600);
-    }
-}
-
-// --- Settings File Input Listener ---
-const settingsFileInput = document.getElementById('settings-file-input');
-if (settingsFileInput) {
-    settingsFileInput.addEventListener('change', function(event) {
+    tempInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const settingsTextarea = document.getElementById('settings-json');
-                if (settingsTextarea) {
-                    settingsTextarea.value = e.target.result;
-                    showNotification('Settings file loaded into textarea. Click Import to apply.', 'success');
-                } else {
-                    showNotification('Error: Could not find settings textarea.', 'error');
-                }
-                // Clear the file input value so the same file can be selected again if needed
-                event.target.value = null;
-            };
-            reader.onerror = function() {
-                showNotification('Error reading settings file.', 'error');
-                 event.target.value = null; // Clear on error too
-            };
-            reader.readAsText(file);
+        if (!file) {
+            return; // No file selected
         }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fileContent = e.target.result;
+            let parsedSettings;
+
+            try {
+                parsedSettings = JSON.parse(fileContent);
+                if (typeof parsedSettings !== 'object' || parsedSettings === null) {
+                    throw new Error('Imported file does not contain a valid JSON object.');
+                }
+            } catch (err) {
+                showNotification(`Error parsing settings file: ${err.message}`, 'error');
+                return;
+            }
+
+            // Confirmation before overwriting
+            if (confirm('Importing settings from this file will OVERWRITE your current settings and reload the page. Are you sure?')) {
+                const prefix = 'beango_';
+                const keysToRemove = [];
+
+                // 1. Clear existing settings
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith(prefix)) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+
+                // 2. Import new settings
+                let importCount = 0;
+                for (const key in parsedSettings) {
+                    if (key.startsWith(prefix) && parsedSettings.hasOwnProperty(key) && parsedSettings[key] !== undefined && parsedSettings[key] !== null) {
+                        const value = parsedSettings[key];
+                        const valueToStore = (typeof value === 'object') ? JSON.stringify(value) : String(value);
+                        localStorage.setItem(key, valueToStore);
+                        importCount++;
+                    } else {
+                        console.warn(`Skipping import for invalid key or value: ${key}`);
+                    }
+                }
+
+                showNotification(`Successfully imported ${importCount} settings from ${file.name}. Reloading...`, 'success', 1500);
+
+                setTimeout(() => {
+                    location.reload();
+                }, 1600);
+            }
+        };
+
+        reader.onerror = function() {
+            showNotification('Error reading the selected file.', 'error');
+        };
+
+        reader.readAsText(file); // Read the file as text
+
+        // Clean up the temporary input element
+        document.body.removeChild(tempInput);
     });
+
+    // Append to body and trigger click to open file dialog
+    document.body.appendChild(tempInput);
+    tempInput.click();
 }

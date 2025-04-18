@@ -338,23 +338,15 @@
                 <div class="config-content space-y-4 pt-2">
                     <div>
                         <button onclick="exportSettings()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                            Export Current Settings
+                            Export Settings to File
                         </button>
-                    </div>
-                    <div>
-                        <label for="settings-file-input" class="block text-sm font-medium text-gray-700">Or Load Settings from File:</label>
-                        <input type="file" id="settings-file-input" name="settings-file-input" accept=".json, .txt" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
-                         <p class="mt-1 text-xs text-gray-500">Select a previously exported settings file (.json or .txt).</p>
-                    </div>
-                    <div>
-                        <label for="settings-json" class="block text-sm font-medium text-gray-700">Settings Data (JSON):</label>
-                        <textarea id="settings-json" rows="8" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm font-mono text-xs" placeholder="Click 'Export' to view settings here, or paste exported settings to import."></textarea>
-                         <p class="mt-1 text-xs text-gray-500">Copy this text to save your settings, or paste previously exported settings here and click 'Import'.</p>
+                         <p class="mt-1 text-xs text-gray-500">Saves all current settings to a downloadable .json file.</p>
                     </div>
                     <div>
                         <button onclick="importSettings()" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded">
-                            Import Settings from Above
+                            Import Settings from File
                         </button>
+                         <p class="mt-1 text-xs text-gray-500">Loads settings from a previously exported .json file, overwriting current settings.</p>
                     </div>
                 </div>
             </details>
