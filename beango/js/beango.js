@@ -95,7 +95,7 @@ const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
 const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // (replaces DEFAULT_BOARD_BG_OPACITY)
 const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
 const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000'; // Keep black for readability
-const DEFAULT_MARKED_CELL_TEXT_OPACITY = 100;
+const DEFAULT_MARKED_CELL_TEXT_OPACITY = 50;
 const DEFAULT_MARKED_CELL_OUTLINE_COLOR = '#ffffff';
 const DEFAULT_MARKED_CELL_OUTLINE_OPACITY = 100;
 const DEFAULT_MARKED_CELL_OUTLINE_WIDTH = 0; // Default 0px - No outline for marked
@@ -1466,11 +1466,11 @@ function equalizeCellSizes() {
 
     // 3. First pass: Find the max width and max height based on actual rendered content
     cells.forEach((cell) => {
-        // Reset any explicit cell styles (shouldn\'t be needed, but safe)
+        // Reset any explicit cell styles (shouldn't be needed, but safe)
         cell.style.width = "";
         cell.style.height = "";
 
-        // Measure the cell\'s natural dimensions after reflow
+        // Measure the cell's natural dimensions after reflow
         const width = cell.offsetWidth;
         const height = cell.offsetHeight;
         maxWidthNeeded = Math.max(maxWidthNeeded, width);
@@ -1478,7 +1478,7 @@ function equalizeCellSizes() {
     });
 
     // 4. Determine the target size for square cells
-    const targetSize = Math.max(maxWidthNeeded, maxHeightNeeded, minCellSize);
+    const targetSize = Math.max(maxWidthNeeded-maxWidthNeeded*0.1, maxHeightNeeded, minCellSize);
 
     // 5. Apply the calculated fixed size back to the grid
     board.style.gridTemplateColumns = `repeat(${size}, ${targetSize}px)`;
