@@ -50,6 +50,13 @@ const LS_MARKED_CELL_OUTLINE_OPACITY = 'beango_markedCellOutlineOpacity';
 const LS_MARKED_CELL_OUTLINE_WIDTH = 'beango_markedCellOutlineWidth';
 
 // --- Default Values ---
+const DEFAULT_SAMPLE_ITEMS = [
+    "Sample Item 1", "Sample Item 2", "Sample Item 3", "Sample Item 4", "Sample Item 5",
+    "Sample Item 6", "Sample Item 7", "Free Space", "Sample Item 9", "Sample Item 10",
+    "Sample Item 11", "Sample Item 12", "Sample Item 13", "Sample Item 14", "Sample Item 15",
+    "Sample Item 16", "Sample Item 17", "Sample Item 18", "Sample Item 19", "Sample Item 20",
+    "Sample Item 21", "Sample Item 22", "Sample Item 23", "Sample Item 24", "Sample Item 25"
+];
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
 const DEFAULT_SOLID_COLOR_OPACITY = 100; // New
 const DEFAULT_GRADIENT_COLOR_1 = '#ff7e5f'; // From main page gradient
@@ -160,6 +167,39 @@ function hexToRgba(hex, opacityPercent = 100) {
 
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
+
+// --- Event Listener Helper Functions --- START
+
+// Helper function for standard input/select elements
+function setupInputListener(elementId, eventType, saveFn, refreshFn) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.addEventListener(eventType, () => {
+            if (saveFn) saveFn();
+            if (refreshFn) refreshFn();
+        });
+    } else {
+        console.warn(`Element with ID ${elementId} not found for listener setup.`);
+    }
+}
+
+// Helper function for opacity sliders with value display
+function setupOpacitySliderListener(sliderId, valueSpanId, saveFn, refreshFn) {
+    const slider = document.getElementById(sliderId);
+    const valueSpan = document.getElementById(valueSpanId);
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            if (valueSpan) valueSpan.textContent = e.target.value;
+            if (saveFn) saveFn();
+            if (refreshFn) refreshFn();
+        });
+    } else {
+        console.warn(`Element with ID ${sliderId} not found for listener setup.`);
+    }
+}
+
+// --- Event Listener Helper Functions --- END
+
 
 // --- Functions ---
 
@@ -957,56 +997,7 @@ function clearSearch() {
     });
 }
 
-// --- Load State on Page Load ---
-function loadFromLocalStorage() {
-    const savedSize = localStorage.getItem(LS_BOARD_SIZE) || "5"; // Default to 5
-    const savedItemsText = localStorage.getItem(LS_CELL_ITEMS);
-    const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
-    const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
-    const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === "true";
-    const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
-    // Load header text, applying default ONLY if key is missing
-    let savedHeaderText = localStorage.getItem(LS_HEADER_TEXT);
-    if (savedHeaderText === null) { // Check if key exists
-        savedHeaderText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
-    }
-    const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
-    let savedHeaderTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
-    if (savedHeaderTextColor === null) {
-        savedHeaderTextColor = DEFAULT_HEADER_TEXT_COLOR;
-    }
-    const savedHeaderTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY) || DEFAULT_HEADER_TEXT_COLOR_OPACITY;
-    const savedHeaderBgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
-    const savedHeaderBgOpacity = localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY;
-    const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
-    const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
-    const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
-    const savedMarkedImageOpacity = localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY;
-    console.log(`LOAD: LS_MARKED_IMAGE_OPACITY = ${localStorage.getItem(LS_MARKED_IMAGE_OPACITY)}, using: ${savedMarkedImageOpacity}`); // DEBUG LOG
-    const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
-    const savedCellBorderOpacity = localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY;
-    const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
-    const savedCellBgOpacity = localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY;
-    const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
-    const savedCellBgImageOpacity = localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY;
-    console.log(`LOAD: LS_CELL_BG_IMAGE_OPACITY = ${localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY)}, using: ${savedCellBgImageOpacity}`); // DEBUG LOG
-    const savedCellTextColor = localStorage.getItem(LS_CELL_TEXT_COLOR) || DEFAULT_CELL_TEXT_COLOR;
-    const savedCellTextOpacity = localStorage.getItem(LS_CELL_TEXT_OPACITY) || DEFAULT_CELL_TEXT_OPACITY;
-    const savedCellOutlineColor = localStorage.getItem(LS_CELL_OUTLINE_COLOR) || DEFAULT_CELL_OUTLINE_COLOR;
-    const savedCellOutlineOpacity = localStorage.getItem(LS_CELL_OUTLINE_OPACITY) || DEFAULT_CELL_OUTLINE_OPACITY;
-    const savedCellOutlineWidth = localStorage.getItem(LS_CELL_OUTLINE_WIDTH) || DEFAULT_CELL_OUTLINE_WIDTH;
-    const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
-    const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
-    const savedMarkedCellTextColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
-    const savedMarkedCellTextOpacity = localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY;
-    const savedMarkedCellOutlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
-    const savedMarkedCellOutlineOpacity = localStorage.getItem(LS_MARKED_CELL_OUTLINE_OPACITY) || DEFAULT_MARKED_CELL_OUTLINE_OPACITY;
-    const savedMarkedCellOutlineWidth = localStorage.getItem(LS_MARKED_CELL_OUTLINE_WIDTH) || DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
-    const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
-    const savedBoardBgColorOpacity = localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY;
-    const savedBoardBgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
-
-    // Restore Config Pane State
+function loadPaneState(configIsOpen) {
     const pane = document.getElementById('config-pane');
     if (configIsOpen) {
         pane.classList.remove('config-pane-closed');
@@ -1015,55 +1006,95 @@ function loadFromLocalStorage() {
         pane.classList.remove('config-pane-open');
         pane.classList.add('config-pane-closed');
     }
+}
 
-    // Restore Config Inputs
-    const size = parseInt(savedSize, 10); // Parse size here
-    document.getElementById('board-size').value = savedSize;
+function generateDefaultBoard() {
+    // --- No saved board state, GENERATE DEFAULT board ---
+    console.log('No saved board state found. Generating default 5x5 board.');
+    const defaultSize = 5;
+    currentItems = [...DEFAULT_SAMPLE_ITEMS]; // Set global variable
+    displayedItems = shuffleArray([...DEFAULT_SAMPLE_ITEMS]); // Set global variable
+    const originalItems = [...DEFAULT_SAMPLE_ITEMS]; // For text area
 
-    // Restore Board only if essential data exists
-    if (savedDisplayedItems) {
-        try {
-            displayedItems = JSON.parse(savedDisplayedItems); // Restore displayed items array
-            // *** ADDED: Restore currentItems as well ***
-            if (savedItemsText) {
-                 try {
-                     currentItems = JSON.parse(savedItemsText);
-                     if (!Array.isArray(currentItems)) {
-                         console.warn('Loaded LS_CELL_ITEMS was not an array, resetting.');
-                         currentItems = [];
-                     }
-                 } catch (e) {
-                     showNotification('Error parsing saved cell item pool (LS_CELL_ITEMS). Board may not randomize correctly.', 'warning');
-                     currentItems = []; // Reset on parse error
-                 }
-            } else {
-                 // If LS_CELL_ITEMS doesn't exist but LS_DISPLAYED_ITEMS does, it's an inconsistent state.
-                 // We could try to reconstruct currentItems from displayedItems, but it might lack padding/slicing info.
-                 // For now, log a warning and reset currentItems.
-                 console.warn('Inconsistent state: LS_DISPLAYED_ITEMS exists but LS_CELL_ITEMS is missing. Randomization might fail.');
-                 currentItems = [];
-            }
-            // *** END ADDED section ***
-        } catch (e) {
-             showNotification('Error parsing saved board state. Please generate again.', 'error');
-             localStorage.removeItem(LS_DISPLAYED_ITEMS);
-             localStorage.removeItem(LS_MARKED_INDICES);
-             displayedItems = [];
-             document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Error loading board. Generate New.</div>';
-             return; // Stop board restore
+    const board = document.getElementById('bingo-board');
+    board.innerHTML = ''; // Clear placeholder or previous error message
+    board.style.gridTemplateColumns = `repeat(${defaultSize}, minmax(0, 1fr))`;
+
+    // Update UI inputs to reflect default
+    document.getElementById('board-size').value = defaultSize;
+    document.getElementById('cell-contents').value = originalItems.join('\n');
+
+    displayedItems.forEach((item, index) => {
+        const cell = document.createElement("div");
+        cell.classList.add("bingo-cell", "cursor-pointer");
+        cell.dataset.index = index;
+        cell.onclick = () => selectCell(cell);
+
+        const textSpan = document.createElement("span");
+        textSpan.classList.add("bingo-cell-text");
+        textSpan.textContent = item;
+        cell.appendChild(textSpan);
+
+        applyCellStyle(cell); // Apply default styles
+
+        // No marked cells on default board
+        board.appendChild(cell);
+    });
+
+    // Save this default state immediately
+    saveBoardState();
+    showNotification('Generated default 5x5 board.', 'info');
+    // --- End GENERATE DEFAULT board ---
+}
+
+function generateBoardFromSavedState(savedDisplayedItems, savedItemsText, savedMarkedIndices, size) {
+
+    console.log("Found saved board state. Loading..."); // Log loading source
+    try {
+        displayedItems = JSON.parse(savedDisplayedItems); // Restore displayed items array
+        // *** ADDED: Restore currentItems as well ***
+        if (savedItemsText) {
+                try {
+                    currentItems = JSON.parse(savedItemsText);
+                    if (!Array.isArray(currentItems)) {
+                        console.warn('Loaded LS_CELL_ITEMS was not an array, resetting.');
+                        currentItems = [];
+                    }
+                } catch (e) {
+                    showNotification('Error parsing saved cell item pool (LS_CELL_ITEMS). Board may not randomize correctly.', 'warning');
+                    currentItems = []; // Reset on parse error
+                }
+        } else {
+                // If LS_CELL_ITEMS doesn't exist but LS_DISPLAYED_ITEMS does, it's an inconsistent state.
+                console.warn('Inconsistent state: LS_DISPLAYED_ITEMS exists but LS_CELL_ITEMS is missing. Randomization might fail.');
+                currentItems = [];
         }
+        // *** END ADDED section ***
+    } catch (e) {
+            showNotification('Error parsing saved board state. Please generate again.', 'error');
+            localStorage.removeItem(LS_DISPLAYED_ITEMS);
+            localStorage.removeItem(LS_MARKED_INDICES);
+            localStorage.removeItem(LS_CELL_ITEMS); // Also remove potentially corrupted items
+            displayedItems = [];
+            currentItems = []; // Also reset currentItems
+            document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Error loading board. Generate New.</div>';
+            // Don't return yet, let style loading proceed with defaults
+    }
 
-        const requiredItems = size * size;
+    const requiredItems = size * size;
 
-        // Check if the loaded data is consistent
-        if (!Array.isArray(displayedItems) || displayedItems.length !== requiredItems) {
-            showNotification("Saved board data mismatch. Please generate again.", 'warning');
-             localStorage.removeItem(LS_DISPLAYED_ITEMS);
-             localStorage.removeItem(LS_MARKED_INDICES);
-             document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Data Mismatch. Generate New.</div>';
-             return; // Stop loading the board state
-        }
-
+    // Check if the loaded data is consistent
+    if (!Array.isArray(displayedItems) || displayedItems.length !== requiredItems) {
+        showNotification("Saved board data mismatch. Please generate again.", 'warning');
+            localStorage.removeItem(LS_DISPLAYED_ITEMS);
+            localStorage.removeItem(LS_MARKED_INDICES);
+            localStorage.removeItem(LS_CELL_ITEMS);
+            displayedItems = [];
+            currentItems = [];
+            document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Data Mismatch. Generate New.</div>';
+            // Don't return yet
+    } else {
+        // --- Populate board from SAVED state ---
         const board = document.getElementById('bingo-board');
         board.innerHTML = ''; // Clear placeholder
         board.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
@@ -1073,36 +1104,27 @@ function loadFromLocalStorage() {
         displayedItems.forEach((item, index) => {
             const cell = document.createElement("div");
             cell.classList.add("bingo-cell", "cursor-pointer");
-            // cell.textContent = item; // OLD WAY
-            cell.dataset.index = index; // Ensure index is set for loading marks correctly
+            cell.dataset.index = index;
             cell.onclick = () => selectCell(cell);
-            // applyCellStyle(cell); // Apply default cell style first <-- MOVED DOWN
 
-            // NEW: Create span for text content
             const textSpan = document.createElement("span");
             textSpan.classList.add("bingo-cell-text");
             textSpan.textContent = item;
             cell.appendChild(textSpan);
 
-            applyCellStyle(cell); // <-- MOVED HERE: Apply styles AFTER text span exists
+            applyCellStyle(cell); // Apply default styles first
 
             if (markedIndices.includes(index)) {
-                cell.classList.add("marked"); // Apply saved mark using 'marked' class
-                // Apply dynamic marked styles AFTER adding the class and default styles
-                applyMarkedCellStyle(cell); // <-- RE-ADDED this call
+                cell.classList.add("marked");
+                applyMarkedCellStyle(cell); // Apply marked styles if needed
             }
             board.appendChild(cell);
         });
-        // equalizeCellSizes(); // <--- REMOVED FROM HERE
-    } else {
-         // If no saved board state, show the default message
-         const board = document.getElementById('bingo-board');
-         // Check if board div exists and has no children before adding message
-         if (board && board.children.length === 0) {
-             board.innerHTML = '<div class="bingo-cell">Generate a board using the config panel!</div>';
-         }
     }
+    // --- End populate board from SAVED state ---
+}
 
+function restoreBackgroundSettings() {
     // --- Restore Background Settings ---
     const savedBackgroundType = localStorage.getItem(LS_BACKGROUND_TYPE) || 'gradient'; // Default to gradient
     const savedSolidColor = localStorage.getItem(LS_SOLID_COLOR) || DEFAULT_SOLID_COLOR;
@@ -1129,351 +1151,222 @@ function loadFromLocalStorage() {
     toggleBackgroundControls();
     setBackground();
     // --- End Restore Background Settings ---
+}
 
-    // --- Restore Header Settings ---
-    document.getElementById('header-text-input').value = savedHeaderText;
-    document.getElementById('header-image-url-input').value = savedHeaderImageUrl;
-    document.getElementById('header-text-color-picker').value = savedHeaderTextColor;
-    document.getElementById('header-text-color-opacity-slider').value = savedHeaderTextOpacity;
-    if(document.getElementById('header-text-color-opacity-value')) document.getElementById('header-text-color-opacity-value').textContent = savedHeaderTextOpacity; // Update display span
+function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity) {
+    _restoreInputSetting('header-text-input', savedHeaderText);
+    _restoreInputSetting('header-image-url-input', savedHeaderImageUrl);
+    _restoreColorPickerSetting('header-text-color-picker', savedHeaderTextColor);
+    _restoreOpacitySetting('header-text-color-opacity-slider', 'header-text-color-opacity-value', savedHeaderTextOpacity);
     // Restore header background inputs
-    document.getElementById('header-bg-color-picker').value = savedHeaderBgColor;
-    document.getElementById('header-bg-opacity-slider').value = savedHeaderBgOpacity;
-    if(document.getElementById('header-bg-opacity-value')) document.getElementById('header-bg-opacity-value').textContent = savedHeaderBgOpacity;
+    _restoreColorPickerSetting('header-bg-color-picker', savedHeaderBgColor);
+    _restoreOpacitySetting('header-bg-opacity-slider', 'header-bg-opacity-value', savedHeaderBgOpacity);
+
     applyHeaderBgStyle(); // Apply header background style
     updateHeaderDisplay(); // Apply the loaded header content
-    // --- End Restore Header Settings ---
+}
 
-    // --- Restore Marked Style Settings ---
-    document.getElementById('marked-color-picker').value = savedMarkedColor;
-    document.getElementById('marked-color-opacity-slider').value = savedMarkedColorOpacity;
-    if(document.getElementById('marked-color-opacity-value')) document.getElementById('marked-color-opacity-value').textContent = savedMarkedColorOpacity;
-    document.getElementById('marked-image-url-input').value = savedMarkedImageUrl;
-    const markedImageOpacitySlider = document.getElementById('marked-image-opacity-slider');
-    const markedImageOpacityValueSpan = document.getElementById('marked-image-opacity-value');
-    if (markedImageOpacitySlider) markedImageOpacitySlider.value = savedMarkedImageOpacity;
-    if (markedImageOpacityValueSpan) markedImageOpacityValueSpan.textContent = savedMarkedImageOpacity;
+function restoreMarkedStyleSettings(savedMarkedColor, savedMarkedColorOpacity, savedMarkedImageUrl, savedMarkedImageOpacity, savedMarkedBorderColor, savedMarkedBorderOpacity, savedMarkedCellTextColor, savedMarkedCellTextOpacity, savedMarkedCellOutlineColor, savedMarkedCellOutlineOpacity, savedMarkedCellOutlineWidth) {
+    // Marked Color
+    _restoreColorPickerSetting('marked-color-picker', savedMarkedColor);
+    _restoreOpacitySetting('marked-color-opacity-slider', 'marked-color-opacity-value', savedMarkedColorOpacity);
 
-    document.getElementById('marked-border-color-picker').value = savedMarkedBorderColor;
-    const markedBorderOpacitySlider = document.getElementById('marked-border-opacity-slider');
-    const markedBorderOpacityValueSpan = document.getElementById('marked-border-opacity-value');
-    if (markedBorderOpacitySlider) markedBorderOpacitySlider.value = savedMarkedBorderOpacity;
-    if (markedBorderOpacityValueSpan) markedBorderOpacityValueSpan.textContent = savedMarkedBorderOpacity;
+    // Marked Image
+    _restoreInputSetting('marked-image-url-input', savedMarkedImageUrl);
+    _restoreOpacitySetting('marked-image-opacity-slider', 'marked-image-opacity-value', savedMarkedImageOpacity);
 
-    // Restore marked text styles
-    document.getElementById('marked-cell-text-color-picker').value = savedMarkedCellTextColor;
-    const markedCellTextOpacitySlider = document.getElementById('marked-cell-text-opacity-slider');
-    const markedCellTextOpacityValueSpan = document.getElementById('marked-cell-text-opacity-value');
-    if (markedCellTextOpacitySlider) markedCellTextOpacitySlider.value = savedMarkedCellTextOpacity;
-    if (markedCellTextOpacityValueSpan) markedCellTextOpacityValueSpan.textContent = savedMarkedCellTextOpacity;
+    // Marked Border
+    _restoreColorPickerSetting('marked-border-color-picker', savedMarkedBorderColor);
+    _restoreOpacitySetting('marked-border-opacity-slider', 'marked-border-opacity-value', savedMarkedBorderOpacity);
 
-    document.getElementById('marked-cell-outline-color-picker').value = savedMarkedCellOutlineColor;
-    const markedCellOutlineOpacitySlider = document.getElementById('marked-cell-outline-opacity-slider');
-    const markedCellOutlineOpacityValueSpan = document.getElementById('marked-cell-outline-opacity-value');
-    if (markedCellOutlineOpacitySlider) markedCellOutlineOpacitySlider.value = savedMarkedCellOutlineOpacity;
-    if (markedCellOutlineOpacityValueSpan) markedCellOutlineOpacityValueSpan.textContent = savedMarkedCellOutlineOpacity;
+    // Marked Text Color
+    _restoreColorPickerSetting('marked-cell-text-color-picker', savedMarkedCellTextColor);
+    _restoreOpacitySetting('marked-cell-text-opacity-slider', 'marked-cell-text-opacity-value', savedMarkedCellTextOpacity);
 
-    document.getElementById('marked-cell-outline-width-input').value = savedMarkedCellOutlineWidth;
+    // Marked Text Outline
+    _restoreColorPickerSetting('marked-cell-outline-color-picker', savedMarkedCellOutlineColor);
+    _restoreOpacitySetting('marked-cell-outline-opacity-slider', 'marked-cell-outline-opacity-value', savedMarkedCellOutlineOpacity);
+    _restoreInputSetting('marked-cell-outline-width-input', savedMarkedCellOutlineWidth);
+}
 
-    // refreshMarkedCellStyles(); // Apply the loaded marked styles <-- MOVED DOWN
-    // --- End Restore Marked Style Settings ---
+// Helper function to restore opacity slider and value display
+function _restoreOpacitySetting(sliderId, valueSpanId, savedOpacityValue) {
+    const slider = document.getElementById(sliderId);
+    const valueSpan = document.getElementById(valueSpanId);
+    if (slider) {
+        slider.value = savedOpacityValue;
+    }
+    if (valueSpan) {
+        valueSpan.textContent = savedOpacityValue;
+    }
+}
 
-    // --- Restore Default Cell Style Settings ---
-    document.getElementById('cell-border-color-picker').value = savedCellBorderColor;
-    const cellBorderOpacitySlider = document.getElementById('cell-border-opacity-slider');
-    const cellBorderOpacityValueSpan = document.getElementById('cell-border-opacity-value');
-    if (cellBorderOpacitySlider) cellBorderOpacitySlider.value = savedCellBorderOpacity;
-    if (cellBorderOpacityValueSpan) cellBorderOpacityValueSpan.textContent = savedCellBorderOpacity;
+// Helper function to restore a color picker value
+function _restoreColorPickerSetting(pickerId, savedColorValue) {
+    const picker = document.getElementById(pickerId);
+    if (picker) {
+        picker.value = savedColorValue;
+    }
+}
 
-    document.getElementById('cell-background-color-picker').value = savedCellBgColor;
-    const cellBackgroundOpacitySlider = document.getElementById('cell-background-opacity-slider');
-    const cellBackgroundOpacityValueSpan = document.getElementById('cell-background-opacity-value');
-    if (cellBackgroundOpacitySlider) cellBackgroundOpacitySlider.value = savedCellBgOpacity;
-    if (cellBackgroundOpacityValueSpan) cellBackgroundOpacityValueSpan.textContent = savedCellBgOpacity;
+// Helper function to restore a generic input value
+function _restoreInputSetting(inputId, savedValue) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = savedValue;
+    }
+}
 
-    document.getElementById('cell-background-image-url-input').value = savedCellBgImageUrl;
-    const cellBackgroundImageOpacitySlider = document.getElementById('cell-background-image-opacity-slider');
-    const cellBackgroundImageOpacityValueSpan = document.getElementById('cell-background-image-opacity-value');
-    if (cellBackgroundImageOpacitySlider) cellBackgroundImageOpacitySlider.value = savedCellBgImageOpacity;
-    if (cellBackgroundImageOpacityValueSpan) cellBackgroundImageOpacityValueSpan.textContent = savedCellBgImageOpacity;
+function restoreCellStyleSettings(savedCellBorderColor, savedCellBorderOpacity, savedCellBgColor, savedCellBgOpacity, savedCellBgImageUrl, savedCellBgImageOpacity, savedCellTextColor, savedCellTextOpacity, savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth) {
+    // Border
+    _restoreColorPickerSetting('cell-border-color-picker', savedCellBorderColor);
+    _restoreOpacitySetting('cell-border-opacity-slider', 'cell-border-opacity-value', savedCellBorderOpacity);
 
-    // Restore text styles
-    document.getElementById('cell-text-color-picker').value = savedCellTextColor;
-    const cellTextOpacitySlider = document.getElementById('cell-text-opacity-slider');
-    const cellTextOpacityValueSpan = document.getElementById('cell-text-opacity-value');
-    if (cellTextOpacitySlider) cellTextOpacitySlider.value = savedCellTextOpacity;
-    if (cellTextOpacityValueSpan) cellTextOpacityValueSpan.textContent = savedCellTextOpacity;
-    document.getElementById('cell-outline-color-picker').value = savedCellOutlineColor;
-    const cellOutlineOpacitySlider = document.getElementById('cell-outline-opacity-slider');
-    const cellOutlineOpacityValueSpan = document.getElementById('cell-outline-opacity-value');
-    if (cellOutlineOpacitySlider) cellOutlineOpacitySlider.value = savedCellOutlineOpacity;
-    if (cellOutlineOpacityValueSpan) cellOutlineOpacityValueSpan.textContent = savedCellOutlineOpacity;
-    document.getElementById('cell-outline-width-input').value = savedCellOutlineWidth;
+    // Background Color
+    _restoreColorPickerSetting('cell-background-color-picker', savedCellBgColor);
+    _restoreOpacitySetting('cell-background-opacity-slider', 'cell-background-opacity-value', savedCellBgOpacity);
 
-    // Styles are applied during board creation loop above
-    // --- End Restore Default Cell Style Settings ---
+    // Background Image
+    _restoreInputSetting('cell-background-image-url-input', savedCellBgImageUrl);
+    _restoreOpacitySetting('cell-background-image-opacity-slider', 'cell-background-image-opacity-value', savedCellBgImageOpacity);
 
-    // --- Restore Board Background Settings ---
-    document.getElementById('board-bg-color-picker').value = savedBoardBgColor;
-    document.getElementById('board-bg-image-url-input').value = savedBoardBgImageUrl;
-    document.getElementById('board-bg-color-opacity-slider').value = savedBoardBgColorOpacity;
-    const boardBgOpacitySlider = document.getElementById('board-bg-color-opacity-slider');
-    const boardBgOpacityValueSpan = document.getElementById('board-bg-color-opacity-value');
-    if (boardBgOpacitySlider) boardBgOpacitySlider.value = savedBoardBgColorOpacity;
-    if (boardBgOpacityValueSpan) boardBgOpacityValueSpan.textContent = savedBoardBgColorOpacity;
+    // Text Color
+    _restoreColorPickerSetting('cell-text-color-picker', savedCellTextColor);
+    _restoreOpacitySetting('cell-text-opacity-slider', 'cell-text-opacity-value', savedCellTextOpacity);
+
+    // Outline Color
+    _restoreColorPickerSetting('cell-outline-color-picker', savedCellOutlineColor);
+    _restoreOpacitySetting('cell-outline-opacity-slider', 'cell-outline-opacity-value', savedCellOutlineOpacity);
+
+    // Outline Width
+    _restoreInputSetting('cell-outline-width-input', savedCellOutlineWidth);
+}
+
+function restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl) {
+    _restoreColorPickerSetting('board-bg-color-picker', savedBoardBgColor);
+    _restoreInputSetting('board-bg-image-url-input', savedBoardBgImageUrl);
+    _restoreOpacitySetting('board-bg-color-opacity-slider', 'board-bg-color-opacity-value', savedBoardBgColorOpacity);
     applyBoardBgStyle(); // Apply loaded style
-    // --- End Restore Board Background Settings ---
+}
 
-    // Restore the textarea with the original user input if available
-    if (savedOriginalItemsText) {
-        try {
-            const originalItems = JSON.parse(savedOriginalItemsText);
-            document.getElementById('cell-contents').value = originalItems.join('\n');
-        } catch (e) {
-            showNotification('Error parsing saved original items.', 'error');
-            localStorage.removeItem(LS_ORIGINAL_ITEMS);
-             // Fallback to cell items if original fails
-             if (savedItemsText) {
-                 try {
-                     document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
-                 } catch { /* ignore inner error */ }
+function restoreSavedItems(savedDisplayedItems, savedItemsText, savedOriginalItemsText) {
+    // Restore the textarea with the original user input if available (or fallback)
+    // Note: If default board was generated, textarea was already set above.
+    // This part primarily handles the case where board existed but original items might be missing.
+    if (savedDisplayedItems) { // Only run this textarea logic if we didn't just generate default
+        if (savedOriginalItemsText) {
+            try {
+                const originalItemsFromStorage = JSON.parse(savedOriginalItemsText);
+                // Only update textarea if it wasn't populated by default gen
+                if (document.getElementById('cell-contents').value === '') {
+                     document.getElementById('cell-contents').value = originalItemsFromStorage.join('\n');
+                }
+            } catch (e) {
+                showNotification('Error parsing saved original items.', 'error');
+                localStorage.removeItem(LS_ORIGINAL_ITEMS);
+                 // Fallback to cell items if original fails and textarea is empty
+                 if (savedItemsText && document.getElementById('cell-contents').value === '') {
+                     try {
+                         document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
+                     } catch { /* ignore inner error */ }
+                 }
+            }
+        } else if (savedItemsText && document.getElementById('cell-contents').value === '') {
+             // If no original items saved, use the cell items as fallback for textarea
+             try {
+                  document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
+             } catch (e) {
+                 // Already handled loading currentItems above, just ensure textarea is cleared on error
+                 document.getElementById('cell-contents').value = '';
              }
         }
-    } else if (savedItemsText) {
-         // If no original items saved, use the cell items as fallback for textarea
-         try {
-              document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
-         } catch (e) {
-             // Already handled loading currentItems above, just ensure textarea is cleared on error
-             document.getElementById('cell-contents').value = '';
-         }
+    }
+}
+
+// --- Load State on Page Load ---
+function loadFromLocalStorage() {
+    const savedSize = localStorage.getItem(LS_BOARD_SIZE); // Keep checking for size first
+    const savedItemsText = localStorage.getItem(LS_CELL_ITEMS);
+    const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
+    const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
+    const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === "true";
+    const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
+    // Load header text, applying default ONLY if key is missing
+    let savedHeaderText = localStorage.getItem(LS_HEADER_TEXT);
+    if (savedHeaderText === null) { // Check if key exists
+        savedHeaderText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
+    }
+    const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
+    let savedHeaderTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
+    if (savedHeaderTextColor === null) {
+        savedHeaderTextColor = DEFAULT_HEADER_TEXT_COLOR;
+    }
+    const savedHeaderTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY) || DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+    const savedHeaderBgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
+    const savedHeaderBgOpacity = localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY;
+    const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
+    const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
+    const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
+    const savedMarkedImageOpacity = localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY;
+    const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
+    const savedCellBorderOpacity = localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY;
+    const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
+    const savedCellBgOpacity = localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY;
+    const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
+    const savedCellBgImageOpacity = localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY;
+    const savedCellTextColor = localStorage.getItem(LS_CELL_TEXT_COLOR) || DEFAULT_CELL_TEXT_COLOR;
+    const savedCellTextOpacity = localStorage.getItem(LS_CELL_TEXT_OPACITY) || DEFAULT_CELL_TEXT_OPACITY;
+    const savedCellOutlineColor = localStorage.getItem(LS_CELL_OUTLINE_COLOR) || DEFAULT_CELL_OUTLINE_COLOR;
+    const savedCellOutlineOpacity = localStorage.getItem(LS_CELL_OUTLINE_OPACITY) || DEFAULT_CELL_OUTLINE_OPACITY;
+    const savedCellOutlineWidth = localStorage.getItem(LS_CELL_OUTLINE_WIDTH) || DEFAULT_CELL_OUTLINE_WIDTH;
+    const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
+    const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
+    const savedMarkedCellTextColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
+    const savedMarkedCellTextOpacity = localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY;
+    const savedMarkedCellOutlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
+    const savedMarkedCellOutlineOpacity = localStorage.getItem(LS_MARKED_CELL_OUTLINE_OPACITY) || DEFAULT_MARKED_CELL_OUTLINE_OPACITY;
+    const savedMarkedCellOutlineWidth = localStorage.getItem(LS_MARKED_CELL_OUTLINE_WIDTH) || DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
+    const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
+    const savedBoardBgColorOpacity = localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY;
+    const savedBoardBgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
+
+    // Restore Config Pane State
+    loadPaneState(configIsOpen);
+
+    // Determine board size (use saved, or default 5)
+    const size = parseInt(savedSize || "5", 10);
+    document.getElementById('board-size').value = size; // Update input regardless of board source
+
+    // Restore Board only if essential data exists
+    if (savedDisplayedItems) {
+        generateBoardFromSavedState(savedDisplayedItems, savedItemsText, savedMarkedIndices, size);
+    } else {
+        generateDefaultBoard();
     }
 
-    // Update container width based on loaded size - REMOVED
-    // updateBoardContainerMaxWidth(size);
-    // updateBoardContainerMaxWidth(size, '#board-header');
+    restoreBackgroundSettings();
 
-    // --- Add Event Listeners for Default Cell Style Controls ---
-    document.getElementById('cell-border-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById('cell-border-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById('cell-background-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
+    restoreHeaderSettings(
+        savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity,
+        savedHeaderBgColor, savedHeaderBgOpacity
+    );
 
-    // --- Add Event Listeners for Text Style Controls ---
-    document.getElementById('cell-text-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-text-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-text-opacity-value')) document.getElementById('cell-text-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-outline-opacity-value')) document.getElementById('cell-outline-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-width-input').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
+    restoreMarkedStyleSettings(
+        savedMarkedColor, savedMarkedColorOpacity, savedMarkedImageUrl, savedMarkedImageOpacity,
+        savedMarkedBorderColor, savedMarkedBorderOpacity, savedMarkedCellTextColor, savedMarkedCellTextOpacity,
+        savedMarkedCellOutlineColor, savedMarkedCellOutlineOpacity, savedMarkedCellOutlineWidth
+    );
 
-    // --- Add Event Listeners for Board Background Controls ---
-    document.getElementById('board-bg-color-picker').addEventListener('input', () => {
-        saveBoardBgSettings();
-        applyBoardBgStyle();
-    });
-    document.getElementById('board-bg-image-url-input').addEventListener('input', () => {
-        saveBoardBgSettings();
-        applyBoardBgStyle();
-    });
-    document.getElementById('board-bg-color-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('board-bg-color-opacity-value')) document.getElementById('board-bg-color-opacity-value').textContent = e.target.value;
-        saveBoardBgSettings();
-        applyBoardBgStyle();
-    });
+    restoreCellStyleSettings(
+        savedCellBorderColor, savedCellBorderOpacity, savedCellBgColor, savedCellBgOpacity,
+        savedCellBgImageUrl, savedCellBgImageOpacity, savedCellTextColor, savedCellTextOpacity,
+        savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth
+    );
 
-    // --- Search Listener ---
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.trim().toLowerCase();
-            const cells = document.querySelectorAll('#bingo-board .bingo-cell');
+    restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl);
 
-            // Split search term into words
-            const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
+    restoreSavedItems(savedDisplayedItems, savedItemsText, savedOriginalItemsText);
 
-            cells.forEach(cell => {
-                const textSpan = cell.querySelector('.bingo-cell-text');
-                let isMatch = false;
-                if (textSpan && searchWords.length > 0) {
-                    const cellText = textSpan.textContent.trim().toLowerCase();
-                    // Check if ALL search words are included in the cell text
-                    isMatch = searchWords.every(word => cellText.includes(word));
-                }
-
-                // Add or remove highlight based on match status
-                if (isMatch) {
-                    cell.classList.add('highlighted');
-                } else {
-                    cell.classList.remove('highlighted');
-                }
-            });
-        });
-    }
-
-    // --- Other Listeners ---
-    window.addEventListener('resize', equalizeCellSizes);
-    equalizeCellSizes(); // Initial call after load
-
-    // --- Add Event Listeners for Marked Text Style Controls ---
-    document.getElementById("marked-cell-text-color-picker").addEventListener("input", () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById("marked-cell-text-opacity-slider").addEventListener("input", (e) => {
-        if(document.getElementById("marked-cell-text-opacity-value")) document.getElementById("marked-cell-text-opacity-value").textContent = e.target.value;
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById("marked-cell-outline-color-picker").addEventListener("input", () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById("marked-cell-outline-opacity-slider").addEventListener("input", (e) => {
-        if(document.getElementById("marked-cell-outline-opacity-value")) document.getElementById("marked-cell-outline-opacity-value").textContent = e.target.value;
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById("marked-cell-outline-width-input").addEventListener("input", () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-
-    // --- Add Event Listeners for Default Cell Style Controls ---
-    document.getElementById("cell-border-color-picker").addEventListener("input", () => {
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById("cell-border-opacity-slider").addEventListener("input", (e) => {
-        if(document.getElementById("cell-border-opacity-value")) document.getElementById("cell-border-opacity-value").textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById("cell-background-color-picker").addEventListener("input", () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-background-opacity-slider").addEventListener("input", (e) => {
-        if(document.getElementById("cell-background-opacity-value")) document.getElementById("cell-background-opacity-value").textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-background-image-url-input").addEventListener("input", () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-text-color-picker").addEventListener("input", () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-text-opacity-slider").addEventListener("input", (e) => {
-        if(document.getElementById("cell-text-opacity-value")) document.getElementById("cell-text-opacity-value").textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-outline-color-picker").addEventListener("input", () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-outline-opacity-slider").addEventListener("input", (e) => {
-        if(document.getElementById("cell-outline-opacity-value")) document.getElementById("cell-outline-opacity-value").textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById("cell-outline-width-input").addEventListener("input", () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-
-    clearSearch(); // Clear search highlights and input
-    saveBoardState(); // Save the new randomized state (including cleared marks)
-    //clearMarks(false); // Clear visual marks
-
-    // Apply marked styles *after* all other styles/settings are restored
-    refreshMarkedCellStyles(); // <-- Keep here
-
-    // Equalize sizes as the very last step after all content and styles are set
-    equalizeCellSizes(); // <-- MOVED HERE
-
-    // --- Add Event Listeners for Default Cell Style Controls ---
-    document.getElementById('cell-border-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById('cell-border-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById('cell-background-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-text-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-text-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-text-opacity-value')) document.getElementById('cell-text-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-outline-opacity-value')) document.getElementById('cell-outline-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-width-input').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
 }
 
 // --- Function to make all cells square and equal size ---
@@ -1611,170 +1504,66 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load state first thing
     loadFromLocalStorage();
 
-    // --- Add Event Listeners for Background Controls ---
+    // --- Event Listeners Setup using Helpers ---
+
+    // Background Controls
     document.querySelectorAll('input[name="background-type"]').forEach(radio => {
         radio.addEventListener('change', () => {
             toggleBackgroundControls();
-            setBackground();
-            saveBackgroundSettings();
+            setBackground(); // Apply the change visually
+            saveBackgroundSettings(); // Save the setting
         });
     });
-    document.getElementById('background-color-picker').addEventListener('input', () => {
-        setBackground();
-        saveBackgroundSettings();
-    });
-    document.getElementById('background-color-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('background-color-opacity-value')) document.getElementById('background-color-opacity-value').textContent = e.target.value;
-        setBackground();
-        saveBackgroundSettings();
-    });
-    document.getElementById('gradient-color-1').addEventListener('input', () => {
-        setBackground();
-        saveBackgroundSettings();
-    });
-     document.getElementById('gradient-color-1-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('gradient-color-1-opacity-value')) document.getElementById('gradient-color-1-opacity-value').textContent = e.target.value;
-        setBackground();
-        saveBackgroundSettings();
-    });
-     document.getElementById('gradient-color-2').addEventListener('input', () => {
-        setBackground();
-        saveBackgroundSettings();
-    });
-      document.getElementById('gradient-color-2-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('gradient-color-2-opacity-value')) document.getElementById('gradient-color-2-opacity-value').textContent = e.target.value;
-        setBackground();
-        saveBackgroundSettings();
-    });
-     document.getElementById('gradient-direction').addEventListener('change', () => {
-        setBackground();
-        saveBackgroundSettings();
-    });
+    setupInputListener('background-color-picker', 'input', saveBackgroundSettings, setBackground);
+    setupOpacitySliderListener('background-color-opacity-slider', 'background-color-opacity-value', saveBackgroundSettings, setBackground);
+    setupInputListener('gradient-color-1', 'input', saveBackgroundSettings, setBackground);
+    setupOpacitySliderListener('gradient-color-1-opacity-slider', 'gradient-color-1-opacity-value', saveBackgroundSettings, setBackground);
+    setupInputListener('gradient-color-2', 'input', saveBackgroundSettings, setBackground);
+    setupOpacitySliderListener('gradient-color-2-opacity-slider', 'gradient-color-2-opacity-value', saveBackgroundSettings, setBackground);
+    setupInputListener('gradient-direction', 'change', saveBackgroundSettings, setBackground);
 
-    // --- Add Event Listeners for Header Controls ---
-    document.getElementById('header-text-input').addEventListener('input', () => {
-        saveHeaderSettings();       // Save the new text first
-        updateHeaderDisplay(); // Then update display from saved state
-    });
-    document.getElementById('header-image-url-input').addEventListener('input', () => {
-        saveHeaderSettings();       // Save the new URL first
-        updateHeaderDisplay(); // Then update display from saved state
-    });
-    document.getElementById('header-text-color-picker').addEventListener('input', () => {
-        saveHeaderSettings();
-        updateHeaderDisplay();
-    });
-    document.getElementById('header-text-color-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('header-text-color-opacity-value')) document.getElementById('header-text-color-opacity-value').textContent = e.target.value;
-        saveHeaderSettings();
-        updateHeaderDisplay();
-    });
-    document.getElementById('header-bg-color-picker').addEventListener('input', () => {
-        saveHeaderSettings();
-        applyHeaderBgStyle();
-    });
-    document.getElementById('header-bg-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('header-bg-opacity-value')) document.getElementById('header-bg-opacity-value').textContent = e.target.value;
-        saveHeaderSettings();
-        applyHeaderBgStyle();
-    });
+    // Header Controls
+    setupInputListener('header-text-input', 'input', saveHeaderSettings, updateHeaderDisplay);
+    setupInputListener('header-image-url-input', 'input', saveHeaderSettings, updateHeaderDisplay);
+    setupInputListener('header-text-color-picker', 'input', saveHeaderSettings, updateHeaderDisplay);
+    setupOpacitySliderListener('header-text-color-opacity-slider', 'header-text-color-opacity-value', saveHeaderSettings, updateHeaderDisplay);
+    setupInputListener('header-bg-color-picker', 'input', saveHeaderSettings, applyHeaderBgStyle);
+    setupOpacitySliderListener('header-bg-opacity-slider', 'header-bg-opacity-value', saveHeaderSettings, applyHeaderBgStyle);
 
-    // --- Add Event Listeners for Marked Style Controls ---
-    document.getElementById('marked-color-picker').addEventListener('input', () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById('marked-color-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('marked-color-opacity-value')) document.getElementById('marked-color-opacity-value').textContent = e.target.value;
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById('marked-image-url-input').addEventListener('input', () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById('marked-image-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('marked-image-opacity-value')) document.getElementById('marked-image-opacity-value').textContent = e.target.value;
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-    document.getElementById('marked-border-color-picker').addEventListener('input', () => {
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
-     document.getElementById('marked-border-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('marked-border-opacity-value')) document.getElementById('marked-border-opacity-value').textContent = e.target.value;
-        saveMarkedStyleSettings();
-        refreshMarkedCellStyles();
-    });
+    // Marked Style Controls
+    setupInputListener('marked-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupOpacitySliderListener('marked-color-opacity-slider', 'marked-color-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupInputListener('marked-image-url-input', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupOpacitySliderListener('marked-image-opacity-slider', 'marked-image-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupInputListener('marked-border-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupOpacitySliderListener('marked-border-opacity-slider', 'marked-border-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    // Marked Text Styles
+    setupInputListener('marked-cell-text-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupOpacitySliderListener('marked-cell-text-opacity-slider', 'marked-cell-text-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupInputListener('marked-cell-outline-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupOpacitySliderListener('marked-cell-outline-opacity-slider', 'marked-cell-outline-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupInputListener('marked-cell-outline-width-input', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
 
-    // --- Add Event Listeners for Default Cell Style Controls ---
-    document.getElementById('cell-border-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById('cell-border-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles(); // Update all non-marked cells
-    });
-    document.getElementById('cell-background-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-background-image-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-background-image-opacity-value')) document.getElementById('cell-background-image-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
 
-    // --- Add Event Listeners for Text Style Controls ---
-    document.getElementById('cell-text-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-text-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-text-opacity-value')) document.getElementById('cell-text-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-color-picker').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('cell-outline-opacity-value')) document.getElementById('cell-outline-opacity-value').textContent = e.target.value;
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
-    document.getElementById('cell-outline-width-input').addEventListener('input', () => {
-        saveCellStyleSettings();
-        refreshCellStyles();
-    });
+    // Default Cell Style Controls
+    setupInputListener('cell-border-color-picker', 'input', saveCellStyleSettings, refreshCellStyles);
+    setupOpacitySliderListener('cell-border-opacity-slider', 'cell-border-opacity-value', saveCellStyleSettings, refreshCellStyles);
+    setupInputListener('cell-background-color-picker', 'input', saveCellStyleSettings, refreshCellStyles);
+    setupOpacitySliderListener('cell-background-opacity-slider', 'cell-background-opacity-value', saveCellStyleSettings, refreshCellStyles);
+    setupInputListener('cell-background-image-url-input', 'input', saveCellStyleSettings, refreshCellStyles);
+    setupOpacitySliderListener('cell-background-image-opacity-slider', 'cell-background-image-opacity-value', saveCellStyleSettings, refreshCellStyles);
+    // Default Text Styles
+    setupInputListener('cell-text-color-picker', 'input', saveCellStyleSettings, refreshCellStyles);
+    setupOpacitySliderListener('cell-text-opacity-slider', 'cell-text-opacity-value', saveCellStyleSettings, refreshCellStyles);
+    setupInputListener('cell-outline-color-picker', 'input', saveCellStyleSettings, refreshCellStyles);
+    setupOpacitySliderListener('cell-outline-opacity-slider', 'cell-outline-opacity-value', saveCellStyleSettings, refreshCellStyles);
+    setupInputListener('cell-outline-width-input', 'input', saveCellStyleSettings, refreshCellStyles);
 
-    // --- Add Event Listeners for Board Background Controls ---
-    document.getElementById('board-bg-color-picker').addEventListener('input', () => {
-        saveBoardBgSettings();
-        applyBoardBgStyle();
-    });
-    document.getElementById('board-bg-image-url-input').addEventListener('input', () => {
-        saveBoardBgSettings();
-        applyBoardBgStyle();
-    });
-    document.getElementById('board-bg-color-opacity-slider').addEventListener('input', (e) => {
-        if(document.getElementById('board-bg-color-opacity-value')) document.getElementById('board-bg-color-opacity-value').textContent = e.target.value;
-        saveBoardBgSettings();
-        applyBoardBgStyle();
-    });
+    // Board Background Controls
+    setupInputListener('board-bg-color-picker', 'input', saveBoardBgSettings, applyBoardBgStyle);
+    setupInputListener('board-bg-image-url-input', 'input', saveBoardBgSettings, applyBoardBgStyle);
+    setupOpacitySliderListener('board-bg-color-opacity-slider', 'board-bg-color-opacity-value', saveBoardBgSettings, applyBoardBgStyle);
+
 
     // --- Search Listener ---
     const searchInput = document.getElementById('search-input');
@@ -1782,8 +1571,6 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', () => {
             const searchTerm = searchInput.value.trim().toLowerCase();
             const cells = document.querySelectorAll('#bingo-board .bingo-cell');
-
-            // Split search term into words
             const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
 
             cells.forEach(cell => {
@@ -1791,23 +1578,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 let isMatch = false;
                 if (textSpan && searchWords.length > 0) {
                     const cellText = textSpan.textContent.trim().toLowerCase();
-                    // Check if ALL search words are included in the cell text
                     isMatch = searchWords.every(word => cellText.includes(word));
                 }
-
-                // Add or remove highlight based on match status
-                if (isMatch) {
-                    cell.classList.add('highlighted');
-                } else {
-                    cell.classList.remove('highlighted');
-                }
+                cell.classList.toggle('highlighted', isMatch); // More concise toggle
             });
         });
+        clearSearch(); // Clear search on initial load after setting up listener
     }
 
     // --- Other Listeners ---
     window.addEventListener('resize', equalizeCellSizes);
-    equalizeCellSizes(); // Initial call after load
+    equalizeCellSizes(); // <-- MOVED HERE
+
+    clearSearch(); // Clear search highlights and input
+    saveBoardState(); // Save the new randomized state (including cleared marks)
+
+    // Apply marked styles *after* all other styles/settings are restored
+    refreshMarkedCellStyles(); // <-- Keep here
+
+    // Equalize sizes as the very last step after all content and styles are set
+    equalizeCellSizes(); // <-- MOVED HERE
 });
 
 // --- Settings Import/Export ---
