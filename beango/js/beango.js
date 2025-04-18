@@ -14,12 +14,17 @@ const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
 const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
 const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
 const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
+const LS_HEADER_TYPE = 'beango_headerType'; // 'text' or 'image'
+const LS_HEADER_CONTENT = 'beango_headerContent'; // Text string or Image URL
 
 // --- Default Values ---
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
 const DEFAULT_GRADIENT_COLOR_1 = '#ff7e5f'; // From main page gradient
 const DEFAULT_GRADIENT_COLOR_2 = '#feb47b'; // From main page gradient
 const DEFAULT_GRADIENT_DIRECTION = '135deg'; // From main page gradient
+const DEFAULT_HEADER_TYPE = 'text';
+const DEFAULT_HEADER_TEXT = 'Beango!';
+const DEFAULT_HEADER_IMAGE_URL = ''; // No default image
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -173,12 +178,15 @@ function saveBoardState() {
     const sizeInput = document.getElementById('board-size');
     const size = sizeInput ? parseInt(sizeInput.value, 10) : 5; // Default to 5 if input missing
     const markedIndices = getMarkedIndices();
+    const originalUserItems = getItemsFromInput(); // Get current text from textarea
 
     localStorage.setItem(LS_BOARD_SIZE, size);
     localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save items potentially on board (padded/sliced)
     localStorage.setItem(LS_DISPLAYED_ITEMS, JSON.stringify(displayedItems)); // Save displayed items
     localStorage.setItem(LS_MARKED_INDICES, JSON.stringify(markedIndices));
-    localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(getItemsFromInput())); // Save user's raw input
+    localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Save user's raw input from textarea
+    saveBackgroundSettings(); // Save background settings from inputs
+    saveHeaderSettings(); // Save header settings from inputs
 }
 
 function generateBoard() {
@@ -192,7 +200,7 @@ function generateBoard() {
 
     // Get items from input and store them as the canonical list
     const originalUserItems = getItemsFromInput();
-    localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Save user's raw input
+    // localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Moved to saveBoardState
 
     const requiredItems = size * size;
     let itemsForBoard = [...originalUserItems]; // Start with a copy of the user's raw input
@@ -220,7 +228,7 @@ function generateBoard() {
     }
 
     // Save the items that are actually available for the board (potentially padded/sliced)
-    localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems));
+    // localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Moved to saveBoardState
 
     // Shuffle the items specifically for display (use currentItems which has the right size)
     displayedItems = shuffleArray([...currentItems]);
@@ -240,10 +248,10 @@ function generateBoard() {
 
     clearMarks(false); // Clear previous marks visually but don't save yet
     equalizeCellSizes(); // Add this call
-    saveBoardState(); // Save the newly generated board state (size, items, displayed, marks)
+    // saveBoardState(); // REMOVED first call - Save the newly generated board state (size, items, displayed, marks)
 
-    // Explicitly save background settings before reload
-    saveBackgroundSettings();
+    // Explicitly save background settings before reload - NO, save everything together
+    // saveBackgroundSettings();
 
     // Get the new background value and inject a style override before reload
     const newBackgroundValue = setBackground(); // Apply and get value
@@ -257,6 +265,9 @@ function generateBoard() {
     overrideStyle.textContent = `html { background: ${newBackgroundValue} !important; background-repeat: no-repeat !important; background-attachment: fixed !important; }`;
 
     showNotification(notificationMessage, notificationType);
+
+    // *** Save the complete final state just before reload ***
+    saveBoardState(); // Includes size, items, displayed, marks, original items, background, header
 
     // Reload the page to ensure correct rendering based on saved state
     location.reload();
@@ -277,6 +288,13 @@ function generateBoard() {
     document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
     document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
     toggleBackgroundControls(); // Ensure correct controls are visible
+
+    // Reset header inputs to defaults
+    document.querySelector('input[name="header-type"][value="text"]').checked = true;
+    document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
+    document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
+    toggleHeaderInputs(); // Ensure correct header inputs are visible
+    updateHeaderDisplay(); // Apply default header display
 
     // Clear the board display
     const boardHeader = document.getElementById('board-header');
@@ -398,6 +416,13 @@ function resetSettings() {
     document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
     toggleBackgroundControls(); // Ensure correct controls are visible
 
+    // Reset header inputs to defaults
+    document.querySelector('input[name="header-type"][value="text"]').checked = true;
+    document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
+    document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
+    toggleHeaderInputs(); // Ensure correct header inputs are visible
+    updateHeaderDisplay(); // Apply default header display
+
     // Clear the board display
     const board = document.getElementById('bingo-board');
     board.innerHTML = '<div class="bingo-cell">Settings Reset. Generate a new board!</div>';
@@ -443,6 +468,8 @@ function loadFromLocalStorage() {
     const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
     const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === 'true';
     const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
+    const savedHeaderType = localStorage.getItem(LS_HEADER_TYPE) || DEFAULT_HEADER_TYPE;
+    const savedHeaderContent = localStorage.getItem(LS_HEADER_CONTENT) || (savedHeaderType === 'text' ? DEFAULT_HEADER_TEXT : DEFAULT_HEADER_IMAGE_URL);
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -529,6 +556,17 @@ function loadFromLocalStorage() {
     toggleBackgroundControls();
     setBackground();
     // --- End Restore Background Settings ---
+
+    // --- Restore Header Settings ---
+    document.querySelector(`input[name="header-type"][value="${savedHeaderType}"]`).checked = true;
+    if (savedHeaderType === 'text') {
+        document.getElementById('header-text-input').value = savedHeaderContent;
+    } else {
+        document.getElementById('header-image-url-input').value = savedHeaderContent;
+    }
+    toggleHeaderInputs(); // Show/hide the correct input fields
+    updateHeaderDisplay(); // Apply the loaded header
+    // --- End Restore Header Settings ---
 
     // Restore the textarea with the original user input if available
     if (savedOriginalItemsText) {
@@ -747,4 +785,118 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackground();
         saveBackgroundSettings();
     });
+
+    // Header listeners
+    document.querySelectorAll('input[name="header-type"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            toggleHeaderInputs();
+            // Update display immediately on type change - Order changed
+            saveHeaderSettings();       // Save the new type first
+            updateHeaderDisplay(); // Then update display from saved state
+        });
+    });
+    document.getElementById('header-text-input').addEventListener('input', () => {
+        // Order changed
+        saveHeaderSettings();       // Save the new text first
+        updateHeaderDisplay(); // Then update display from saved state
+    });
+    document.getElementById('header-image-url-input').addEventListener('input', () => {
+        // Order changed
+        saveHeaderSettings();       // Save the new URL first
+        updateHeaderDisplay(); // Then update display from saved state
+    });
+
+    // Call equalizeCellSizes on resize and load
+    window.addEventListener('resize', equalizeCellSizes);
+    equalizeCellSizes(); // Initial call after load
 });
+
+// --- Save current header settings to localStorage ---
+function saveHeaderSettings() {
+    const headerType = document.querySelector('input[name="header-type"]:checked').value;
+    localStorage.setItem(LS_HEADER_TYPE, headerType);
+
+    if (headerType === 'text') {
+        localStorage.setItem(LS_HEADER_CONTENT, document.getElementById('header-text-input').value);
+    } else { // image
+        localStorage.setItem(LS_HEADER_CONTENT, document.getElementById('header-image-url-input').value);
+    }
+}
+
+// --- Function to manage visibility of header controls ---
+function toggleHeaderInputs() {
+    const headerType = document.querySelector('input[name="header-type"]:checked').value;
+    const textSettings = document.getElementById('header-text-settings');
+    const imageSettings = document.getElementById('header-image-settings');
+
+    if (headerType === 'text') {
+        textSettings.style.display = 'block';
+        imageSettings.style.display = 'none';
+    } else { // image
+        textSettings.style.display = 'none';
+        imageSettings.style.display = 'block';
+    }
+}
+
+// --- Function to update the header display ---
+function updateHeaderDisplay() {
+    const headerType = localStorage.getItem(LS_HEADER_TYPE) || DEFAULT_HEADER_TYPE;
+    const headerContent = localStorage.getItem(LS_HEADER_CONTENT) || (headerType === 'text' ? DEFAULT_HEADER_TEXT : DEFAULT_HEADER_IMAGE_URL);
+    const headerContainer = document.getElementById('custom-header-content');
+
+    if (!headerContainer) return;
+
+    // Clear existing content
+    headerContainer.innerHTML = '';
+
+    if (headerType === 'text') {
+        // Create H1 for text
+        const h1 = document.createElement('h1');
+        h1.className = 'text-4xl font-bold text-green-800';
+        h1.textContent = headerContent || DEFAULT_HEADER_TEXT; // Fallback to default text
+        headerContainer.appendChild(h1);
+
+        // Create and add bean image
+        const img = document.createElement('img');
+        img.id = 'bean';
+        img.src = '../bean.svg';
+        img.alt = 'Bean';
+        img.className = 'w-16 h-16 cursor-pointer'; // Updated class for size
+        img.onclick = explodeBeans;
+        headerContainer.appendChild(img);
+    } else { // image
+        if (headerContent) {
+            // Create img for custom image URL
+            const img = document.createElement('img');
+            img.src = headerContent;
+            img.alt = 'Custom Header Image';
+            // Add some basic styling for the custom image - adjust as needed
+            img.className = 'max-h-20 max-w-full object-contain'; // Limit height, allow natural width up to container
+            img.onerror = () => { // Handle broken image links
+                headerContainer.innerHTML = ''; // Clear the broken image attempt
+                const errorText = document.createElement('p');
+                errorText.textContent = 'Could not load header image.';
+                errorText.className = 'text-red-500 text-sm';
+                headerContainer.appendChild(errorText);
+                 // Optionally revert to default text header on error
+                 // localStorage.setItem(LS_HEADER_TYPE, DEFAULT_HEADER_TYPE);
+                 // localStorage.setItem(LS_HEADER_CONTENT, DEFAULT_HEADER_TEXT);
+                 // updateHeaderDisplay();
+            };
+            headerContainer.appendChild(img);
+        } else {
+             // If image type is selected but URL is empty, show default text header
+            const h1 = document.createElement('h1');
+            h1.className = 'text-4xl font-bold text-green-800';
+            h1.textContent = DEFAULT_HEADER_TEXT;
+            headerContainer.appendChild(h1);
+            const beanImg = document.createElement('img');
+            beanImg.id = 'bean';
+            beanImg.src = '../bean.svg';
+            beanImg.alt = 'Bean';
+            beanImg.className = 'w-16 h-16 cursor-pointer';
+            beanImg.onclick = explodeBeans;
+            headerContainer.appendChild(beanImg);
+        }
+    }
+}
