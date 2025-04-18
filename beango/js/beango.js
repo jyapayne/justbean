@@ -1101,6 +1101,35 @@ function loadFromLocalStorage() {
         applyBoardBgStyle();
     });
 
+    // --- Search Listener ---
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const cells = document.querySelectorAll('#bingo-board .bingo-cell');
+
+            // Split search term into words
+            const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 0);
+
+            cells.forEach(cell => {
+                const textSpan = cell.querySelector('.bingo-cell-text');
+                let isMatch = false;
+                if (textSpan && searchWords.length > 0) {
+                    const cellText = textSpan.textContent.trim().toLowerCase();
+                    // Check if ALL search words are included in the cell text
+                    isMatch = searchWords.every(word => cellText.includes(word));
+                }
+
+                // Add or remove highlight based on match status
+                if (isMatch) {
+                    cell.classList.add('highlighted');
+                } else {
+                    cell.classList.remove('highlighted');
+                }
+            });
+        });
+    }
+
     // --- Other Listeners ---
     window.addEventListener('resize', equalizeCellSizes);
     equalizeCellSizes(); // Initial call after load

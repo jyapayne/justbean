@@ -82,6 +82,15 @@ body {
     max-width: 100%;
 }
 
+/* NEW: Style for highlighted search results */
+.bingo-cell.highlighted {
+    border-color: #3b82f6; /* Tailwind blue-500 */
+    border-width: 3px;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); /* Stronger blue glow */
+    z-index: 10; /* Ensure highlighted cells are visually on top if overlapping happens during scale */
+}
+
 /* Add darken filter on hover */
 .bingo-cell:hover {
     filter: brightness(85%);
