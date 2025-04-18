@@ -482,12 +482,12 @@ function equalizeCellSizes() {
     */
 
     // Set grid column width and auto row height based on max dimension
-    board.style.gridTemplateColumns = `repeat(${size}, ${maxDimension}px)`;
-    board.style.gridAutoRows = `${maxDimension}px`;
+    board.style.gridTemplateColumns = `repeat(${size}, ${Math.max(maxDimension, 120)}px)`;
+    board.style.gridAutoRows = `${Math.max(maxDimension, 120)}px`; // Ensure minimum height
 
     // Calculate total board width needed (including gaps AND container padding)
     const containerPadding = 32; // Based on p-4 class (1rem = 16px, left + right = 32px)
-    const totalWidth = (maxDimension * size) + (gap * (size - 1)) + containerPadding;
+    const totalWidth = (Math.max(maxDimension, 120) * size) + (gap * (size - 1)) + containerPadding;
 
     // Update container max-width
     const boardContainer = document.getElementById('bingo-board-container');
