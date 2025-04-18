@@ -14,25 +14,32 @@ const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
 const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
 const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
 const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
-const LS_HEADER_TYPE = 'beango_headerType'; // 'text' or 'image'
-const LS_HEADER_CONTENT = 'beango_headerContent'; // Text string or Image URL
+const LS_HEADER_TEXT = 'beango_headerText';
+const LS_HEADER_IMAGE_URL = 'beango_headerImageUrl';
 const LS_MARKED_STYLE_TYPE = 'beango_markedStyleType'; // 'color' or 'image'
 const LS_MARKED_COLOR = 'beango_markedColor';
 const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
 const LS_MARKED_OPACITY = 'beango_markedOpacity'; // Stored as 0-100
+const LS_CELL_BORDER_COLOR = 'beango_cellBorderColor';
+const LS_CELL_BG_COLOR = 'beango_cellBgColor';
+const LS_CELL_BG_IMAGE_URL = 'beango_cellBgImageUrl';
+const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor'; // New key
 
 // --- Default Values ---
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
 const DEFAULT_GRADIENT_COLOR_1 = '#ff7e5f'; // From main page gradient
 const DEFAULT_GRADIENT_COLOR_2 = '#feb47b'; // From main page gradient
 const DEFAULT_GRADIENT_DIRECTION = '135deg'; // From main page gradient
-const DEFAULT_HEADER_TYPE = 'text';
-const DEFAULT_HEADER_TEXT = 'Beango!';
+const DEFAULT_HEADER_TEXT = 'Beango!'; // REVERTED default back to Beango!
 const DEFAULT_HEADER_IMAGE_URL = ''; // No default image
 const DEFAULT_MARKED_STYLE_TYPE = 'color';
 const DEFAULT_MARKED_COLOR = '#fde047'; // Default yellow
 const DEFAULT_MARKED_IMAGE_URL = '';
 const DEFAULT_MARKED_OPACITY = 80; // Default 80%
+const DEFAULT_CELL_BORDER_COLOR = '#8B4513'; // Default brown
+const DEFAULT_CELL_BG_COLOR = '#F5F5DC'; // Default beige
+const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
+const DEFAULT_MARKED_BORDER_COLOR = '#ca8a04'; // Default darker yellow/orange (Tailwind yellow-600)
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -200,6 +207,8 @@ function saveMarkedStyleSettings() {
     if (isNaN(opacity) || opacity < 0) opacity = 0;
     if (opacity > 100) opacity = 100;
     localStorage.setItem(LS_MARKED_OPACITY, opacity);
+    // Save marked border color
+    localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
 }
 
 // --- Function to manage visibility of marked style controls ---
@@ -254,8 +263,13 @@ function applyMarkedCellStyle(cell) {
                 cell.style.backgroundColor = DEFAULT_MARKED_COLOR;
             }
         }
+        // Apply marked border color
+        const markedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
+        cell.style.borderColor = markedBorderColor;
     } else {
         // If unmarked, ensure all styles are fully reset (already done above)
+        // Then re-apply default styles
+        applyCellStyle(cell);
     }
 }
 
@@ -264,6 +278,114 @@ function refreshMarkedCellStyles() {
     const markedCells = document.querySelectorAll('#bingo-board .bingo-cell.marked');
     markedCells.forEach(cell => {
         applyMarkedCellStyle(cell); // Re-apply based on current settings
+    });
+}
+
+// --- Save current header settings to localStorage ---
+function saveHeaderSettings() {
+    localStorage.setItem(LS_HEADER_TEXT, document.getElementById('header-text-input').value);
+    localStorage.setItem(LS_HEADER_IMAGE_URL, document.getElementById('header-image-url-input').value);
+}
+
+// --- Function to update the header display ---
+function updateHeaderDisplay() {
+    // Read text, applying default ONLY if the key is missing
+    let headerText = localStorage.getItem(LS_HEADER_TEXT);
+    if (headerText === null) { // Check if key exists
+        headerText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
+    }
+    // Read image URL, applying default if missing OR empty (standard || pattern)
+    const headerImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
+    const headerContainer = document.getElementById("custom-header-content");
+
+    if (!headerContainer) return;
+
+    // Clear existing content
+    headerContainer.innerHTML = "";
+
+    let hasText = headerText && headerText.trim() !== "";
+    let hasCustomImage = headerImageUrl && headerImageUrl.trim() !== "";
+
+    // Add text if it exists
+    if (hasText) {
+        const h1 = document.createElement("h1");
+        h1.className = "text-4xl font-bold text-green-800"; // Keep existing style
+        h1.textContent = headerText;
+        headerContainer.appendChild(h1);
+    }
+
+    // Add custom image if URL exists
+    if (hasCustomImage) {
+        const img = document.createElement("img");
+        img.src = headerImageUrl;
+        img.alt = "Custom Header Image";
+        img.className = "max-h-16 max-w-full object-contain"; // Adjust size as needed
+        img.onerror = () => {
+            img.remove(); // Remove broken image placeholder
+            showNotification("Could not load custom header image.", "warning");
+            // If there was no text either, maybe add bean?
+            if (!hasText && !document.getElementById("bean")) {
+                 addDefaultBean(headerContainer);
+            }
+        };
+        headerContainer.appendChild(img);
+    }
+    // If there is NO text and NO custom image, add the default bean
+    else if (!hasText) {
+        addDefaultBean(headerContainer);
+    }
+    // Implicitly, if there IS text but NO custom image, nothing else is added here
+    // (the bean is not automatically added alongside text anymore unless specified by lack of custom image AND lack of text)
+}
+
+// Helper to add the default bean image
+function addDefaultBean(container) {
+    const img = document.createElement('img');
+    img.id = 'bean';
+    img.src = '../bean.svg';
+    img.alt = 'Bean';
+    img.className = 'w-16 h-16 cursor-pointer'; // Use consistent size
+    img.onclick = explodeBeans;
+    container.appendChild(img);
+}
+
+// --- Save current default cell style settings to localStorage ---
+function saveCellStyleSettings() {
+    localStorage.setItem(LS_CELL_BORDER_COLOR, document.getElementById('cell-border-color-picker').value);
+    localStorage.setItem(LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
+    localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
+}
+
+// --- Apply saved default cell styles to a cell ---
+function applyCellStyle(cell) {
+    if (!cell || cell.classList.contains('marked')) return; // Only apply to non-marked cells
+
+    const borderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
+    const bgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
+    const bgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
+
+    cell.style.borderColor = borderColor;
+
+    if (bgImageUrl) {
+        cell.style.backgroundImage = `url('${bgImageUrl}')`;
+        cell.style.backgroundSize = 'cover'; // Default to cover, adjust if needed
+        cell.style.backgroundPosition = 'center center';
+        cell.style.backgroundRepeat = 'no-repeat';
+        // Set fallback color slightly transparently
+        cell.style.backgroundColor = 'rgba(245, 245, 220, 0.8)'; // Default beige slightly transparent
+    } else {
+        cell.style.backgroundImage = ''; // Clear image if URL is removed
+        cell.style.backgroundColor = bgColor;
+    }
+    // Ensure opacity is reset if it was somehow set (e.g., during marking/unmarking)
+    cell.style.opacity = '';
+}
+
+// --- Re-apply default styles to all non-marked cells ---
+function refreshCellStyles() {
+    const cells = document.querySelectorAll('#bingo-board .bingo-cell:not(.marked)');
+    cells.forEach(cell => {
+        applyCellStyle(cell); // Re-apply based on current settings
     });
 }
 
@@ -282,6 +404,7 @@ function saveBoardState() {
     saveBackgroundSettings(); // Save background settings from inputs
     saveHeaderSettings(); // Save header settings from inputs
     saveMarkedStyleSettings(); // Save marked cell style settings
+    saveCellStyleSettings(); // Save default cell style settings
 }
 
 function generateBoard() {
@@ -338,6 +461,7 @@ function generateBoard() {
         cell.textContent = item;
         cell.dataset.index = index; // Add index for saving marks
         cell.onclick = () => selectCell(cell);
+        applyCellStyle(cell); // Apply default styles upon creation
         board.appendChild(cell);
     });
 
@@ -385,10 +509,8 @@ function generateBoard() {
     toggleBackgroundControls(); // Ensure correct controls are visible
 
     // Reset header inputs to defaults
-    document.querySelector('input[name="header-type"][value="text"]').checked = true;
     document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
     document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
-    toggleHeaderInputs(); // Ensure correct header inputs are visible
     updateHeaderDisplay(); // Apply default header display
 
     // Reset marked style inputs to defaults
@@ -396,6 +518,7 @@ function generateBoard() {
     document.getElementById('marked-color-picker').value = DEFAULT_MARKED_COLOR;
     document.getElementById('marked-image-url-input').value = DEFAULT_MARKED_IMAGE_URL;
     document.getElementById('marked-opacity-input').value = DEFAULT_MARKED_OPACITY;
+    document.getElementById('marked-border-color-picker').value = DEFAULT_MARKED_BORDER_COLOR;
     toggleMarkedStyleInputs(); // Ensure correct marked style inputs are visible
     refreshMarkedCellStyles(); // Apply default styles (which is none, effectively)
 
@@ -450,7 +573,9 @@ function randomizeBoard() {
 
     cells.forEach((cell, index) => {
         cell.textContent = displayedItems[index];
-        cell.classList.remove('bg-yellow-300', 'ring-2', 'ring-blue-500'); // Clear marks visually
+        cell.classList.remove('marked'); // Clear marks visually
+        applyMarkedCellStyle(cell); // Reset marked styles (which also calls applyCellStyle)
+        // applyCellStyle(cell); // Ensure default styles are applied (covered by applyMarkedCellStyle reset)
     });
 
     clearMarks(false); // Clear visual marks
@@ -461,7 +586,7 @@ function randomizeBoard() {
 function selectCell(cell) {
     cell.classList.toggle('marked'); // Toggle the dedicated 'marked' class
     applyMarkedCellStyle(cell);   // Apply/remove styles based on new state and settings
-    saveBoardState(); // Save updated marks immediately after click
+    // saveBoardState(); // Save updated marks immediately after click - NO, save everything together later
 }
 
 function clearMarks(save = true) {
@@ -472,7 +597,7 @@ function clearMarks(save = true) {
             applyMarkedCellStyle(cell); // Reset styles for this cell
         }
         // Ensure styles are reset even if class was somehow missing
-        applyMarkedCellStyle(cell);
+        applyCellStyle(cell); // Ensure default styles are correct after potential mark removal
     });
     if (save) {
         saveBoardState(); // Save cleared marks
@@ -508,12 +633,15 @@ function resetSettings() {
     // localStorage.removeItem(LS_GRADIENT_COLOR_1);
     // localStorage.removeItem(LS_GRADIENT_COLOR_2);
     // localStorage.removeItem(LS_GRADIENT_DIRECTION);
-    // localStorage.removeItem(LS_HEADER_TYPE);
-    // localStorage.removeItem(LS_HEADER_CONTENT);
+    // localStorage.removeItem(LS_HEADER_TEXT);
+    // localStorage.removeItem(LS_HEADER_IMAGE_URL);
     // localStorage.removeItem(LS_MARKED_STYLE_TYPE);
     // localStorage.removeItem(LS_MARKED_COLOR);
     // localStorage.removeItem(LS_MARKED_IMAGE_URL);
     // localStorage.removeItem(LS_MARKED_OPACITY);
+    // localStorage.removeItem(LS_CELL_BORDER_COLOR); // Keep style on board reset
+    // localStorage.removeItem(LS_CELL_BG_COLOR);
+    // localStorage.removeItem(LS_CELL_BG_IMAGE_URL);
 
     // Reset global variables for board content
     currentItems = [];
@@ -572,18 +700,26 @@ function getMarkedIndices() {
 
 // --- Load State on Page Load ---
 function loadFromLocalStorage() {
-    const savedSize = localStorage.getItem(LS_BOARD_SIZE) || '5'; // Default to 5
+    const savedSize = localStorage.getItem(LS_BOARD_SIZE) || "5"; // Default to 5
     const savedItemsText = localStorage.getItem(LS_CELL_ITEMS);
     const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
     const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
-    const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === 'true';
+    const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === "true";
     const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
-    const savedHeaderType = localStorage.getItem(LS_HEADER_TYPE) || DEFAULT_HEADER_TYPE;
-    const savedHeaderContent = localStorage.getItem(LS_HEADER_CONTENT) || (savedHeaderType === 'text' ? DEFAULT_HEADER_TEXT : DEFAULT_HEADER_IMAGE_URL);
+    // Load header text, applying default ONLY if key is missing
+    let savedHeaderText = localStorage.getItem(LS_HEADER_TEXT);
+    if (savedHeaderText === null) { // Check if key exists
+        savedHeaderText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
+    }
+    const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
     const savedMarkedStyleType = localStorage.getItem(LS_MARKED_STYLE_TYPE) || DEFAULT_MARKED_STYLE_TYPE;
     const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
     const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
     const savedMarkedOpacity = localStorage.getItem(LS_MARKED_OPACITY) || DEFAULT_MARKED_OPACITY;
+    const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
+    const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
+    const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
+    const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -603,6 +739,26 @@ function loadFromLocalStorage() {
     if (savedDisplayedItems) {
         try {
             displayedItems = JSON.parse(savedDisplayedItems); // Restore displayed items array
+            // *** ADDED: Restore currentItems as well ***
+            if (savedItemsText) {
+                 try {
+                     currentItems = JSON.parse(savedItemsText);
+                     if (!Array.isArray(currentItems)) {
+                         console.warn('Loaded LS_CELL_ITEMS was not an array, resetting.');
+                         currentItems = [];
+                     }
+                 } catch (e) {
+                     showNotification('Error parsing saved cell item pool (LS_CELL_ITEMS). Board may not randomize correctly.', 'warning');
+                     currentItems = []; // Reset on parse error
+                 }
+            } else {
+                 // If LS_CELL_ITEMS doesn't exist but LS_DISPLAYED_ITEMS does, it's an inconsistent state.
+                 // We could try to reconstruct currentItems from displayedItems, but it might lack padding/slicing info.
+                 // For now, log a warning and reset currentItems.
+                 console.warn('Inconsistent state: LS_DISPLAYED_ITEMS exists but LS_CELL_ITEMS is missing. Randomization might fail.');
+                 currentItems = [];
+            }
+            // *** END ADDED section ***
         } catch (e) {
              showNotification('Error parsing saved board state. Please generate again.', 'error');
              localStorage.removeItem(LS_DISPLAYED_ITEMS);
@@ -635,9 +791,10 @@ function loadFromLocalStorage() {
             cell.textContent = item;
             cell.dataset.index = index; // Ensure index is set for loading marks correctly
             cell.onclick = () => selectCell(cell);
+            applyCellStyle(cell); // Apply default cell style first
             if (markedIndices.includes(index)) {
                 cell.classList.add('marked'); // Apply saved mark using 'marked' class
-                // Apply dynamic styles AFTER adding the class
+                // Apply dynamic marked styles AFTER adding the class and default styles
                 applyMarkedCellStyle(cell);
             }
             board.appendChild(cell);
@@ -674,13 +831,8 @@ function loadFromLocalStorage() {
     // --- End Restore Background Settings ---
 
     // --- Restore Header Settings ---
-    document.querySelector(`input[name="header-type"][value="${savedHeaderType}"]`).checked = true;
-    if (savedHeaderType === 'text') {
-        document.getElementById('header-text-input').value = savedHeaderContent;
-    } else {
-        document.getElementById('header-image-url-input').value = savedHeaderContent;
-    }
-    toggleHeaderInputs(); // Show/hide the correct input fields
+    document.getElementById('header-text-input').value = savedHeaderText;
+    document.getElementById('header-image-url-input').value = savedHeaderImageUrl;
     updateHeaderDisplay(); // Apply the loaded header
     // --- End Restore Header Settings ---
 
@@ -689,9 +841,17 @@ function loadFromLocalStorage() {
     document.getElementById('marked-color-picker').value = savedMarkedColor;
     document.getElementById('marked-image-url-input').value = savedMarkedImageUrl;
     document.getElementById('marked-opacity-input').value = savedMarkedOpacity;
+    document.getElementById('marked-border-color-picker').value = savedMarkedBorderColor;
     toggleMarkedStyleInputs(); // Show/hide correct inputs
     // Styles are applied during board creation loop above
     // --- End Restore Marked Style Settings ---
+
+    // --- Restore Default Cell Style Settings ---
+    document.getElementById('cell-border-color-picker').value = savedCellBorderColor;
+    document.getElementById('cell-background-color-picker').value = savedCellBgColor;
+    document.getElementById('cell-background-image-url-input').value = savedCellBgImageUrl;
+    // Styles are applied during board creation loop above
+    // --- End Restore Default Cell Style Settings ---
 
     // Restore the textarea with the original user input if available
     if (savedOriginalItemsText) {
@@ -721,6 +881,24 @@ function loadFromLocalStorage() {
     // Update container width based on loaded size - REMOVED
     // updateBoardContainerMaxWidth(size);
     // updateBoardContainerMaxWidth(size, '#board-header');
+
+    // --- Add Event Listeners for Default Cell Style Controls ---
+    document.getElementById('cell-border-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById('cell-background-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+
+    // --- Other Listeners ---
+    window.addEventListener('resize', equalizeCellSizes);
+    equalizeCellSizes(); // Initial call after load
 }
 
 // --- Helper to manage board container width --- DEPRECATED
@@ -814,7 +992,7 @@ function equalizeCellSizes() {
         // Measure the cell's natural dimensions after reflow
         const width = cell.offsetWidth;
         const height = cell.offsetHeight;
-        maxDimension = Math.max(maxDimension, width, height);
+        maxDimension = Math.max(maxDimension, width+10, height);
     });
 
      // Ensure a minimum size for very small content or empty cells
@@ -843,7 +1021,7 @@ function equalizeCellSizes() {
 }
 
 function explodeBeans() {
-    const container = document.querySelector('.centered');
+    const container = document.querySelector('#custom-header-content');
     for (let i = 0; i < 20; i++) {
         const newBean = document.createElement('img');
         newBean.src = '../bean.svg';
@@ -909,13 +1087,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Add Event Listeners for Header Controls ---
-    document.querySelectorAll('input[name="header-type"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            toggleHeaderInputs();
-            saveHeaderSettings();       // Save the new type first
-            updateHeaderDisplay(); // Then update display from saved state
-        });
-    });
     document.getElementById('header-text-input').addEventListener('input', () => {
         saveHeaderSettings();       // Save the new text first
         updateHeaderDisplay(); // Then update display from saved state
@@ -945,98 +1116,12 @@ document.addEventListener('DOMContentLoaded', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
+    document.getElementById('marked-border-color-picker').addEventListener('input', () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
 
     // --- Other Listeners ---
     window.addEventListener('resize', equalizeCellSizes);
     equalizeCellSizes(); // Initial call after load
 });
-
-// --- Save current header settings to localStorage ---
-function saveHeaderSettings() {
-    const headerType = document.querySelector('input[name="header-type"]:checked').value;
-    localStorage.setItem(LS_HEADER_TYPE, headerType);
-
-    if (headerType === 'text') {
-        localStorage.setItem(LS_HEADER_CONTENT, document.getElementById('header-text-input').value);
-    } else { // image
-        localStorage.setItem(LS_HEADER_CONTENT, document.getElementById('header-image-url-input').value);
-    }
-}
-
-// --- Function to manage visibility of header controls ---
-function toggleHeaderInputs() {
-    const headerType = document.querySelector('input[name="header-type"]:checked').value;
-    const textSettings = document.getElementById('header-text-settings');
-    const imageSettings = document.getElementById('header-image-settings');
-
-    if (headerType === 'text') {
-        textSettings.style.display = 'block';
-        imageSettings.style.display = 'none';
-    } else { // image
-        textSettings.style.display = 'none';
-        imageSettings.style.display = 'block';
-    }
-}
-
-// --- Function to update the header display ---
-function updateHeaderDisplay() {
-    const headerType = localStorage.getItem(LS_HEADER_TYPE) || DEFAULT_HEADER_TYPE;
-    const headerContent = localStorage.getItem(LS_HEADER_CONTENT) || (headerType === 'text' ? DEFAULT_HEADER_TEXT : DEFAULT_HEADER_IMAGE_URL);
-    const headerContainer = document.getElementById('custom-header-content');
-
-    if (!headerContainer) return;
-
-    // Clear existing content
-    headerContainer.innerHTML = '';
-
-    if (headerType === 'text') {
-        // Create H1 for text
-        const h1 = document.createElement('h1');
-        h1.className = 'text-4xl font-bold text-green-800';
-        h1.textContent = headerContent || DEFAULT_HEADER_TEXT; // Fallback to default text
-        headerContainer.appendChild(h1);
-
-        // Create and add bean image
-        const img = document.createElement('img');
-        img.id = 'bean';
-        img.src = '../bean.svg';
-        img.alt = 'Bean';
-        img.className = 'w-16 h-16 cursor-pointer'; // Updated class for size
-        img.onclick = explodeBeans;
-        headerContainer.appendChild(img);
-    } else { // image
-        if (headerContent) {
-            // Create img for custom image URL
-            const img = document.createElement('img');
-            img.src = headerContent;
-            img.alt = 'Custom Header Image';
-            // Add some basic styling for the custom image - adjust as needed
-            img.className = 'max-h-20 max-w-full object-contain'; // Limit height, allow natural width up to container
-            img.onerror = () => { // Handle broken image links
-                headerContainer.innerHTML = ''; // Clear the broken image attempt
-                const errorText = document.createElement('p');
-                errorText.textContent = 'Could not load header image.';
-                errorText.className = 'text-red-500 text-sm';
-                headerContainer.appendChild(errorText);
-                 // Optionally revert to default text header on error
-                 // localStorage.setItem(LS_HEADER_TYPE, DEFAULT_HEADER_TYPE);
-                 // localStorage.setItem(LS_HEADER_CONTENT, DEFAULT_HEADER_TEXT);
-                 // updateHeaderDisplay();
-            };
-            headerContainer.appendChild(img);
-        } else {
-             // If image type is selected but URL is empty, show default text header
-            const h1 = document.createElement('h1');
-            h1.className = 'text-4xl font-bold text-green-800';
-            h1.textContent = DEFAULT_HEADER_TEXT;
-            headerContainer.appendChild(h1);
-            const beanImg = document.createElement('img');
-            beanImg.id = 'bean';
-            beanImg.src = '../bean.svg';
-            beanImg.alt = 'Bean';
-            beanImg.className = 'w-16 h-16 cursor-pointer';
-            beanImg.onclick = explodeBeans;
-            headerContainer.appendChild(beanImg);
-        }
-    }
-}

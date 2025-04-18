@@ -87,24 +87,14 @@
             <details class="config-section">
                 <summary class="config-summary">Header Customization</summary>
                 <div class="config-content space-y-4 pt-2">
-                    <div class="mt-1 flex space-x-4 mb-2">
-                        <label class="inline-flex items-center">
-                            <input type="radio" class="form-radio text-green-600" name="header-type" value="text" checked>
-                            <span class="ml-2">Text</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" class="form-radio text-green-600" name="header-type" value="image">
-                            <span class="ml-2">Image URL</span>
-                        </label>
-                    </div>
                     <div id="header-text-settings">
-                        <label for="header-text-input" class="block text-sm font-medium text-gray-700">Header Text:</label>
+                        <label for="header-text-input" class="block text-sm font-medium text-gray-700">Header Text (Optional):</label>
                         <input type="text" id="header-text-input" name="header-text-input" value="Beango!" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                        <p class="mt-1 text-xs text-gray-500">The bean image will appear next to the text.</p>
                     </div>
-                    <div id="header-image-settings" class="hidden">
-                        <label for="header-image-url-input" class="block text-sm font-medium text-gray-700">Header Image URL:</label>
-                        <input type="url" id="header-image-url-input" name="header-image-url-input" placeholder="https://example.com/image.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    <div id="header-image-settings">
+                        <label for="header-image-url-input" class="block text-sm font-medium text-gray-700">Header Image URL (Optional):</label>
+                        <input type="url" id="header-image-url-input" name="header-image-url-input" placeholder="Leave blank to use default bean with text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <p class="mt-1 text-xs text-gray-500">If text is also provided, image appears next to it.</p>
                     </div>
                 </div>
             </details>
@@ -174,8 +164,30 @@
                         <input type="url" id="marked-image-url-input" name="marked-image-url-input" placeholder="https://example.com/marker.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                     </div>
                     <div class="mt-2">
-                         <label for="marked-opacity-input" class="block text-sm font-medium text-gray-700">Marked Cell Opacity (%):</label>
-                         <input type="number" id="marked-opacity-input" name="marked-opacity-input" min="0" max="100" value="80" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <label for="marked-border-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Border Color:</label>
+                        <input type="color" id="marked-border-color-picker" name="marked-border-color-picker" value="#ca8a04" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div class="mt-2">
+                        <label for="marked-opacity-input" class="block text-sm font-medium text-gray-700">Marked Cell Opacity (%):</label>
+                        <input type="number" id="marked-opacity-input" name="marked-opacity-input" min="0" max="100" value="80" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    </div>
+                </div>
+            </details>
+
+            <details class="config-section">
+                <summary class="config-summary">Default Cell Style</summary>
+                <div class="config-content space-y-4 pt-2">
+                    <div>
+                        <label for="cell-border-color-picker" class="block text-sm font-medium text-gray-700">Border Color:</label>
+                        <input type="color" id="cell-border-color-picker" name="cell-border-color-picker" value="#8B4513" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                    </div>
+                     <div>
+                        <label for="cell-background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
+                        <input type="color" id="cell-background-color-picker" name="cell-background-color-picker" value="#F5F5DC" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                    </div>
+                     <div>
+                        <label for="cell-background-image-url-input" class="block text-sm font-medium text-gray-700">Background Image URL (Optional):</label>
+                        <input type="url" id="cell-background-image-url-input" name="cell-background-image-url-input" placeholder="Clear to use background color" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                     </div>
                 </div>
             </details>
