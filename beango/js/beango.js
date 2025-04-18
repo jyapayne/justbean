@@ -50,6 +50,9 @@ const LS_MARKED_CELL_TEXT_OPACITY = 'beango_markedCellTextOpacity';
 const LS_MARKED_CELL_OUTLINE_COLOR = 'beango_markedCellOutlineColor';
 const LS_MARKED_CELL_OUTLINE_OPACITY = 'beango_markedCellOutlineOpacity';
 const LS_MARKED_CELL_OUTLINE_WIDTH = 'beango_markedCellOutlineWidth';
+const LS_HEADER_TEXT_OUTLINE_COLOR = 'beango_headerTextOutlineColor';
+const LS_HEADER_TEXT_OUTLINE_OPACITY = 'beango_headerTextOutlineOpacity';
+const LS_HEADER_TEXT_OUTLINE_WIDTH = 'beango_headerTextOutlineWidth';
 
 // --- Default Values ---
 const DEFAULT_SAMPLE_ITEMS = [
@@ -99,6 +102,9 @@ const DEFAULT_MARKED_CELL_TEXT_OPACITY = 50;
 const DEFAULT_MARKED_CELL_OUTLINE_COLOR = '#ffffff';
 const DEFAULT_MARKED_CELL_OUTLINE_OPACITY = 100;
 const DEFAULT_MARKED_CELL_OUTLINE_WIDTH = 0; // Default 0px - No outline for marked
+const DEFAULT_HEADER_TEXT_OUTLINE_COLOR = '#ffffff'; // Default outline white
+const DEFAULT_HEADER_TEXT_OUTLINE_OPACITY = 100;
+const DEFAULT_HEADER_TEXT_OUTLINE_WIDTH = 0; // Default no outline
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -445,6 +451,10 @@ function saveHeaderSettings() {
     // Save header background
     localStorage.setItem(LS_HEADER_BG_COLOR, document.getElementById('header-bg-color-picker').value);
     localStorage.setItem(LS_HEADER_BG_OPACITY, document.getElementById('header-bg-opacity-slider').value);
+    // Save header text outline
+    localStorage.setItem(LS_HEADER_TEXT_OUTLINE_COLOR, document.getElementById('header-text-outline-color-picker').value);
+    localStorage.setItem(LS_HEADER_TEXT_OUTLINE_OPACITY, document.getElementById('header-text-outline-opacity-slider').value);
+    localStorage.setItem(LS_HEADER_TEXT_OUTLINE_WIDTH, document.getElementById('header-text-outline-width-input').value);
 }
 
 // --- Function to apply header background style ---
@@ -497,6 +507,32 @@ function updateHeaderDisplay() {
              headerTextOpacity = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
          }
         h1.style.color = hexToRgba(headerTextColor, parseInt(headerTextOpacity, 10));
+        // Apply Header Text Outline
+        let headerOutlineColor = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_COLOR);
+        if (headerOutlineColor === null) headerOutlineColor = DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
+        let headerOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY);
+        if (headerOutlineOpacity === null) headerOutlineOpacity = DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
+        let headerOutlineWidth = parseFloat(localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH));
+        if (isNaN(headerOutlineWidth) || headerOutlineWidth < 0) {
+            headerOutlineWidth = DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
+        }
+
+        if (headerOutlineWidth > 0) {
+            const rgbaOutlineColor = hexToRgba(headerOutlineColor, parseInt(headerOutlineOpacity, 10));
+            const shadow = `
+                -${headerOutlineWidth}px -${headerOutlineWidth}px 0 ${rgbaOutlineColor},
+                 ${headerOutlineWidth}px -${headerOutlineWidth}px 0 ${rgbaOutlineColor},
+                -${headerOutlineWidth}px  ${headerOutlineWidth}px 0 ${rgbaOutlineColor},
+                 ${headerOutlineWidth}px  ${headerOutlineWidth}px 0 ${rgbaOutlineColor},
+                 ${headerOutlineWidth}px  0   0 ${rgbaOutlineColor},
+                -${headerOutlineWidth}px  0   0 ${rgbaOutlineColor},
+                 0   ${headerOutlineWidth}px 0 ${rgbaOutlineColor},
+                 0   -${headerOutlineWidth}px 0 ${rgbaOutlineColor}
+            `;
+            h1.style.textShadow = shadow;
+        } else {
+            h1.style.textShadow = "none";
+        }
         headerContainer.appendChild(h1);
     }
 
@@ -1143,7 +1179,8 @@ function restoreBackgroundSettings() {
     // --- End Restore Background Settings ---
 }
 
-function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity) {
+function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity,
+                                savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth) {
     _restoreInputSetting('header-text-input', savedHeaderText);
     // if the header image is the default bean, then add the explodeBeans function to the onclick event
     _restoreInputSetting('header-image-url-input', savedHeaderImageUrl);
@@ -1152,6 +1189,10 @@ function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeader
     // Restore header background inputs
     _restoreColorPickerSetting('header-bg-color-picker', savedHeaderBgColor);
     _restoreOpacitySetting('header-bg-opacity-slider', 'header-bg-opacity-value', savedHeaderBgOpacity);
+    // Restore header text outline inputs
+    _restoreColorPickerSetting('header-text-outline-color-picker', savedHeaderOutlineColor);
+    _restoreOpacitySetting('header-text-outline-opacity-slider', 'header-text-outline-opacity-value', savedHeaderOutlineOpacity);
+    _restoreInputSetting('header-text-outline-width-input', savedHeaderOutlineWidth);
 
     applyHeaderBgStyle(); // Apply header background style
     updateHeaderDisplay(); // Apply the loaded header content
@@ -1302,6 +1343,9 @@ function loadFromLocalStorage() {
     const savedHeaderTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY) || DEFAULT_HEADER_TEXT_COLOR_OPACITY;
     const savedHeaderBgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
     const savedHeaderBgOpacity = localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY;
+    const savedHeaderOutlineColor = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_COLOR) || DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
+    const savedHeaderOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY) || DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
+    const savedHeaderOutlineWidth = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH) || DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
     const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
     const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
     const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
@@ -1348,7 +1392,8 @@ function loadFromLocalStorage() {
 
     restoreHeaderSettings(
         savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity,
-        savedHeaderBgColor, savedHeaderBgOpacity
+        savedHeaderBgColor, savedHeaderBgOpacity,
+        savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth
     );
 
     restoreMarkedStyleSettings(
@@ -1532,6 +1577,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupOpacitySliderListener('header-text-color-opacity-slider', 'header-text-color-opacity-value', saveHeaderSettings, updateHeaderDisplay);
     setupInputListener('header-bg-color-picker', 'input', saveHeaderSettings, applyHeaderBgStyle);
     setupOpacitySliderListener('header-bg-opacity-slider', 'header-bg-opacity-value', saveHeaderSettings, applyHeaderBgStyle);
+    // Header Text Outline Listeners
+    setupInputListener('header-text-outline-color-picker', 'input', saveHeaderSettings, updateHeaderDisplay);
+    setupOpacitySliderListener('header-text-outline-opacity-slider', 'header-text-outline-opacity-value', saveHeaderSettings, updateHeaderDisplay);
+    setupInputListener('header-text-outline-width-input', 'input', saveHeaderSettings, updateHeaderDisplay);
 
     // Marked Style Controls
     setupInputListener('marked-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
