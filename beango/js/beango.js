@@ -10,38 +10,40 @@ const LS_MARKED_INDICES = 'beango_markedIndices';
 const LS_CONFIG_OPEN = 'beango_configOpen'; // Changed from minimized
 const LS_BACKGROUND_TYPE = 'beango_backgroundType'; // 'solid' or 'gradient'
 const LS_SOLID_COLOR = 'beango_solidColor';
-const LS_SOLID_COLOR_OPACITY = 'beango_solidColorOpacity'; // New
+const LS_SOLID_COLOR_OPACITY = 'beango_solidColorOpacity';
 const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
-const LS_GRADIENT_COLOR_1_OPACITY = 'beango_gradientColor1Opacity'; // New
+const LS_GRADIENT_COLOR_1_OPACITY = 'beango_gradientColor1Opacity';
 const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
-const LS_GRADIENT_COLOR_2_OPACITY = 'beango_gradientColor2Opacity'; // New
+const LS_GRADIENT_COLOR_2_OPACITY = 'beango_gradientColor2Opacity';
 const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
 const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
 const LS_HEADER_TEXT = 'beango_headerText';
 const LS_HEADER_IMAGE_URL = 'beango_headerImageUrl';
 const LS_HEADER_TEXT_COLOR = 'beango_headerTextColor';
-const LS_HEADER_TEXT_COLOR_OPACITY = 'beango_headerTextColorOpacity'; // New
+const LS_HEADER_TEXT_COLOR_OPACITY = 'beango_headerTextColorOpacity';
 const LS_HEADER_BG_COLOR = 'beango_headerBgColor';
 const LS_HEADER_BG_OPACITY = 'beango_headerBgOpacity';
 const LS_MARKED_COLOR = 'beango_markedColor';
-const LS_MARKED_COLOR_OPACITY = 'beango_markedColorOpacity'; // New (replaces LS_MARKED_OPACITY)
+const LS_MARKED_COLOR_OPACITY = 'beango_markedColorOpacity'; // (replaces LS_MARKED_OPACITY)
 const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
-const LS_MARKED_IMAGE_OPACITY = 'beango_markedImageOpacity'; // New
+const LS_MARKED_IMAGE_OPACITY = 'beango_markedImageOpacity';
 const LS_CELL_BORDER_COLOR = 'beango_cellBorderColor';
-const LS_CELL_BORDER_OPACITY = 'beango_cellBorderOpacity'; // New
+const LS_CELL_BORDER_OPACITY = 'beango_cellBorderOpacity';
+const LS_CELL_BORDER_WIDTH = 'beango_cellBorderWidth';
 const LS_CELL_BG_COLOR = 'beango_cellBgColor';
-const LS_CELL_BG_OPACITY = 'beango_cellBgOpacity'; // New
+const LS_CELL_BG_OPACITY = 'beango_cellBgOpacity';
 const LS_CELL_BG_IMAGE_URL = 'beango_cellBgImageUrl';
-const LS_CELL_BG_IMAGE_OPACITY = 'beango_cellBgImageOpacity'; // New
+const LS_CELL_BG_IMAGE_OPACITY = 'beango_cellBgImageOpacity';
 const LS_CELL_TEXT_COLOR = 'beango_cellTextColor';
 const LS_CELL_TEXT_OPACITY = 'beango_cellTextOpacity';
 const LS_CELL_OUTLINE_COLOR = 'beango_cellOutlineColor';
 const LS_CELL_OUTLINE_OPACITY = 'beango_cellOutlineOpacity';
 const LS_CELL_OUTLINE_WIDTH = 'beango_cellOutlineWidth';
 const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor';
-const LS_MARKED_BORDER_OPACITY = 'beango_markedBorderOpacity'; // New
+const LS_MARKED_BORDER_OPACITY = 'beango_markedBorderOpacity';
+const LS_MARKED_BORDER_WIDTH = 'beango_markedBorderWidth';
 const LS_BOARD_BG_COLOR = 'beango_boardBgColor';
-const LS_BOARD_BG_COLOR_OPACITY = 'beango_boardBgColorOpacity'; // New (replaces LS_BOARD_BG_OPACITY)
+const LS_BOARD_BG_COLOR_OPACITY = 'beango_boardBgColorOpacity'; // (replaces LS_BOARD_BG_OPACITY)
 const LS_BOARD_BG_IMAGE_URL = 'beango_boardBgImageUrl';
 const LS_MARKED_CELL_TEXT_COLOR = 'beango_markedCellTextColor';
 const LS_MARKED_CELL_TEXT_OPACITY = 'beango_markedCellTextOpacity';
@@ -58,37 +60,39 @@ const DEFAULT_SAMPLE_ITEMS = [
     "Sample Item 21", "Sample Item 22", "Sample Item 23", "Sample Item 24", "Sample Item 25"
 ];
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
-const DEFAULT_SOLID_COLOR_OPACITY = 100; // New
+const DEFAULT_SOLID_COLOR_OPACITY = 100; //
 const DEFAULT_GRADIENT_COLOR_1 = '#faaca8'; // Softer pink/orange
-const DEFAULT_GRADIENT_COLOR_1_OPACITY = 100; // New
+const DEFAULT_GRADIENT_COLOR_1_OPACITY = 100; //
 const DEFAULT_GRADIENT_COLOR_2 = '#ddd6f3'; // Soft purple
-const DEFAULT_GRADIENT_COLOR_2_OPACITY = 100; // New
+const DEFAULT_GRADIENT_COLOR_2_OPACITY = 100; //
 const DEFAULT_GRADIENT_DIRECTION = 'to right top'; // Changed direction
 const DEFAULT_HEADER_TEXT = 'Beango!'; // REVERTED default back to Beango!
 const DEFAULT_HEADER_IMAGE_URL = '/bean.svg'; // No default image
 const DEFAULT_HEADER_TEXT_COLOR = '#15803d'; // Tailwind green-700 (approx)
-const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; // New
+const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; //
 const DEFAULT_HEADER_BG_COLOR = '#ffffff';
 const DEFAULT_HEADER_BG_OPACITY = 100;
 const DEFAULT_MARKED_COLOR = '#e9ecef'; // Light grey for marked cells
-const DEFAULT_MARKED_COLOR_OPACITY = 40; // New (replaces DEFAULT_MARKED_OPACITY) - Significantly lower
+const DEFAULT_MARKED_COLOR_OPACITY = 40; // (replaces DEFAULT_MARKED_OPACITY) - Significantly lower
 const DEFAULT_MARKED_IMAGE_URL = 'https://www.svgrepo.com/download/286496/cross.svg'; // Default cross image
-const DEFAULT_MARKED_IMAGE_OPACITY = 70; // New
+const DEFAULT_MARKED_IMAGE_OPACITY = 70; //
 const DEFAULT_CELL_BORDER_COLOR = '#808080'; // Default dark grey
-const DEFAULT_CELL_BORDER_OPACITY = 80; // New - Slightly transparent
+const DEFAULT_CELL_BORDER_OPACITY = 80; // Slightly transparent
+const DEFAULT_CELL_BORDER_WIDTH = 1; //
 const DEFAULT_CELL_BG_COLOR = '#f8f9fa'; // Off-white
-const DEFAULT_CELL_BG_OPACITY = 95; // New - Slightly transparent
+const DEFAULT_CELL_BG_OPACITY = 95; // Slightly transparent
 const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
-const DEFAULT_CELL_BG_IMAGE_OPACITY = 100; // New
+const DEFAULT_CELL_BG_IMAGE_OPACITY = 100; //
 const DEFAULT_CELL_TEXT_COLOR = '#000000';
 const DEFAULT_CELL_TEXT_OPACITY = 100;
 const DEFAULT_CELL_OUTLINE_COLOR = '#ffffff';
 const DEFAULT_CELL_OUTLINE_OPACITY = 100;
 const DEFAULT_CELL_OUTLINE_WIDTH = 0; // Default 0px - Cleaner look
 const DEFAULT_MARKED_BORDER_COLOR = DEFAULT_CELL_BORDER_COLOR; // Match default border color
-const DEFAULT_MARKED_BORDER_OPACITY = 50; // New - Less opaque than default border
+const DEFAULT_MARKED_BORDER_OPACITY = 50; // Less opaque than default border
+const DEFAULT_MARKED_BORDER_WIDTH = 0; // No border for marked cells
 const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
-const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // New (replaces DEFAULT_BOARD_BG_OPACITY)
+const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // (replaces DEFAULT_BOARD_BG_OPACITY)
 const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
 const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000'; // Keep black for readability
 const DEFAULT_MARKED_CELL_TEXT_OPACITY = 100;
@@ -331,6 +335,8 @@ function saveMarkedStyleSettings() {
     // Save marked border color and its opacity
     localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
     localStorage.setItem(LS_MARKED_BORDER_OPACITY, document.getElementById('marked-border-opacity-slider').value);
+    // Save marked border width
+    localStorage.setItem(LS_MARKED_BORDER_WIDTH, document.getElementById('marked-border-width-input').value);
 
     // Save marked text styles
     localStorage.setItem(LS_MARKED_CELL_TEXT_COLOR, document.getElementById('marked-cell-text-color-picker').value);
@@ -360,6 +366,12 @@ function applyMarkedCellStyle(cell) {
     if (isMarked) {
         // Apply marked border color + opacity
         cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
+        // Apply marked border width
+        let markedBorderWidth = parseInt(localStorage.getItem(LS_MARKED_BORDER_WIDTH) || DEFAULT_MARKED_BORDER_WIDTH, 10);
+        if (isNaN(markedBorderWidth) || markedBorderWidth < 0) { // Add check for NaN and negative
+            markedBorderWidth = DEFAULT_MARKED_BORDER_WIDTH;
+        }
+        cell.style.borderWidth = `${markedBorderWidth}px`;
 
         // Always apply the background color + opacity
         cell.style.backgroundColor = hexToRgba(color, colorOpacity);
@@ -531,6 +543,7 @@ function addDefaultBean(container) {
 function saveCellStyleSettings() {
     localStorage.setItem(LS_CELL_BORDER_COLOR, document.getElementById('cell-border-color-picker').value);
     localStorage.setItem(LS_CELL_BORDER_OPACITY, document.getElementById('cell-border-opacity-slider').value);
+    localStorage.setItem(LS_CELL_BORDER_WIDTH, document.getElementById('cell-border-width-input').value);
     localStorage.setItem(LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
     localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-slider').value);
     localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
@@ -551,6 +564,12 @@ function applyCellStyle(cell) {
     const borderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
     const borderOpacity = parseInt(localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY, 10);
     cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
+    // Apply border width
+    let borderWidth = parseInt(localStorage.getItem(LS_CELL_BORDER_WIDTH) || DEFAULT_CELL_BORDER_WIDTH, 10);
+    if (isNaN(borderWidth) || borderWidth < 0) { // Add check for NaN and negative
+        borderWidth = DEFAULT_CELL_BORDER_WIDTH;
+    }
+    cell.style.borderWidth = `${borderWidth}px`;
 
     // Background Color / Image
     const bgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
@@ -1177,7 +1196,7 @@ function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeader
     updateHeaderDisplay(); // Apply the loaded header content
 }
 
-function restoreMarkedStyleSettings(savedMarkedColor, savedMarkedColorOpacity, savedMarkedImageUrl, savedMarkedImageOpacity, savedMarkedBorderColor, savedMarkedBorderOpacity, savedMarkedCellTextColor, savedMarkedCellTextOpacity, savedMarkedCellOutlineColor, savedMarkedCellOutlineOpacity, savedMarkedCellOutlineWidth) {
+function restoreMarkedStyleSettings(savedMarkedColor, savedMarkedColorOpacity, savedMarkedImageUrl, savedMarkedImageOpacity, savedMarkedBorderColor, savedMarkedBorderOpacity, savedMarkedCellTextColor, savedMarkedCellTextOpacity, savedMarkedCellOutlineColor, savedMarkedCellOutlineOpacity, savedMarkedCellOutlineWidth, savedMarkedBorderWidth) {
     // Marked Color
     _restoreColorPickerSetting('marked-color-picker', savedMarkedColor);
     _restoreOpacitySetting('marked-color-opacity-slider', 'marked-color-opacity-value', savedMarkedColorOpacity);
@@ -1189,6 +1208,8 @@ function restoreMarkedStyleSettings(savedMarkedColor, savedMarkedColorOpacity, s
     // Marked Border
     _restoreColorPickerSetting('marked-border-color-picker', savedMarkedBorderColor);
     _restoreOpacitySetting('marked-border-opacity-slider', 'marked-border-opacity-value', savedMarkedBorderOpacity);
+    // Save marked border width
+    _restoreInputSetting('marked-border-width-input', savedMarkedBorderWidth);
 
     // Marked Text Color
     _restoreColorPickerSetting('marked-cell-text-color-picker', savedMarkedCellTextColor);
@@ -1228,10 +1249,12 @@ function _restoreInputSetting(inputId, savedValue) {
     }
 }
 
-function restoreCellStyleSettings(savedCellBorderColor, savedCellBorderOpacity, savedCellBgColor, savedCellBgOpacity, savedCellBgImageUrl, savedCellBgImageOpacity, savedCellTextColor, savedCellTextOpacity, savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth) {
+function restoreCellStyleSettings(savedCellBorderColor, savedCellBorderOpacity, savedCellBgColor, savedCellBgOpacity, savedCellBgImageUrl, savedCellBgImageOpacity, savedCellTextColor, savedCellTextOpacity, savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth, savedCellBorderWidth) {
     // Border
     _restoreColorPickerSetting('cell-border-color-picker', savedCellBorderColor);
     _restoreOpacitySetting('cell-border-opacity-slider', 'cell-border-opacity-value', savedCellBorderOpacity);
+    // Apply border width
+    _restoreInputSetting('cell-border-width-input', savedCellBorderWidth);
 
     // Background Color
     _restoreColorPickerSetting('cell-background-color-picker', savedCellBgColor);
@@ -1321,6 +1344,7 @@ function loadFromLocalStorage() {
     const savedMarkedImageOpacity = localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY;
     const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
     const savedCellBorderOpacity = localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY;
+    const savedCellBorderWidth = localStorage.getItem(LS_CELL_BORDER_WIDTH) || DEFAULT_CELL_BORDER_WIDTH;
     const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
     const savedCellBgOpacity = localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY;
     const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
@@ -1332,6 +1356,7 @@ function loadFromLocalStorage() {
     const savedCellOutlineWidth = localStorage.getItem(LS_CELL_OUTLINE_WIDTH) || DEFAULT_CELL_OUTLINE_WIDTH;
     const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
     const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
+    const savedMarkedBorderWidth = localStorage.getItem(LS_MARKED_BORDER_WIDTH) || DEFAULT_MARKED_BORDER_WIDTH;
     const savedMarkedCellTextColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
     const savedMarkedCellTextOpacity = localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY;
     const savedMarkedCellOutlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
@@ -1365,13 +1390,15 @@ function loadFromLocalStorage() {
     restoreMarkedStyleSettings(
         savedMarkedColor, savedMarkedColorOpacity, savedMarkedImageUrl, savedMarkedImageOpacity,
         savedMarkedBorderColor, savedMarkedBorderOpacity, savedMarkedCellTextColor, savedMarkedCellTextOpacity,
-        savedMarkedCellOutlineColor, savedMarkedCellOutlineOpacity, savedMarkedCellOutlineWidth
+        savedMarkedCellOutlineColor, savedMarkedCellOutlineOpacity, savedMarkedCellOutlineWidth,
+        savedMarkedBorderWidth
     );
 
     restoreCellStyleSettings(
         savedCellBorderColor, savedCellBorderOpacity, savedCellBgColor, savedCellBgOpacity,
         savedCellBgImageUrl, savedCellBgImageOpacity, savedCellTextColor, savedCellTextOpacity,
-        savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth
+        savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth,
+        savedCellBorderWidth
     );
 
     restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl);
@@ -1552,6 +1579,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Marked Text Styles
     setupInputListener('marked-cell-text-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
     setupOpacitySliderListener('marked-cell-text-opacity-slider', 'marked-cell-text-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
+    setupInputListener('marked-border-width-input', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
     setupInputListener('marked-cell-outline-color-picker', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
     setupOpacitySliderListener('marked-cell-outline-opacity-slider', 'marked-cell-outline-opacity-value', saveMarkedStyleSettings, refreshMarkedCellStyles);
     setupInputListener('marked-cell-outline-width-input', 'input', saveMarkedStyleSettings, refreshMarkedCellStyles);
@@ -1560,6 +1588,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Default Cell Style Controls
     setupInputListener('cell-border-color-picker', 'input', saveCellStyleSettings, refreshCellStyles);
     setupOpacitySliderListener('cell-border-opacity-slider', 'cell-border-opacity-value', saveCellStyleSettings, refreshCellStyles);
+    setupInputListener('cell-border-width-input', 'input', saveCellStyleSettings, refreshCellStyles);
     setupInputListener('cell-background-color-picker', 'input', saveCellStyleSettings, refreshCellStyles);
     setupOpacitySliderListener('cell-background-opacity-slider', 'cell-background-opacity-value', saveCellStyleSettings, refreshCellStyles);
     setupInputListener('cell-background-image-url-input', 'input', saveCellStyleSettings, refreshCellStyles);
