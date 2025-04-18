@@ -1076,84 +1076,88 @@ function loadFromLocalStorage() {
 
 // --- Function to make all cells square and equal size ---
 function equalizeCellSizes() {
-    const board = document.getElementById('bingo-board');
-    const cells = board?.querySelectorAll('.bingo-cell');
+    const board = document.getElementById("bingo-board");
+    const cells = board?.querySelectorAll(".bingo-cell");
     if (!board || !cells || cells.length === 0) return;
 
-    // Try to determine grid size (number of columns) more reliably
     let size = 0;
-    const sizeInput = document.getElementById('board-size');
+    const sizeInput = document.getElementById("board-size");
     const sizeFromInput = sizeInput ? parseInt(sizeInput.value, 10) : 0;
 
     if (sizeFromInput && !isNaN(sizeFromInput) && sizeFromInput > 0) {
         size = sizeFromInput;
     } else {
-        // Fallback: try parsing from computed style if input is bad/missing
         try {
             const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
-            const parts = gridStyle.split(' ');
-            if (parts.length > 0 && parts[0] !== 'none') {
+            const parts = gridStyle.split(" ");
+            if (parts.length > 0 && parts[0] !== "none") {
                 size = parts.length;
             }
         } catch (e) {
-            console.error("Could not determine grid size from styles or input.", e);
+            console.error(
+                "Could not determine grid size from styles or input.",
+                e
+            );
         }
     }
 
     if (size <= 0) {
-        showNotification('Cannot determine valid grid size. Using default or previous.', 'warning');
         // Attempt to get size from a potentially existing grid setup if possible
         try {
-             const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
-             const parts = gridStyle.split(' ');
-             if (parts.length > 0 && parts[0] !== 'none') {
-                 size = parts.length;
-             }
-        } catch { /* ignore */ }
+            const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
+            const parts = gridStyle.split(" ");
+            if (parts.length > 0 && parts[0] !== "none") {
+                size = parts.length;
+            }
+        } catch {
+            /* ignore */
+        }
         if (size <= 0) {
-             console.error("Failed to determine grid size.");
-             return; // Cannot proceed
+            console.error("Failed to determine grid size.");
+            showNotification("Cannot determine valid grid size. Please generate board again.", "warning");
+            return; // Cannot proceed
         }
     }
 
-
-    let maxDimension = 0;
     const gap = 4; // From CSS: .bingo-board { gap: 4px; }
+    const minCellSize = 100; // Minimum width/height for a cell
+    let maxWidthNeeded = 0;
+    let maxHeightNeeded = 0;
 
     // 1. Reset grid sizing to allow natural measurement of cell content
     board.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`; // Use fractions initially
-    board.style.gridAutoRows = 'auto'; // Auto height
+    board.style.gridAutoRows = "auto"; // Auto height
 
     // 2. Force reflow to apply the reset styles before measuring
     void board.offsetHeight;
 
-    // 3. First pass: Find the largest dimension based on actual rendered content
-    cells.forEach(cell => {
-        // Reset any explicit cell styles (shouldn't be needed, but safe)
-        cell.style.width = '';
-        cell.style.height = '';
+    // 3. First pass: Find the max width and max height based on actual rendered content
+    cells.forEach((cell) => {
+        // Reset any explicit cell styles (shouldn\'t be needed, but safe)
+        cell.style.width = "";
+        cell.style.height = "";
 
-        // Measure the cell's natural dimensions after reflow
+        // Measure the cell\'s natural dimensions after reflow
         const width = cell.offsetWidth;
         const height = cell.offsetHeight;
-        maxDimension = Math.max(maxDimension, width+10, height);
+        maxWidthNeeded = Math.max(maxWidthNeeded, width);
+        maxHeightNeeded = Math.max(maxHeightNeeded, height);
     });
 
-     // Ensure a minimum size for very small content or empty cells
-    const targetSize = Math.max(maxDimension, 120); // Use 120px minimum
+    // 4. Determine the target size for square cells
+    const targetSize = Math.max(maxWidthNeeded, maxHeightNeeded, minCellSize);
 
-    // 4. Apply the calculated fixed size back to the grid
+    // 5. Apply the calculated fixed size back to the grid
     board.style.gridTemplateColumns = `repeat(${size}, ${targetSize}px)`;
     board.style.gridAutoRows = `${targetSize}px`; // Make cells square
 
-    // 5. Calculate total board width needed for the container
-    const containerPadding = 32; // Based on p-4 class (1rem = 16px, left + right = 32px)
-    // Use targetSize for the calculation
-    const totalWidth = (targetSize * size) + (gap * (size - 1)) + containerPadding;
+    // 6. Calculate total board width needed for the container
+    const containerPadding = 32; // Based on p-4 class on #bingo-board-container (1rem = 16px, left + right = 32px)
+    const totalWidth = targetSize * size + gap * (size - 1) + containerPadding;
 
-    // Update container max-width
-    const boardContainer = document.getElementById('bingo-board-container');
-    const boardHeader = document.getElementById('board-header');
+    // 7. Update container max-width
+    const boardContainer = document.getElementById("bingo-board-container");
+    const boardHeader = document.getElementById("board-header");
 
     if (boardContainer) {
         boardContainer.style.maxWidth = `${totalWidth}px`;
