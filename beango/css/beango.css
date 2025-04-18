@@ -32,18 +32,54 @@ body {
     border-style: solid; /* Keep border style */
     /* border-color will be set by JS */
     /* background-color or background-image will be set by JS */
-    text-align: center;
-    padding: 8px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-    /* Add transition for background color changes */
+    text-align: center; /* Keep for potential fallback/spacing */
+    padding: 8px; /* Keep padding on the main cell */
+    /* REMOVED text styling from here */
+    /* word-wrap: break-word; */
+    /* overflow-wrap: break-word; */
+    /* hyphens: auto; */
+    /* font-size: 1.5rem; */
     transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out, filter 0.15s ease-in-out, border-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 8px;
-    font-size: 1.5rem;
+    position: relative; /* Ensure stacking context for z-index */
+    overflow: hidden; /* Hide potential image overflow */
+}
+
+/* NEW: Pseudo-element for background image layer */
+.bingo-cell::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: var(--bg-image-url, none);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    z-index: 1; /* Place ABOVE the text content */
+    opacity: var(--bg-image-opacity, 1); /* NEW: Use variable for opacity */
+    /* Inherit border radius if needed */
+    /* border-radius: inherit; */
+}
+
+/* NEW: Styles for the text span inside the cell */
+.bingo-cell-text {
+    display: inline-block; /* Or block, depending on desired wrapping */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    font-size: 1.5rem; /* Moved font size here */
+    color: #000; /* Default text color (can be customized later if needed) */
+    position: relative; /* Needed for z-index */
+    z-index: 0; /* Place BELOW the pseudo-element */
+    /* Remove background to allow parent background to show */
+    background: transparent;
+    /* Max width to help with wrapping within padding */
+    max-width: 100%;
 }
 
 /* Add darken filter on hover */

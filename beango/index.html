@@ -187,6 +187,10 @@
                         <label for="marked-image-url-input" class="block text-sm font-medium text-gray-700">Marked Cell Background Image URL (Optional):</label>
                         <input type="url" id="marked-image-url-input" name="marked-image-url-input" placeholder="https://example.com/marker.png" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                          <p class="mt-1 text-xs text-gray-500">If set, this image is layered over the background color.</p>
+                        <div class="mt-1 w-28 flex flex-col items-center ml-auto">
+                            <label for="marked-image-opacity-slider" class="block text-xs font-medium text-gray-500">Image Opacity: <span id="marked-image-opacity-value">100</span>%</label>
+                            <input type="range" id="marked-image-opacity-slider" name="marked-image-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        </div>
                     </div>
                     <div class="mt-2">
                         <label for="marked-border-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Border Color:</label>
@@ -227,6 +231,10 @@
                      <div>
                         <label for="cell-background-image-url-input" class="block text-sm font-medium text-gray-700">Background Image URL (Optional):</label>
                         <input type="url" id="cell-background-image-url-input" name="cell-background-image-url-input" placeholder="Clear to use background color" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <div class="mt-1 w-28 flex flex-col items-center ml-auto">
+                            <label for="cell-background-image-opacity-slider" class="block text-xs font-medium text-gray-500">Image Opacity: <span id="cell-background-image-opacity-value">100</span>%</label>
+                            <input type="range" id="cell-background-image-opacity-slider" name="cell-background-image-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        </div>
                     </div>
                 </div>
             </details>

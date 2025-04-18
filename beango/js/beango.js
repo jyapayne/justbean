@@ -24,11 +24,13 @@ const LS_HEADER_TEXT_COLOR_OPACITY = 'beango_headerTextColorOpacity'; // New
 const LS_MARKED_COLOR = 'beango_markedColor';
 const LS_MARKED_COLOR_OPACITY = 'beango_markedColorOpacity'; // New (replaces LS_MARKED_OPACITY)
 const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
+const LS_MARKED_IMAGE_OPACITY = 'beango_markedImageOpacity'; // New
 const LS_CELL_BORDER_COLOR = 'beango_cellBorderColor';
 const LS_CELL_BORDER_OPACITY = 'beango_cellBorderOpacity'; // New
 const LS_CELL_BG_COLOR = 'beango_cellBgColor';
 const LS_CELL_BG_OPACITY = 'beango_cellBgOpacity'; // New
 const LS_CELL_BG_IMAGE_URL = 'beango_cellBgImageUrl';
+const LS_CELL_BG_IMAGE_OPACITY = 'beango_cellBgImageOpacity'; // New
 const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor';
 const LS_MARKED_BORDER_OPACITY = 'beango_markedBorderOpacity'; // New
 const LS_BOARD_BG_COLOR = 'beango_boardBgColor';
@@ -50,11 +52,13 @@ const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; // New
 const DEFAULT_MARKED_COLOR = '#fde047'; // Default yellow
 const DEFAULT_MARKED_COLOR_OPACITY = 80; // New (replaces DEFAULT_MARKED_OPACITY)
 const DEFAULT_MARKED_IMAGE_URL = '';
+const DEFAULT_MARKED_IMAGE_OPACITY = 100; // New
 const DEFAULT_CELL_BORDER_COLOR = '#8B4513'; // Default brown
 const DEFAULT_CELL_BORDER_OPACITY = 100; // New
 const DEFAULT_CELL_BG_COLOR = '#F5F5DC'; // Default beige
 const DEFAULT_CELL_BG_OPACITY = 100; // New
 const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
+const DEFAULT_CELL_BG_IMAGE_OPACITY = 100; // New
 const DEFAULT_MARKED_BORDER_COLOR = '#ca8a04'; // Default darker yellow/orange (Tailwind yellow-600)
 const DEFAULT_MARKED_BORDER_OPACITY = 100; // New
 const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
@@ -258,6 +262,7 @@ function saveMarkedStyleSettings() {
     localStorage.setItem(LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
     localStorage.setItem(LS_MARKED_COLOR_OPACITY, document.getElementById('marked-color-opacity-slider').value);
     localStorage.setItem(LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
+    localStorage.setItem(LS_MARKED_IMAGE_OPACITY, document.getElementById('marked-image-opacity-slider').value); // Save image opacity
 
     // Save marked border color and its opacity
     localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
@@ -272,6 +277,7 @@ function applyMarkedCellStyle(cell) {
     const color = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
     const colorOpacity = parseInt(localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY, 10);
     const imageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
+    const imageOpacity = parseInt(localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY, 10);
     const borderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
     const borderOpacity = parseInt(localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY, 10);
 
@@ -287,15 +293,16 @@ function applyMarkedCellStyle(cell) {
         // Always apply the background color + opacity
         cell.style.backgroundColor = hexToRgba(color, colorOpacity);
 
-        // Apply background image if URL exists
+        // Apply background image if URL exists via custom property
         if (imageUrl && imageUrl.trim() !== '') {
-            cell.style.backgroundImage = `url('${imageUrl}')`;
-            cell.style.backgroundSize = 'cover'; // Or adjust as needed
+            cell.style.setProperty('--bg-image-url', `url('${imageUrl}')`);
+            cell.style.setProperty('--bg-image-opacity', imageOpacity / 100);
+            cell.style.backgroundSize = 'cover';
             cell.style.backgroundPosition = 'center center';
             cell.style.backgroundRepeat = 'no-repeat';
         } else {
-            // Explicitly clear background image if no URL
-            cell.style.backgroundImage = 'none';
+            // Explicitly clear background image custom property
+            cell.style.removeProperty('--bg-image-url');
         }
 
     } else {
@@ -398,6 +405,7 @@ function saveCellStyleSettings() {
     localStorage.setItem(LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
     localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-slider').value);
     localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
+    localStorage.setItem(LS_CELL_BG_IMAGE_OPACITY, document.getElementById('cell-background-image-opacity-slider').value); // Save image opacity
 }
 
 // --- Apply saved default cell styles to a cell ---
@@ -409,19 +417,23 @@ function applyCellStyle(cell) {
     const bgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
     const bgOpacity = parseInt(localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY, 10);
     const bgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
+    const bgImageOpacity = parseInt(localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY, 10);
 
     cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
     cell.style.opacity = ''; // Reset direct opacity, handled by color
 
     if (bgImageUrl) {
-        cell.style.backgroundImage = `url('${bgImageUrl}')`;
+        cell.style.setProperty('--bg-image-url', `url('${bgImageUrl}')`); // NEW: Set CSS custom property
+        cell.style.setProperty('--bg-image-opacity', bgImageOpacity / 100); // Set image opacity property
         cell.style.backgroundSize = 'cover';
         cell.style.backgroundPosition = 'center center';
         cell.style.backgroundRepeat = 'no-repeat';
         // Set fallback color with its specific opacity
         cell.style.backgroundColor = hexToRgba(bgColor, bgOpacity);
     } else {
-        cell.style.backgroundImage = ''; // Clear image if URL is removed
+        // Clear image properties if no URL
+        cell.style.removeProperty('--bg-image-url'); // NEW: Remove CSS custom property
+        cell.style.removeProperty('--bg-image-opacity'); // Remove image opacity property
         cell.style.backgroundColor = hexToRgba(bgColor, bgOpacity);
     }
 }
@@ -530,17 +542,24 @@ function generateBoard() {
     // Shuffle the items specifically for display (use currentItems which has the right size)
     displayedItems = shuffleArray([...currentItems]);
 
-    const board = document.getElementById('bingo-board');
-    board.innerHTML = ''; // Clear previous board
+    const board = document.getElementById("bingo-board");
+    board.innerHTML = ""; // Clear previous board
     board.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
 
     displayedItems.forEach((item, index) => {
-        const cell = document.createElement('div');
-        cell.classList.add('bingo-cell', 'cursor-pointer');
-        cell.textContent = item;
+        const cell = document.createElement("div");
+        cell.classList.add("bingo-cell", "cursor-pointer");
+        // cell.textContent = item; // OLD WAY
         cell.dataset.index = index; // Add index for saving marks
         cell.onclick = () => selectCell(cell);
         applyCellStyle(cell); // Apply default styles upon creation
+
+        // NEW: Create span for text content
+        const textSpan = document.createElement("span");
+        textSpan.classList.add("bingo-cell-text");
+        textSpan.textContent = item;
+        cell.appendChild(textSpan);
+
         board.appendChild(cell);
     });
 
@@ -646,8 +665,8 @@ function randomizeBoard() {
 
     displayedItems = shuffleArray([...itemsToShuffle]); // Shuffle the items for display
 
-    const board = document.getElementById('bingo-board');
-    const cells = board.querySelectorAll('.bingo-cell');
+    const board = document.getElementById("bingo-board");
+    const cells = board.querySelectorAll(".bingo-cell");
 
     if (cells.length !== displayedItems.length) {
         showNotification("Cannot randomize: Board size mismatch. Please generate the board again.", 'error');
@@ -655,10 +674,19 @@ function randomizeBoard() {
     }
 
     cells.forEach((cell, index) => {
-        cell.textContent = displayedItems[index];
-        cell.classList.remove('marked'); // Clear marks visually
+        // cell.textContent = displayedItems[index]; // OLD WAY
+        // NEW: Update or create text span
+        let textSpan = cell.querySelector(".bingo-cell-text");
+        if (!textSpan) { // Should exist, but create if missing
+            textSpan = document.createElement("span");
+            textSpan.classList.add("bingo-cell-text");
+            cell.innerHTML =
+            cell.appendChild(textSpan);
+        }
+        textSpan.textContent = displayedItems[index];
+
+        cell.classList.remove("marked"); // Clear marks visually
         applyMarkedCellStyle(cell); // Reset marked styles (which also calls applyCellStyle)
-        // applyCellStyle(cell); // Ensure default styles are applied (covered by applyMarkedCellStyle reset)
     });
 
     clearMarks(false); // Clear visual marks
@@ -807,11 +835,15 @@ function loadFromLocalStorage() {
     const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
     const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
     const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
+    const savedMarkedImageOpacity = localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY;
+    console.log(`LOAD: LS_MARKED_IMAGE_OPACITY = ${localStorage.getItem(LS_MARKED_IMAGE_OPACITY)}, using: ${savedMarkedImageOpacity}`); // DEBUG LOG
     const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
     const savedCellBorderOpacity = localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY;
     const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
     const savedCellBgOpacity = localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY;
     const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
+    const savedCellBgImageOpacity = localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY;
+    console.log(`LOAD: LS_CELL_BG_IMAGE_OPACITY = ${localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY)}, using: ${savedCellBgImageOpacity}`); // DEBUG LOG
     const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
     const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
     const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
@@ -885,12 +917,19 @@ function loadFromLocalStorage() {
         displayedItems.forEach((item, index) => {
             const cell = document.createElement('div');
             cell.classList.add('bingo-cell', 'cursor-pointer');
-            cell.textContent = item;
+            // cell.textContent = item; // OLD WAY
             cell.dataset.index = index; // Ensure index is set for loading marks correctly
             cell.onclick = () => selectCell(cell);
             applyCellStyle(cell); // Apply default cell style first
+
+            // NEW: Create span for text content
+            const textSpan = document.createElement("span");
+            textSpan.classList.add("bingo-cell-text");
+            textSpan.textContent = item;
+            cell.appendChild(textSpan);
+
             if (markedIndices.includes(index)) {
-                cell.classList.add('marked'); // Apply saved mark using 'marked' class
+                cell.classList.add('marked'); // Apply saved mark using \'marked\' class
                 // Apply dynamic marked styles AFTER adding the class and default styles
                 applyMarkedCellStyle(cell);
             }
@@ -947,20 +986,39 @@ function loadFromLocalStorage() {
     document.getElementById('marked-color-opacity-slider').value = savedMarkedColorOpacity;
     if(document.getElementById('marked-color-opacity-value')) document.getElementById('marked-color-opacity-value').textContent = savedMarkedColorOpacity;
     document.getElementById('marked-image-url-input').value = savedMarkedImageUrl;
+    const markedImageOpacitySlider = document.getElementById('marked-image-opacity-slider');
+    const markedImageOpacityValueSpan = document.getElementById('marked-image-opacity-value');
+    if (markedImageOpacitySlider) markedImageOpacitySlider.value = savedMarkedImageOpacity;
+    if (markedImageOpacityValueSpan) markedImageOpacityValueSpan.textContent = savedMarkedImageOpacity;
+
     document.getElementById('marked-border-color-picker').value = savedMarkedBorderColor;
-    document.getElementById('marked-border-opacity-slider').value = savedMarkedBorderOpacity;
-    if(document.getElementById('marked-border-opacity-value')) document.getElementById('marked-border-opacity-value').textContent = savedMarkedBorderOpacity;
+    const markedBorderOpacitySlider = document.getElementById('marked-border-opacity-slider');
+    const markedBorderOpacityValueSpan = document.getElementById('marked-border-opacity-value');
+    if (markedBorderOpacitySlider) markedBorderOpacitySlider.value = savedMarkedBorderOpacity;
+    if (markedBorderOpacityValueSpan) markedBorderOpacityValueSpan.textContent = savedMarkedBorderOpacity;
+
     refreshMarkedCellStyles(); // Apply the loaded marked styles
     // --- End Restore Marked Style Settings ---
 
     // --- Restore Default Cell Style Settings ---
     document.getElementById('cell-border-color-picker').value = savedCellBorderColor;
-    document.getElementById('cell-border-opacity-slider').value = savedCellBorderOpacity;
-    if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = savedCellBorderOpacity;
+    const cellBorderOpacitySlider = document.getElementById('cell-border-opacity-slider');
+    const cellBorderOpacityValueSpan = document.getElementById('cell-border-opacity-value');
+    if (cellBorderOpacitySlider) cellBorderOpacitySlider.value = savedCellBorderOpacity;
+    if (cellBorderOpacityValueSpan) cellBorderOpacityValueSpan.textContent = savedCellBorderOpacity;
+
     document.getElementById('cell-background-color-picker').value = savedCellBgColor;
-    document.getElementById('cell-background-opacity-slider').value = savedCellBgOpacity;
-    if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = savedCellBgOpacity;
+    const cellBackgroundOpacitySlider = document.getElementById('cell-background-opacity-slider');
+    const cellBackgroundOpacityValueSpan = document.getElementById('cell-background-opacity-value');
+    if (cellBackgroundOpacitySlider) cellBackgroundOpacitySlider.value = savedCellBgOpacity;
+    if (cellBackgroundOpacityValueSpan) cellBackgroundOpacityValueSpan.textContent = savedCellBgOpacity;
+
     document.getElementById('cell-background-image-url-input').value = savedCellBgImageUrl;
+    const cellBackgroundImageOpacitySlider = document.getElementById('cell-background-image-opacity-slider');
+    const cellBackgroundImageOpacityValueSpan = document.getElementById('cell-background-image-opacity-value');
+    if (cellBackgroundImageOpacitySlider) cellBackgroundImageOpacitySlider.value = savedCellBgImageOpacity;
+    if (cellBackgroundImageOpacityValueSpan) cellBackgroundImageOpacityValueSpan.textContent = savedCellBgImageOpacity;
+
     // Styles are applied during board creation loop above
     // --- End Restore Default Cell Style Settings ---
 
@@ -968,7 +1026,10 @@ function loadFromLocalStorage() {
     document.getElementById('board-bg-color-picker').value = savedBoardBgColor;
     document.getElementById('board-bg-image-url-input').value = savedBoardBgImageUrl;
     document.getElementById('board-bg-color-opacity-slider').value = savedBoardBgColorOpacity;
-    if(document.getElementById('board-bg-color-opacity-value')) document.getElementById('board-bg-color-opacity-value').textContent = savedBoardBgColorOpacity;
+    const boardBgOpacitySlider = document.getElementById('board-bg-color-opacity-slider');
+    const boardBgOpacityValueSpan = document.getElementById('board-bg-color-opacity-value');
+    if (boardBgOpacitySlider) boardBgOpacitySlider.value = savedBoardBgColorOpacity;
+    if (boardBgOpacityValueSpan) boardBgOpacityValueSpan.textContent = savedBoardBgColorOpacity;
     applyBoardBgStyle(); // Apply loaded style
     // --- End Restore Board Background Settings ---
 
@@ -1282,6 +1343,11 @@ document.addEventListener('DOMContentLoaded', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
+    document.getElementById('marked-image-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('marked-image-opacity-value')) document.getElementById('marked-image-opacity-value').textContent = e.target.value;
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
     document.getElementById('marked-border-color-picker').addEventListener('input', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
@@ -1312,6 +1378,11 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshCellStyles();
     });
     document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-image-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-background-image-opacity-value')) document.getElementById('cell-background-image-opacity-value').textContent = e.target.value;
         saveCellStyleSettings();
         refreshCellStyles();
     });
