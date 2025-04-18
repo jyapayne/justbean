@@ -827,10 +827,12 @@ function clearMarks(save = true) {
     cells.forEach(cell => {
         if (cell.classList.contains('marked')) {
             cell.classList.remove('marked');
-            applyMarkedCellStyle(cell); // Reset styles for this cell
+            // applyMarkedCellStyle(cell); // Redundant call removed
+            // Apply default style ONLY to the cell just unmarked
+            applyCellStyle(cell);
         }
         // Ensure styles are reset even if class was somehow missing
-        applyCellStyle(cell); // Ensure default styles are correct after potential mark removal
+        // applyCellStyle(cell); // REMOVED Unconditional call
     });
     if (save) {
         saveBoardState(); // Save cleared marks
@@ -1087,11 +1089,11 @@ function loadFromLocalStorage() {
             if (markedIndices.includes(index)) {
                 cell.classList.add("marked"); // Apply saved mark using 'marked' class
                 // Apply dynamic marked styles AFTER adding the class and default styles
-                applyMarkedCellStyle(cell);
+                applyMarkedCellStyle(cell); // <-- RE-ADDED this call
             }
             board.appendChild(cell);
         });
-        equalizeCellSizes(); // Add this call
+        // equalizeCellSizes(); // <--- REMOVED FROM HERE
     } else {
          // If no saved board state, show the default message
          const board = document.getElementById('bingo-board');
@@ -1173,7 +1175,7 @@ function loadFromLocalStorage() {
 
     document.getElementById('marked-cell-outline-width-input').value = savedMarkedCellOutlineWidth;
 
-    refreshMarkedCellStyles(); // Apply the loaded marked styles
+    // refreshMarkedCellStyles(); // Apply the loaded marked styles <-- MOVED DOWN
     // --- End Restore Marked Style Settings ---
 
     // --- Restore Default Cell Style Settings ---
@@ -1418,8 +1420,60 @@ function loadFromLocalStorage() {
     });
 
     clearSearch(); // Clear search highlights and input
-    clearMarks(false); // Clear visual marks
     saveBoardState(); // Save the new randomized state (including cleared marks)
+    //clearMarks(false); // Clear visual marks
+
+    // Apply marked styles *after* all other styles/settings are restored
+    refreshMarkedCellStyles(); // <-- Keep here
+
+    // Equalize sizes as the very last step after all content and styles are set
+    equalizeCellSizes(); // <-- MOVED HERE
+
+    // --- Add Event Listeners for Default Cell Style Controls ---
+    document.getElementById('cell-border-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById('cell-border-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById('cell-background-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-background-image-url-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-text-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-text-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-text-opacity-value')) document.getElementById('cell-text-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-outline-opacity-value')) document.getElementById('cell-outline-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-width-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
 }
 
 // --- Function to make all cells square and equal size ---
@@ -1452,18 +1506,18 @@ function equalizeCellSizes() {
     if (size <= 0) {
         // Attempt to get size from a potentially existing grid setup if possible
         try {
-            const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
+             const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
             const parts = gridStyle.split(" ");
             if (parts.length > 0 && parts[0] !== "none") {
-                size = parts.length;
-            }
+                 size = parts.length;
+             }
         } catch {
             /* ignore */
         }
         if (size <= 0) {
-            console.error("Failed to determine grid size.");
+             console.error("Failed to determine grid size.");
             showNotification("Cannot determine valid grid size. Please generate board again.", "warning");
-            return; // Cannot proceed
+             return; // Cannot proceed
         }
     }
 
