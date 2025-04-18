@@ -16,13 +16,20 @@
 
     <!-- Main Content Area (Board and Controls) -->
     <div class="w-full flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <!-- Search Bar -->
+        <div class="mb-4 w-full max-w-xl">
+            <label for="search-input" class="sr-only">Search Items</label>
+            <input type="search" id="search-input" placeholder="Search items on board..." class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+        </div>
         <!-- Updated Header Section -->
         <div id="board-header" class="rounded-t-lg pt-4 pb-4 w-full max-w-2xl flex justify-center items-center gap-4">
              <!-- Content will be dynamically added by JS -->
              <div id="custom-header-content" class="flex justify-center items-center gap-4">
                  <!-- Default content (can be replaced) -->
                  <h1 class="text-4xl font-bold text-green-800">Beango!</h1>
-                 <img id="bean" src="../bean.svg" alt="Bean" onclick="explodeBeans()" class="w-16 h-16 cursor-pointer">
+                 <div id="bean-container" class="w-16 h-16 cursor-pointer">
+                    <img id="bean" src="../bean.svg" alt="Bean" onclick="explodeBeans(event)">
+                 </div>
              </div>
         </div>
 
@@ -51,11 +58,6 @@
             </button>
         </div>
 
-        <!-- Search Bar -->
-        <div class="mb-4 w-full max-w-xl">
-            <label for="search-input" class="sr-only">Search Items</label>
-            <input type="search" id="search-input" placeholder="Search items on board..." class="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
-        </div>
     </div>
 
     <!-- Configuration Pane (Right Side) -->

@@ -50,6 +50,7 @@ body {
     border-radius: 8px;
     position: relative; /* Ensure stacking context for z-index */
     overflow: hidden; /* Hide potential image overflow */
+    user-select: none;
 }
 
 /* NEW: Pseudo-element for background image layer */

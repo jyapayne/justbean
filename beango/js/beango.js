@@ -59,42 +59,42 @@ const DEFAULT_SAMPLE_ITEMS = [
 ];
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
 const DEFAULT_SOLID_COLOR_OPACITY = 100; // New
-const DEFAULT_GRADIENT_COLOR_1 = '#ff7e5f'; // From main page gradient
+const DEFAULT_GRADIENT_COLOR_1 = '#faaca8'; // Softer pink/orange
 const DEFAULT_GRADIENT_COLOR_1_OPACITY = 100; // New
-const DEFAULT_GRADIENT_COLOR_2 = '#feb47b'; // From main page gradient
+const DEFAULT_GRADIENT_COLOR_2 = '#ddd6f3'; // Soft purple
 const DEFAULT_GRADIENT_COLOR_2_OPACITY = 100; // New
-const DEFAULT_GRADIENT_DIRECTION = '135deg'; // From main page gradient
+const DEFAULT_GRADIENT_DIRECTION = 'to right top'; // Changed direction
 const DEFAULT_HEADER_TEXT = 'Beango!'; // REVERTED default back to Beango!
-const DEFAULT_HEADER_IMAGE_URL = ''; // No default image
+const DEFAULT_HEADER_IMAGE_URL = '/bean.svg'; // No default image
 const DEFAULT_HEADER_TEXT_COLOR = '#15803d'; // Tailwind green-700 (approx)
 const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; // New
 const DEFAULT_HEADER_BG_COLOR = '#ffffff';
 const DEFAULT_HEADER_BG_OPACITY = 100;
-const DEFAULT_MARKED_COLOR = '#fde047'; // Default yellow
-const DEFAULT_MARKED_COLOR_OPACITY = 80; // New (replaces DEFAULT_MARKED_OPACITY)
-const DEFAULT_MARKED_IMAGE_URL = '';
-const DEFAULT_MARKED_IMAGE_OPACITY = 100; // New
-const DEFAULT_CELL_BORDER_COLOR = '#8B4513'; // Default brown
-const DEFAULT_CELL_BORDER_OPACITY = 100; // New
-const DEFAULT_CELL_BG_COLOR = '#F5F5DC'; // Default beige
-const DEFAULT_CELL_BG_OPACITY = 100; // New
+const DEFAULT_MARKED_COLOR = '#e9ecef'; // Light grey for marked cells
+const DEFAULT_MARKED_COLOR_OPACITY = 40; // New (replaces DEFAULT_MARKED_OPACITY) - Significantly lower
+const DEFAULT_MARKED_IMAGE_URL = 'https://www.svgrepo.com/download/286496/cross.svg'; // Default cross image
+const DEFAULT_MARKED_IMAGE_OPACITY = 70; // New
+const DEFAULT_CELL_BORDER_COLOR = '#808080'; // Default dark grey
+const DEFAULT_CELL_BORDER_OPACITY = 80; // New - Slightly transparent
+const DEFAULT_CELL_BG_COLOR = '#f8f9fa'; // Off-white
+const DEFAULT_CELL_BG_OPACITY = 95; // New - Slightly transparent
 const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
 const DEFAULT_CELL_BG_IMAGE_OPACITY = 100; // New
 const DEFAULT_CELL_TEXT_COLOR = '#000000';
 const DEFAULT_CELL_TEXT_OPACITY = 100;
 const DEFAULT_CELL_OUTLINE_COLOR = '#ffffff';
 const DEFAULT_CELL_OUTLINE_OPACITY = 100;
-const DEFAULT_CELL_OUTLINE_WIDTH = 1; // Default 1px
-const DEFAULT_MARKED_BORDER_COLOR = '#ca8a04'; // Default darker yellow/orange (Tailwind yellow-600)
-const DEFAULT_MARKED_BORDER_OPACITY = 100; // New
+const DEFAULT_CELL_OUTLINE_WIDTH = 0; // Default 0px - Cleaner look
+const DEFAULT_MARKED_BORDER_COLOR = DEFAULT_CELL_BORDER_COLOR; // Match default border color
+const DEFAULT_MARKED_BORDER_OPACITY = 50; // New - Less opaque than default border
 const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
 const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // New (replaces DEFAULT_BOARD_BG_OPACITY)
 const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
-const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000';
+const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000'; // Keep black for readability
 const DEFAULT_MARKED_CELL_TEXT_OPACITY = 100;
 const DEFAULT_MARKED_CELL_OUTLINE_COLOR = '#ffffff';
 const DEFAULT_MARKED_CELL_OUTLINE_OPACITY = 100;
-const DEFAULT_MARKED_CELL_OUTLINE_WIDTH = 1; // Default 1px (no outline for marked)
+const DEFAULT_MARKED_CELL_OUTLINE_WIDTH = 0; // Default 0px - No outline for marked
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -463,7 +463,8 @@ function updateHeaderDisplay() {
     headerContainer.innerHTML = "";
 
     let hasText = headerText && headerText.trim() !== "";
-    let hasCustomImage = headerImageUrl && headerImageUrl.trim() !== "";
+    let hasCustomText = headerText && headerText.trim() !== "" && headerText !== DEFAULT_HEADER_TEXT;
+    let hasCustomImage = headerImageUrl && headerImageUrl.trim() !== "" && headerImageUrl !== DEFAULT_HEADER_IMAGE_URL;
 
     // Add text if it exists
     if (hasText) {
@@ -484,7 +485,11 @@ function updateHeaderDisplay() {
 
     // Add custom image if URL exists
     if (hasCustomImage) {
-        const img = document.createElement("img");
+        // create a div and an image element
+        const div = document.createElement('div');
+        const img = document.createElement('img');
+        div.id = 'header-image-container';
+        img.id = 'header-image';
         img.src = headerImageUrl;
         img.alt = "Custom Header Image";
         img.className = "max-h-16 max-w-full object-contain"; // Adjust size as needed
@@ -496,10 +501,11 @@ function updateHeaderDisplay() {
                  addDefaultBean(headerContainer);
             }
         };
-        headerContainer.appendChild(img);
+        div.appendChild(img);
+        headerContainer.appendChild(div);
     }
     // If there is NO text and NO custom image, add the default bean
-    else if (!hasText) {
+    else {
         addDefaultBean(headerContainer);
     }
     // Implicitly, if there IS text but NO custom image, nothing else is added here
@@ -508,13 +514,17 @@ function updateHeaderDisplay() {
 
 // Helper to add the default bean image
 function addDefaultBean(container) {
+    // create a div and an image element
+    const div = document.createElement('div');
     const img = document.createElement('img');
+    div.id = 'bean-container';
     img.id = 'bean';
-    img.src = '../bean.svg';
+    img.src = '/bean.svg';
     img.alt = 'Bean';
     img.className = 'w-16 h-16 cursor-pointer'; // Use consistent size
-    img.onclick = explodeBeans;
-    container.appendChild(img);
+    img.onclick = (event) => explodeBeans(event);
+    div.appendChild(img);
+    container.appendChild(div);
 }
 
 // --- Save current default cell style settings to localStorage ---
@@ -1155,6 +1165,7 @@ function restoreBackgroundSettings() {
 
 function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity) {
     _restoreInputSetting('header-text-input', savedHeaderText);
+    // if the header image is the default bean, then add the explodeBeans function to the onclick event
     _restoreInputSetting('header-image-url-input', savedHeaderImageUrl);
     _restoreColorPickerSetting('header-text-color-picker', savedHeaderTextColor);
     _restoreOpacitySetting('header-text-color-opacity-slider', 'header-text-color-opacity-value', savedHeaderTextOpacity);
@@ -1463,25 +1474,26 @@ function equalizeCellSizes() {
     }
 }
 
-function explodeBeans() {
-    const container = document.querySelector('#custom-header-content');
+function explodeBeans(event) {
+    console.log(event);
+    let container = event.target.parentElement;
     for (let i = 0; i < 20; i++) {
         const newBean = document.createElement('img');
-        newBean.src = '../bean.svg';
+        newBean.src = '/bean.svg';
         newBean.style.position = 'absolute';
         newBean.style.width = '25px';
         newBean.style.height = '25px';
         newBean.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
         newBean.style.opacity = '0';
 
-        // Initial position at the center of the img tag
-        newBean.style.transform = 'translate(100px, 0) scale(0.5)';
+        // Initial position at the center of the div container
+        newBean.style.transform = 'translate(12px, -50px) scale(0.5)';
 
         container.appendChild(newBean);
 
         // Random position around the original bean
         const angle = Math.random() * 2 * Math.PI;
-        const distance = Math.random() * 100 + 50+100;
+        const distance = Math.random() * 100 + 50;
 
         // Trigger the animation
         setTimeout(() => {
