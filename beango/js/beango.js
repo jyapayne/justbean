@@ -1755,3 +1755,128 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', equalizeCellSizes);
     equalizeCellSizes(); // Initial call after load
 });
+
+// --- Settings Import/Export ---
+function exportSettings() {
+    const settingsToExport = {};
+    const prefix = 'beango_';
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith(prefix)) {
+            try {
+                settingsToExport[key] = JSON.parse(localStorage.getItem(key));
+            } catch (e) {
+                settingsToExport[key] = localStorage.getItem(key);
+            }
+        }
+    }
+
+    if (Object.keys(settingsToExport).length === 0) {
+        showNotification('No settings found to export.', 'warning');
+        return;
+    }
+
+    const settingsJson = JSON.stringify(settingsToExport, null, 2); // Pretty print JSON
+    const blob = new Blob([settingsJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    a.href = url;
+    // Suggest a filename
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-'); // YYYY-MM-DD-HH-MM-SS
+    a.download = `beango-settings-${timestamp}.json`;
+
+    // Append the link to the body (required for Firefox), click it, and remove it
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Release the object URL
+    URL.revokeObjectURL(url);
+
+    showNotification('Settings export download started.', 'success');
+
+    // Keep the textarea update as a visual confirmation/alternative
+    const textarea = document.getElementById('settings-json');
+    if (textarea) {
+        textarea.value = settingsJson;
+    }
+}
+
+function importSettings() {
+    const settingsJson = document.getElementById('settings-json');
+    let parsedSettings;
+    try {
+        parsedSettings = JSON.parse(settingsJson.value);
+        if (typeof parsedSettings !== 'object' || parsedSettings === null) {
+             throw new Error('Imported data is not a valid JSON object.');
+        }
+    } catch (e) {
+        showNotification(`Error parsing settings JSON: ${e.message}`, 'error');
+        return;
+    }
+
+    if (confirm('Importing these settings will OVERWRITE your current settings and reload the page. Are you sure you want to continue?')) {
+        const prefix = 'beango_';
+        const keysToRemove = [];
+
+        // 1. Clear existing beango settings first
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(prefix)) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+
+        // 2. Import new settings
+        let importCount = 0;
+        for (const key in parsedSettings) {
+            // Basic validation: Ensure the key starts with the prefix and has a value
+            if (key.startsWith(prefix) && parsedSettings.hasOwnProperty(key) && parsedSettings[key] !== undefined && parsedSettings[key] !== null) {
+                const value = parsedSettings[key];
+                // Store arrays/objects as JSON strings, others as plain strings
+                const valueToStore = (typeof value === 'object') ? JSON.stringify(value) : String(value);
+                localStorage.setItem(key, valueToStore);
+                importCount++;
+            } else {
+                console.warn(`Skipping import for invalid key or value: ${key}`);
+            }
+        }
+
+        showNotification(`Successfully imported ${importCount} settings. Reloading...`, 'success', 1500);
+
+        // Use a short delay before reload
+        setTimeout(() => {
+             location.reload();
+        }, 1600);
+    }
+}
+
+// --- Settings File Input Listener ---
+const settingsFileInput = document.getElementById('settings-file-input');
+if (settingsFileInput) {
+    settingsFileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const settingsTextarea = document.getElementById('settings-json');
+                if (settingsTextarea) {
+                    settingsTextarea.value = e.target.result;
+                    showNotification('Settings file loaded into textarea. Click Import to apply.', 'success');
+                } else {
+                    showNotification('Error: Could not find settings textarea.', 'error');
+                }
+                // Clear the file input value so the same file can be selected again if needed
+                event.target.value = null;
+            };
+            reader.onerror = function() {
+                showNotification('Error reading settings file.', 'error');
+                 event.target.value = null; // Clear on error too
+            };
+            reader.readAsText(file);
+        }
+    });
+}
