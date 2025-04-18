@@ -13,6 +13,7 @@ const LS_SOLID_COLOR = 'beango_solidColor';
 const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
 const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
 const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
+const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
 
 // --- Default Values ---
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
@@ -174,9 +175,10 @@ function saveBoardState() {
     const markedIndices = getMarkedIndices();
 
     localStorage.setItem(LS_BOARD_SIZE, size);
-    localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save original items
+    localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save items potentially on board (padded/sliced)
     localStorage.setItem(LS_DISPLAYED_ITEMS, JSON.stringify(displayedItems)); // Save displayed items
     localStorage.setItem(LS_MARKED_INDICES, JSON.stringify(markedIndices));
+    localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(getItemsFromInput())); // Save user's raw input
 }
 
 function generateBoard() {
@@ -189,11 +191,11 @@ function generateBoard() {
     sizeInput.value = size; // Ensure value reflects parsed int
 
     // Get items from input and store them as the canonical list
-    currentItems = getItemsFromInput();
-    localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save original items immediately
+    const originalUserItems = getItemsFromInput();
+    localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Save user's raw input
 
     const requiredItems = size * size;
-    let itemsForBoard = [...currentItems]; // Start with a copy of original items
+    let itemsForBoard = [...originalUserItems]; // Start with a copy of the user's raw input
     let notificationMessage = 'Board generated successfully!';
     let notificationType = 'success';
 
@@ -204,20 +206,24 @@ function generateBoard() {
         for (let i = 0; i < diff; i++) {
             itemsForBoard.push(`Placeholder ${i+1}`);
         }
-        // Update currentItems if placeholders were added, so randomize uses them too
+        // currentItems will now hold the padded list for the board
         currentItems = [...itemsForBoard];
-        localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems));
     } else if (itemsForBoard.length > requiredItems) {
         notificationMessage = `Info: Found ${itemsForBoard.length} items, randomly selecting ${requiredItems}.`;
         notificationType = 'info';
         itemsForBoard = shuffleArray(itemsForBoard).slice(0, requiredItems);
-        // Update currentItems to reflect the selected subset
+        // currentItems will now hold the selected subset for the board
         currentItems = [...itemsForBoard];
-        localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems));
+    } else {
+        // If exact number, currentItems are the same as originalUserItems
+        currentItems = [...originalUserItems];
     }
 
-    // Shuffle the items specifically for display
-    displayedItems = shuffleArray([...itemsForBoard]);
+    // Save the items that are actually available for the board (potentially padded/sliced)
+    localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems));
+
+    // Shuffle the items specifically for display (use currentItems which has the right size)
+    displayedItems = shuffleArray([...currentItems]);
 
     const board = document.getElementById('bingo-board');
     board.innerHTML = ''; // Clear previous board
@@ -366,6 +372,7 @@ function resetSettings() {
     localStorage.removeItem(LS_CELL_ITEMS);
     localStorage.removeItem(LS_DISPLAYED_ITEMS);
     localStorage.removeItem(LS_MARKED_INDICES);
+    localStorage.removeItem(LS_ORIGINAL_ITEMS); // Clear saved raw input
     // Optionally reset config pane state too?
     // localStorage.removeItem(LS_CONFIG_OPEN);
     localStorage.removeItem(LS_BACKGROUND_TYPE);
@@ -435,6 +442,7 @@ function loadFromLocalStorage() {
     const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
     const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
     const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === 'true';
+    const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -522,17 +530,29 @@ function loadFromLocalStorage() {
     setBackground();
     // --- End Restore Background Settings ---
 
-    // Restore Config Inputs
-    if (savedItemsText) {
+    // Restore the textarea with the original user input if available
+    if (savedOriginalItemsText) {
         try {
-            currentItems = JSON.parse(savedItemsText); // Restore original items array
-            document.getElementById('cell-contents').value = currentItems.join('\n');
+            const originalItems = JSON.parse(savedOriginalItemsText);
+            document.getElementById('cell-contents').value = originalItems.join('\n');
         } catch (e) {
-            showNotification('Error parsing saved items. Resetting items.', 'error');
-            localStorage.removeItem(LS_CELL_ITEMS);
-            currentItems = [];
-            document.getElementById('cell-contents').value = '';
+            showNotification('Error parsing saved original items.', 'error');
+            localStorage.removeItem(LS_ORIGINAL_ITEMS);
+             // Fallback to cell items if original fails
+             if (savedItemsText) {
+                 try {
+                     document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
+                 } catch { /* ignore inner error */ }
+             }
         }
+    } else if (savedItemsText) {
+         // If no original items saved, use the cell items as fallback for textarea
+         try {
+              document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
+         } catch (e) {
+             // Already handled loading currentItems above, just ensure textarea is cleared on error
+             document.getElementById('cell-contents').value = '';
+         }
     }
 
     // Update container width based on loaded size - REMOVED
