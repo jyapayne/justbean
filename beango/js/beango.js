@@ -33,11 +33,21 @@ const LS_CELL_BG_COLOR = 'beango_cellBgColor';
 const LS_CELL_BG_OPACITY = 'beango_cellBgOpacity'; // New
 const LS_CELL_BG_IMAGE_URL = 'beango_cellBgImageUrl';
 const LS_CELL_BG_IMAGE_OPACITY = 'beango_cellBgImageOpacity'; // New
+const LS_CELL_TEXT_COLOR = 'beango_cellTextColor';
+const LS_CELL_TEXT_OPACITY = 'beango_cellTextOpacity';
+const LS_CELL_OUTLINE_COLOR = 'beango_cellOutlineColor';
+const LS_CELL_OUTLINE_OPACITY = 'beango_cellOutlineOpacity';
+const LS_CELL_OUTLINE_WIDTH = 'beango_cellOutlineWidth';
 const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor';
 const LS_MARKED_BORDER_OPACITY = 'beango_markedBorderOpacity'; // New
 const LS_BOARD_BG_COLOR = 'beango_boardBgColor';
 const LS_BOARD_BG_COLOR_OPACITY = 'beango_boardBgColorOpacity'; // New (replaces LS_BOARD_BG_OPACITY)
 const LS_BOARD_BG_IMAGE_URL = 'beango_boardBgImageUrl';
+const LS_MARKED_CELL_TEXT_COLOR = 'beango_markedCellTextColor';
+const LS_MARKED_CELL_TEXT_OPACITY = 'beango_markedCellTextOpacity';
+const LS_MARKED_CELL_OUTLINE_COLOR = 'beango_markedCellOutlineColor';
+const LS_MARKED_CELL_OUTLINE_OPACITY = 'beango_markedCellOutlineOpacity';
+const LS_MARKED_CELL_OUTLINE_WIDTH = 'beango_markedCellOutlineWidth';
 
 // --- Default Values ---
 const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
@@ -63,11 +73,21 @@ const DEFAULT_CELL_BG_COLOR = '#F5F5DC'; // Default beige
 const DEFAULT_CELL_BG_OPACITY = 100; // New
 const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
 const DEFAULT_CELL_BG_IMAGE_OPACITY = 100; // New
+const DEFAULT_CELL_TEXT_COLOR = '#000000';
+const DEFAULT_CELL_TEXT_OPACITY = 100;
+const DEFAULT_CELL_OUTLINE_COLOR = '#ffffff';
+const DEFAULT_CELL_OUTLINE_OPACITY = 100;
+const DEFAULT_CELL_OUTLINE_WIDTH = 1; // Default 1px
 const DEFAULT_MARKED_BORDER_COLOR = '#ca8a04'; // Default darker yellow/orange (Tailwind yellow-600)
 const DEFAULT_MARKED_BORDER_OPACITY = 100; // New
 const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
 const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // New (replaces DEFAULT_BOARD_BG_OPACITY)
 const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
+const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000';
+const DEFAULT_MARKED_CELL_TEXT_OPACITY = 100;
+const DEFAULT_MARKED_CELL_OUTLINE_COLOR = '#ffffff';
+const DEFAULT_MARKED_CELL_OUTLINE_OPACITY = 100;
+const DEFAULT_MARKED_CELL_OUTLINE_WIDTH = 1; // Default 1px (no outline for marked)
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -271,6 +291,13 @@ function saveMarkedStyleSettings() {
     // Save marked border color and its opacity
     localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
     localStorage.setItem(LS_MARKED_BORDER_OPACITY, document.getElementById('marked-border-opacity-slider').value);
+
+    // Save marked text styles
+    localStorage.setItem(LS_MARKED_CELL_TEXT_COLOR, document.getElementById('marked-cell-text-color-picker').value);
+    localStorage.setItem(LS_MARKED_CELL_TEXT_OPACITY, document.getElementById('marked-cell-text-opacity-slider').value);
+    localStorage.setItem(LS_MARKED_CELL_OUTLINE_COLOR, document.getElementById('marked-cell-outline-color-picker').value);
+    localStorage.setItem(LS_MARKED_CELL_OUTLINE_OPACITY, document.getElementById('marked-cell-outline-opacity-slider').value);
+    localStorage.setItem(LS_MARKED_CELL_OUTLINE_WIDTH, document.getElementById('marked-cell-outline-width-input').value);
 }
 
 // --- Apply saved marked styles to a cell ---
@@ -309,8 +336,42 @@ function applyMarkedCellStyle(cell) {
             cell.style.removeProperty('--bg-image-url');
         }
 
+        // Apply marked text styles
+        const textSpan = cell.querySelector('.bingo-cell-text');
+        if (textSpan) {
+            const textColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
+            const textOpacity = parseInt(localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY, 10);
+            const outlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
+            const outlineOpacity = parseInt(localStorage.getItem(LS_MARKED_CELL_OUTLINE_OPACITY) || DEFAULT_MARKED_CELL_OUTLINE_OPACITY, 10);
+            let outlineWidth = parseFloat(localStorage.getItem(LS_MARKED_CELL_OUTLINE_WIDTH));
+            // Default check: // Add log before default check
+            if (isNaN(outlineWidth) || outlineWidth < 0) {
+                outlineWidth = DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
+            }
+
+            const rgbaTextColor = hexToRgba(textColor, textOpacity);
+            textSpan.style.color = rgbaTextColor; // Override default style
+
+            if (outlineWidth > 0) {
+                const rgbaOutlineColor = hexToRgba(outlineColor, outlineOpacity);
+                const shadow = `
+                    -${outlineWidth}px -${outlineWidth}px 0 ${rgbaOutlineColor},
+                     ${outlineWidth}px -${outlineWidth}px 0 ${rgbaOutlineColor},
+                    -${outlineWidth}px  ${outlineWidth}px 0 ${rgbaOutlineColor},
+                     ${outlineWidth}px  ${outlineWidth}px 0 ${rgbaOutlineColor},
+                     ${outlineWidth}px  0   0 ${rgbaOutlineColor},
+                    -${outlineWidth}px  0   0 ${rgbaOutlineColor},
+                     0   ${outlineWidth}px 0 ${rgbaOutlineColor},
+                     0   -${outlineWidth}px 0 ${rgbaOutlineColor}
+                `;
+                textSpan.style.textShadow = shadow; // Override default style
+            } else {
+                textSpan.style.textShadow = "none"; // Override default style
+            }
+        }
+
     } else {
-        // If unmarked, re-apply default styles (which resets bg color, bg image, border color)
+        // If unmarked, re-apply default styles (which resets bg color, bg image, border color, and TEXT styles)
         applyCellStyle(cell);
     }
 }
@@ -424,35 +485,73 @@ function saveCellStyleSettings() {
     localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-slider').value);
     localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
     localStorage.setItem(LS_CELL_BG_IMAGE_OPACITY, document.getElementById('cell-background-image-opacity-slider').value); // Save image opacity
+    // Save text styles
+    localStorage.setItem(LS_CELL_TEXT_COLOR, document.getElementById('cell-text-color-picker').value);
+    localStorage.setItem(LS_CELL_TEXT_OPACITY, document.getElementById('cell-text-opacity-slider').value);
+    localStorage.setItem(LS_CELL_OUTLINE_COLOR, document.getElementById('cell-outline-color-picker').value);
+    localStorage.setItem(LS_CELL_OUTLINE_OPACITY, document.getElementById('cell-outline-opacity-slider').value);
+    localStorage.setItem(LS_CELL_OUTLINE_WIDTH, document.getElementById('cell-outline-width-input').value);
 }
 
 // --- Apply saved default cell styles to a cell ---
 function applyCellStyle(cell) {
     if (!cell || cell.classList.contains('marked')) return; // Only apply to non-marked cells
 
+    // Borders
     const borderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
     const borderOpacity = parseInt(localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY, 10);
+    cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
+
+    // Background Color / Image
     const bgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
     const bgOpacity = parseInt(localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY, 10);
     const bgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
     const bgImageOpacity = parseInt(localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY, 10);
-
-    cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
-    cell.style.opacity = ''; // Reset direct opacity, handled by color
+    cell.style.opacity = ''; // Reset direct opacity
 
     if (bgImageUrl) {
-        cell.style.setProperty('--bg-image-url', `url('${bgImageUrl}')`); // NEW: Set CSS custom property
+        cell.style.setProperty('--bg-image-url', `url('${bgImageUrl}')`);
         cell.style.setProperty('--bg-image-opacity', bgImageOpacity / 100); // Set image opacity property
-        cell.style.backgroundSize = 'cover';
-        cell.style.backgroundPosition = 'center center';
-        cell.style.backgroundRepeat = 'no-repeat';
-        // Set fallback color with its specific opacity
         cell.style.backgroundColor = hexToRgba(bgColor, bgOpacity);
     } else {
-        // Clear image properties if no URL
         cell.style.removeProperty('--bg-image-url'); // NEW: Remove CSS custom property
         cell.style.removeProperty('--bg-image-opacity'); // Remove image opacity property
         cell.style.backgroundColor = hexToRgba(bgColor, bgOpacity);
+    }
+
+    // Text Styles
+    const textSpan = cell.querySelector('.bingo-cell-text');
+    if (textSpan) {
+        const textColor = localStorage.getItem(LS_CELL_TEXT_COLOR) || DEFAULT_CELL_TEXT_COLOR;
+        const textOpacity = parseInt(localStorage.getItem(LS_CELL_TEXT_OPACITY) || DEFAULT_CELL_TEXT_OPACITY, 10);
+        const outlineColor = localStorage.getItem(LS_CELL_OUTLINE_COLOR) || DEFAULT_CELL_OUTLINE_COLOR;
+        const outlineOpacity = parseInt(localStorage.getItem(LS_CELL_OUTLINE_OPACITY) || DEFAULT_CELL_OUTLINE_OPACITY, 10);
+        let outlineWidth = parseFloat(localStorage.getItem(LS_CELL_OUTLINE_WIDTH));
+        if (isNaN(outlineWidth) || outlineWidth < 0) outlineWidth = DEFAULT_CELL_OUTLINE_WIDTH;
+
+        const rgbaTextColor = hexToRgba(textColor, textOpacity);
+        textSpan.style.color = rgbaTextColor;
+        textSpan.style.setProperty('--cell-text-color', rgbaTextColor);
+
+        if (outlineWidth > 0) {
+            const rgbaOutlineColor = hexToRgba(outlineColor, outlineOpacity);
+            // Create outline using multiple text shadows
+            const shadow = `
+                -${outlineWidth}px -${outlineWidth}px 0 ${rgbaOutlineColor},
+                 ${outlineWidth}px -${outlineWidth}px 0 ${rgbaOutlineColor},
+                -${outlineWidth}px  ${outlineWidth}px 0 ${rgbaOutlineColor},
+                 ${outlineWidth}px  ${outlineWidth}px 0 ${rgbaOutlineColor},
+                 ${outlineWidth}px  0   0 ${rgbaOutlineColor},
+                -${outlineWidth}px  0   0 ${rgbaOutlineColor},
+                 0   ${outlineWidth}px 0 ${rgbaOutlineColor},
+                 0   -${outlineWidth}px 0 ${rgbaOutlineColor}
+            `;
+            textSpan.style.textShadow = shadow;
+            textSpan.style.setProperty('--cell-text-outline', shadow);
+        } else {
+            textSpan.style.textShadow = 'none';
+            textSpan.style.removeProperty('--cell-text-outline');
+        }
     }
 }
 
@@ -864,8 +963,18 @@ function loadFromLocalStorage() {
     const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
     const savedCellBgImageOpacity = localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY;
     console.log(`LOAD: LS_CELL_BG_IMAGE_OPACITY = ${localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY)}, using: ${savedCellBgImageOpacity}`); // DEBUG LOG
+    const savedCellTextColor = localStorage.getItem(LS_CELL_TEXT_COLOR) || DEFAULT_CELL_TEXT_COLOR;
+    const savedCellTextOpacity = localStorage.getItem(LS_CELL_TEXT_OPACITY) || DEFAULT_CELL_TEXT_OPACITY;
+    const savedCellOutlineColor = localStorage.getItem(LS_CELL_OUTLINE_COLOR) || DEFAULT_CELL_OUTLINE_COLOR;
+    const savedCellOutlineOpacity = localStorage.getItem(LS_CELL_OUTLINE_OPACITY) || DEFAULT_CELL_OUTLINE_OPACITY;
+    const savedCellOutlineWidth = localStorage.getItem(LS_CELL_OUTLINE_WIDTH) || DEFAULT_CELL_OUTLINE_WIDTH;
     const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
     const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
+    const savedMarkedCellTextColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
+    const savedMarkedCellTextOpacity = localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY;
+    const savedMarkedCellOutlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
+    const savedMarkedCellOutlineOpacity = localStorage.getItem(LS_MARKED_CELL_OUTLINE_OPACITY) || DEFAULT_MARKED_CELL_OUTLINE_OPACITY;
+    const savedMarkedCellOutlineWidth = localStorage.getItem(LS_MARKED_CELL_OUTLINE_WIDTH) || DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
     const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
     const savedBoardBgColorOpacity = localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY;
     const savedBoardBgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
@@ -935,12 +1044,12 @@ function loadFromLocalStorage() {
         const markedIndices = savedMarkedIndices ? JSON.parse(savedMarkedIndices) : [];
 
         displayedItems.forEach((item, index) => {
-            const cell = document.createElement('div');
-            cell.classList.add('bingo-cell', 'cursor-pointer');
+            const cell = document.createElement("div");
+            cell.classList.add("bingo-cell", "cursor-pointer");
             // cell.textContent = item; // OLD WAY
             cell.dataset.index = index; // Ensure index is set for loading marks correctly
             cell.onclick = () => selectCell(cell);
-            applyCellStyle(cell); // Apply default cell style first
+            // applyCellStyle(cell); // Apply default cell style first <-- MOVED DOWN
 
             // NEW: Create span for text content
             const textSpan = document.createElement("span");
@@ -948,8 +1057,10 @@ function loadFromLocalStorage() {
             textSpan.textContent = item;
             cell.appendChild(textSpan);
 
+            applyCellStyle(cell); // <-- MOVED HERE: Apply styles AFTER text span exists
+
             if (markedIndices.includes(index)) {
-                cell.classList.add('marked'); // Apply saved mark using \'marked\' class
+                cell.classList.add("marked"); // Apply saved mark using 'marked' class
                 // Apply dynamic marked styles AFTER adding the class and default styles
                 applyMarkedCellStyle(cell);
             }
@@ -1022,6 +1133,21 @@ function loadFromLocalStorage() {
     if (markedBorderOpacitySlider) markedBorderOpacitySlider.value = savedMarkedBorderOpacity;
     if (markedBorderOpacityValueSpan) markedBorderOpacityValueSpan.textContent = savedMarkedBorderOpacity;
 
+    // Restore marked text styles
+    document.getElementById('marked-cell-text-color-picker').value = savedMarkedCellTextColor;
+    const markedCellTextOpacitySlider = document.getElementById('marked-cell-text-opacity-slider');
+    const markedCellTextOpacityValueSpan = document.getElementById('marked-cell-text-opacity-value');
+    if (markedCellTextOpacitySlider) markedCellTextOpacitySlider.value = savedMarkedCellTextOpacity;
+    if (markedCellTextOpacityValueSpan) markedCellTextOpacityValueSpan.textContent = savedMarkedCellTextOpacity;
+
+    document.getElementById('marked-cell-outline-color-picker').value = savedMarkedCellOutlineColor;
+    const markedCellOutlineOpacitySlider = document.getElementById('marked-cell-outline-opacity-slider');
+    const markedCellOutlineOpacityValueSpan = document.getElementById('marked-cell-outline-opacity-value');
+    if (markedCellOutlineOpacitySlider) markedCellOutlineOpacitySlider.value = savedMarkedCellOutlineOpacity;
+    if (markedCellOutlineOpacityValueSpan) markedCellOutlineOpacityValueSpan.textContent = savedMarkedCellOutlineOpacity;
+
+    document.getElementById('marked-cell-outline-width-input').value = savedMarkedCellOutlineWidth;
+
     refreshMarkedCellStyles(); // Apply the loaded marked styles
     // --- End Restore Marked Style Settings ---
 
@@ -1043,6 +1169,19 @@ function loadFromLocalStorage() {
     const cellBackgroundImageOpacityValueSpan = document.getElementById('cell-background-image-opacity-value');
     if (cellBackgroundImageOpacitySlider) cellBackgroundImageOpacitySlider.value = savedCellBgImageOpacity;
     if (cellBackgroundImageOpacityValueSpan) cellBackgroundImageOpacityValueSpan.textContent = savedCellBgImageOpacity;
+
+    // Restore text styles
+    document.getElementById('cell-text-color-picker').value = savedCellTextColor;
+    const cellTextOpacitySlider = document.getElementById('cell-text-opacity-slider');
+    const cellTextOpacityValueSpan = document.getElementById('cell-text-opacity-value');
+    if (cellTextOpacitySlider) cellTextOpacitySlider.value = savedCellTextOpacity;
+    if (cellTextOpacityValueSpan) cellTextOpacityValueSpan.textContent = savedCellTextOpacity;
+    document.getElementById('cell-outline-color-picker').value = savedCellOutlineColor;
+    const cellOutlineOpacitySlider = document.getElementById('cell-outline-opacity-slider');
+    const cellOutlineOpacityValueSpan = document.getElementById('cell-outline-opacity-value');
+    if (cellOutlineOpacitySlider) cellOutlineOpacitySlider.value = savedCellOutlineOpacity;
+    if (cellOutlineOpacityValueSpan) cellOutlineOpacityValueSpan.textContent = savedCellOutlineOpacity;
+    document.getElementById('cell-outline-width-input').value = savedCellOutlineWidth;
 
     // Styles are applied during board creation loop above
     // --- End Restore Default Cell Style Settings ---
@@ -1111,6 +1250,30 @@ function loadFromLocalStorage() {
         refreshCellStyles();
     });
 
+    // --- Add Event Listeners for Text Style Controls ---
+    document.getElementById('cell-text-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-text-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-text-opacity-value')) document.getElementById('cell-text-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-outline-opacity-value')) document.getElementById('cell-outline-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-width-input').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+
     // --- Add Event Listeners for Board Background Controls ---
     document.getElementById('board-bg-color-picker').addEventListener('input', () => {
         saveBoardBgSettings();
@@ -1158,36 +1321,77 @@ function loadFromLocalStorage() {
     // --- Other Listeners ---
     window.addEventListener('resize', equalizeCellSizes);
     equalizeCellSizes(); // Initial call after load
+
+    // --- Add Event Listeners for Marked Text Style Controls ---
+    document.getElementById("marked-cell-text-color-picker").addEventListener("input", () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById("marked-cell-text-opacity-slider").addEventListener("input", (e) => {
+        if(document.getElementById("marked-cell-text-opacity-value")) document.getElementById("marked-cell-text-opacity-value").textContent = e.target.value;
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById("marked-cell-outline-color-picker").addEventListener("input", () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById("marked-cell-outline-opacity-slider").addEventListener("input", (e) => {
+        if(document.getElementById("marked-cell-outline-opacity-value")) document.getElementById("marked-cell-outline-opacity-value").textContent = e.target.value;
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+    document.getElementById("marked-cell-outline-width-input").addEventListener("input", () => {
+        saveMarkedStyleSettings();
+        refreshMarkedCellStyles();
+    });
+
+    // --- Add Event Listeners for Default Cell Style Controls ---
+    document.getElementById("cell-border-color-picker").addEventListener("input", () => {
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById("cell-border-opacity-slider").addEventListener("input", (e) => {
+        if(document.getElementById("cell-border-opacity-value")) document.getElementById("cell-border-opacity-value").textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles(); // Update all non-marked cells
+    });
+    document.getElementById("cell-background-color-picker").addEventListener("input", () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-background-opacity-slider").addEventListener("input", (e) => {
+        if(document.getElementById("cell-background-opacity-value")) document.getElementById("cell-background-opacity-value").textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-background-image-url-input").addEventListener("input", () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-text-color-picker").addEventListener("input", () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-text-opacity-slider").addEventListener("input", (e) => {
+        if(document.getElementById("cell-text-opacity-value")) document.getElementById("cell-text-opacity-value").textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-outline-color-picker").addEventListener("input", () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-outline-opacity-slider").addEventListener("input", (e) => {
+        if(document.getElementById("cell-outline-opacity-value")) document.getElementById("cell-outline-opacity-value").textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById("cell-outline-width-input").addEventListener("input", () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
 }
-
-// --- Helper to manage board container width --- DEPRECATED
-/* function updateBoardContainerMaxWidth(size, element = '#bingo-board-container') {
-    const container = document.querySelector(element);
-
-    if (!container) return;
-
-    // Remove existing max-w classes
-    const classList = container.classList;
-    const existingMaxWidthClasses = Array.from(classList).filter(cls => cls.startsWith('max-w-'));
-    classList.remove(...existingMaxWidthClasses);
-
-    // Determine and add the new max-w class
-    let maxWidthClass = 'max-w-2xl'; // Default for 5x5
-    if (size <= 3) {
-        maxWidthClass = 'max-w-lg';
-    } else if (size === 4) {
-        maxWidthClass = 'max-w-xl';
-    } else if (size === 5) {
-        maxWidthClass = 'max-w-2xl';
-    } else if (size === 6) {
-        maxWidthClass = 'max-w-3xl';
-    } else if (size === 7) {
-        maxWidthClass = 'max-w-4xl';
-    } else if (size >= 8) {
-        maxWidthClass = 'max-w-5xl'; // Cap here, rely on scroll for larger
-    }
-    container.classList.add(maxWidthClass);
-} */
 
 // --- Function to make all cells square and equal size ---
 function equalizeCellSizes() {
@@ -1446,6 +1650,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('cell-background-image-opacity-slider').addEventListener('input', (e) => {
         if(document.getElementById('cell-background-image-opacity-value')) document.getElementById('cell-background-image-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+
+    // --- Add Event Listeners for Text Style Controls ---
+    document.getElementById('cell-text-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-text-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-text-opacity-value')) document.getElementById('cell-text-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-color-picker').addEventListener('input', () => {
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-outline-opacity-value')) document.getElementById('cell-outline-opacity-value').textContent = e.target.value;
+        saveCellStyleSettings();
+        refreshCellStyles();
+    });
+    document.getElementById('cell-outline-width-input').addEventListener('input', () => {
         saveCellStyleSettings();
         refreshCellStyles();
     });

@@ -77,7 +77,8 @@ body {
     overflow-wrap: break-word;
     hyphens: auto;
     font-size: 1.5rem; /* Moved font size here */
-    color: #000; /* Default text color (can be customized later if needed) */
+    color: var(--cell-text-color, #000);
+    text-shadow: var(--cell-text-outline, none);
     position: relative; /* Needed for z-index */
     z-index: 0; /* Place BELOW the pseudo-element */
     /* Remove background to allow parent background to show */
