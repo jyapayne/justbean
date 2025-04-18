@@ -1453,7 +1453,7 @@ function equalizeCellSizes() {
     }
 
     const gap = 4; // From CSS: .bingo-board { gap: 4px; }
-    const minCellSize = 100; // Minimum width/height for a cell
+    const minCellSize = 150; // Minimum width/height for a cell
     let maxWidthNeeded = 0;
     let maxHeightNeeded = 0;
 
