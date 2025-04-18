@@ -101,6 +101,13 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 // --- Helper Function ---
 function hexToRgba(hex, opacityPercent = 100) {
+    // Ensure opacityPercent is a number before using it
+    let numericOpacity = parseInt(opacityPercent, 10); // Try parsing
+    // If parsing failed (e.g., input was not a number string) or input was null/undefined, default to 100
+    if (isNaN(numericOpacity)) {
+        numericOpacity = 100;
+    }
+
     // Remove hash if it exists
     hex = hex.replace('#', '');
 
@@ -119,8 +126,9 @@ function hexToRgba(hex, opacityPercent = 100) {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Clamp and normalize opacity
-    const opacity = Math.max(0, Math.min(100, opacityPercent)) / 100;
+    // Clamp and normalize opacity using the correctly parsed/defaulted value
+    const clampedOpacityPercent = Math.max(0, Math.min(100, numericOpacity));
+    const opacity = clampedOpacityPercent / 100;
 
     return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
@@ -139,16 +147,16 @@ function setBackground() {
 
     if (backgroundType === 'solid') {
         const color = solidColorPicker.value;
-        const opacity = parseInt(document.getElementById('background-color-opacity-input').value, 10);
+        const opacity = parseInt(document.getElementById('background-color-opacity-slider').value, 10);
         backgroundValue = hexToRgba(color, opacity);
         htmlStyle.background = backgroundValue; // Set solid color as background
         htmlStyle.backgroundRepeat = 'no-repeat';
         htmlStyle.backgroundAttachment = 'fixed';
     } else { // gradient
         const color1 = gradientColor1Picker.value;
-        const opacity1 = parseInt(document.getElementById('gradient-color-1-opacity-input').value, 10);
+        const opacity1 = parseInt(document.getElementById('gradient-color-1-opacity-slider').value, 10);
         const color2 = gradientColor2Picker.value;
-        const opacity2 = parseInt(document.getElementById('gradient-color-2-opacity-input').value, 10);
+        const opacity2 = parseInt(document.getElementById('gradient-color-2-opacity-slider').value, 10);
         const direction = gradientDirectionSelect.value;
 
         const rgba1 = hexToRgba(color1, opacity1);
@@ -191,7 +199,7 @@ function saveBackgroundSettings() {
 
     if (backgroundType === 'solid') {
         localStorage.setItem(LS_SOLID_COLOR, document.getElementById('background-color-picker').value);
-        localStorage.setItem(LS_SOLID_COLOR_OPACITY, document.getElementById('background-color-opacity-input').value);
+        localStorage.setItem(LS_SOLID_COLOR_OPACITY, document.getElementById('background-color-opacity-slider').value);
         // Optionally remove gradient keys
         localStorage.removeItem(LS_GRADIENT_COLOR_1);
         localStorage.removeItem(LS_GRADIENT_COLOR_1_OPACITY);
@@ -200,9 +208,9 @@ function saveBackgroundSettings() {
         localStorage.removeItem(LS_GRADIENT_DIRECTION);
     } else {
         localStorage.setItem(LS_GRADIENT_COLOR_1, document.getElementById('gradient-color-1').value);
-        localStorage.setItem(LS_GRADIENT_COLOR_1_OPACITY, document.getElementById('gradient-color-1-opacity-input').value);
+        localStorage.setItem(LS_GRADIENT_COLOR_1_OPACITY, document.getElementById('gradient-color-1-opacity-slider').value);
         localStorage.setItem(LS_GRADIENT_COLOR_2, document.getElementById('gradient-color-2').value);
-        localStorage.setItem(LS_GRADIENT_COLOR_2_OPACITY, document.getElementById('gradient-color-2-opacity-input').value);
+        localStorage.setItem(LS_GRADIENT_COLOR_2_OPACITY, document.getElementById('gradient-color-2-opacity-slider').value);
         localStorage.setItem(LS_GRADIENT_DIRECTION, document.getElementById('gradient-direction').value);
         // Optionally remove solid key
         localStorage.removeItem(LS_SOLID_COLOR);
@@ -248,15 +256,12 @@ function getItemsFromInput() {
 // --- Save current marked style settings to localStorage ---
 function saveMarkedStyleSettings() {
     localStorage.setItem(LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
-    localStorage.setItem(LS_MARKED_COLOR_OPACITY, document.getElementById('marked-color-opacity-input').value);
+    localStorage.setItem(LS_MARKED_COLOR_OPACITY, document.getElementById('marked-color-opacity-slider').value);
     localStorage.setItem(LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
 
     // Save marked border color and its opacity
     localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
-    let borderOpacity = parseInt(document.getElementById('marked-border-opacity-input').value, 10);
-     if (isNaN(borderOpacity) || borderOpacity < 0) borderOpacity = 0;
-     if (borderOpacity > 100) borderOpacity = 100;
-    localStorage.setItem(LS_MARKED_BORDER_OPACITY, borderOpacity);
+    localStorage.setItem(LS_MARKED_BORDER_OPACITY, document.getElementById('marked-border-opacity-slider').value);
 }
 
 // --- Apply saved marked styles to a cell ---
@@ -312,7 +317,7 @@ function saveHeaderSettings() {
     localStorage.setItem(LS_HEADER_TEXT, document.getElementById('header-text-input').value);
     localStorage.setItem(LS_HEADER_IMAGE_URL, document.getElementById('header-image-url-input').value);
     localStorage.setItem(LS_HEADER_TEXT_COLOR, document.getElementById('header-text-color-picker').value);
-    localStorage.setItem(LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-input').value);
+    localStorage.setItem(LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-slider').value);
 }
 
 // --- Function to update the header display ---
@@ -389,9 +394,9 @@ function addDefaultBean(container) {
 // --- Save current default cell style settings to localStorage ---
 function saveCellStyleSettings() {
     localStorage.setItem(LS_CELL_BORDER_COLOR, document.getElementById('cell-border-color-picker').value);
-    localStorage.setItem(LS_CELL_BORDER_OPACITY, document.getElementById('cell-border-opacity-input').value);
+    localStorage.setItem(LS_CELL_BORDER_OPACITY, document.getElementById('cell-border-opacity-slider').value);
     localStorage.setItem(LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
-    localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-input').value);
+    localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-slider').value);
     localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
 }
 
@@ -433,10 +438,7 @@ function refreshCellStyles() {
 function saveBoardBgSettings() {
     localStorage.setItem(LS_BOARD_BG_COLOR, document.getElementById('board-bg-color-picker').value);
     localStorage.setItem(LS_BOARD_BG_IMAGE_URL, document.getElementById('board-bg-image-url-input').value);
-    let opacity = parseInt(document.getElementById('board-bg-color-opacity-input').value, 10); // Use new ID
-    if (isNaN(opacity) || opacity < 0) opacity = 0;
-    if (opacity > 100) opacity = 100;
-    localStorage.setItem(LS_BOARD_BG_COLOR_OPACITY, opacity); // Use new key
+    localStorage.setItem(LS_BOARD_BG_COLOR_OPACITY, document.getElementById('board-bg-color-opacity-slider').value); // Use new ID & key
 }
 
 // --- Apply board background style ---
@@ -580,11 +582,11 @@ function generateBoard() {
     // Reset background inputs to defaults
     document.querySelector('input[name="background-type"][value="gradient"]').checked = true; // Default to gradient
     document.getElementById('background-color-picker').value = DEFAULT_SOLID_COLOR;
-    document.getElementById('background-color-opacity-input').value = DEFAULT_SOLID_COLOR_OPACITY;
+    document.getElementById('background-color-opacity-slider').value = DEFAULT_SOLID_COLOR_OPACITY;
     document.getElementById('gradient-color-1').value = DEFAULT_GRADIENT_COLOR_1;
-    document.getElementById('gradient-color-1-opacity-input').value = DEFAULT_GRADIENT_COLOR_1_OPACITY;
+    document.getElementById('gradient-color-1-opacity-slider').value = DEFAULT_GRADIENT_COLOR_1_OPACITY;
     document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
-    document.getElementById('gradient-color-2-opacity-input').value = DEFAULT_GRADIENT_COLOR_2_OPACITY;
+    document.getElementById('gradient-color-2-opacity-slider').value = DEFAULT_GRADIENT_COLOR_2_OPACITY;
     document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
     toggleBackgroundControls(); // Ensure correct controls are visible
 
@@ -592,15 +594,15 @@ function generateBoard() {
     document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
     document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
     document.getElementById('header-text-color-picker').value = DEFAULT_HEADER_TEXT_COLOR;
-    document.getElementById('header-text-color-opacity-input').value = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+    document.getElementById('header-text-color-opacity-slider').value = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
     updateHeaderDisplay(); // Apply default header display
 
     // Reset marked style inputs to defaults
     document.getElementById('marked-color-picker').value = DEFAULT_MARKED_COLOR;
-    document.getElementById('marked-color-opacity-input').value = DEFAULT_MARKED_COLOR_OPACITY;
+    document.getElementById('marked-color-opacity-slider').value = DEFAULT_MARKED_COLOR_OPACITY;
     document.getElementById('marked-image-url-input').value = DEFAULT_MARKED_IMAGE_URL;
     document.getElementById('marked-border-color-picker').value = DEFAULT_MARKED_BORDER_COLOR;
-    document.getElementById('marked-border-opacity-input').value = DEFAULT_MARKED_BORDER_OPACITY;
+    document.getElementById('marked-border-opacity-slider').value = DEFAULT_MARKED_BORDER_OPACITY;
     refreshMarkedCellStyles(); // Apply default styles (which is none, effectively)
 
     // Clear the board display
@@ -665,9 +667,9 @@ function randomizeBoard() {
 }
 
 function selectCell(cell) {
-    cell.classList.toggle('marked'); // Toggle the dedicated 'marked' class
-    applyMarkedCellStyle(cell);   // Apply/remove styles based on new state and settings
-    // saveBoardState(); // Save updated marks immediately after click - NO, save everything together later
+    cell.classList.toggle("marked"); // Toggle the dedicated 'marked' class
+    applyMarkedCellStyle(cell); // Apply/remove styles based on new state and settings
+    saveBoardState(); // RE-ADD: Save updated marks immediately after click
 }
 
 function clearMarks(save = true) {
@@ -919,11 +921,11 @@ function loadFromLocalStorage() {
 
     // Set input values
     document.getElementById('background-color-picker').value = savedSolidColor;
-    document.getElementById('background-color-opacity-input').value = savedSolidColorOpacity;
+    document.getElementById('background-color-opacity-slider').value = savedSolidColorOpacity;
     document.getElementById('gradient-color-1').value = savedGradientColor1;
-    document.getElementById('gradient-color-1-opacity-input').value = savedGradientColor1Opacity;
+    document.getElementById('gradient-color-1-opacity-slider').value = savedGradientColor1Opacity;
     document.getElementById('gradient-color-2').value = savedGradientColor2;
-    document.getElementById('gradient-color-2-opacity-input').value = savedGradientColor2Opacity;
+    document.getElementById('gradient-color-2-opacity-slider').value = savedGradientColor2Opacity;
     document.getElementById('gradient-direction').value = savedGradientDirection;
 
     // Show/hide controls and apply background
@@ -935,23 +937,29 @@ function loadFromLocalStorage() {
     document.getElementById('header-text-input').value = savedHeaderText;
     document.getElementById('header-image-url-input').value = savedHeaderImageUrl;
     document.getElementById('header-text-color-picker').value = savedHeaderTextColor;
-    document.getElementById('header-text-color-opacity-input').value = savedHeaderTextOpacity;
+    document.getElementById('header-text-color-opacity-slider').value = savedHeaderTextOpacity;
+    if(document.getElementById('header-text-color-opacity-value')) document.getElementById('header-text-color-opacity-value').textContent = savedHeaderTextOpacity; // Update display span
     updateHeaderDisplay(); // Apply the loaded header
     // --- End Restore Header Settings ---
 
     // --- Restore Marked Style Settings ---
     document.getElementById('marked-color-picker').value = savedMarkedColor;
-    document.getElementById('marked-color-opacity-input').value = savedMarkedColorOpacity;
+    document.getElementById('marked-color-opacity-slider').value = savedMarkedColorOpacity;
+    if(document.getElementById('marked-color-opacity-value')) document.getElementById('marked-color-opacity-value').textContent = savedMarkedColorOpacity;
     document.getElementById('marked-image-url-input').value = savedMarkedImageUrl;
     document.getElementById('marked-border-color-picker').value = savedMarkedBorderColor;
-    document.getElementById('marked-border-opacity-input').value = savedMarkedBorderOpacity;
+    document.getElementById('marked-border-opacity-slider').value = savedMarkedBorderOpacity;
+    if(document.getElementById('marked-border-opacity-value')) document.getElementById('marked-border-opacity-value').textContent = savedMarkedBorderOpacity;
     refreshMarkedCellStyles(); // Apply the loaded marked styles
+    // --- End Restore Marked Style Settings ---
 
     // --- Restore Default Cell Style Settings ---
     document.getElementById('cell-border-color-picker').value = savedCellBorderColor;
-    document.getElementById('cell-border-opacity-input').value = savedCellBorderOpacity;
+    document.getElementById('cell-border-opacity-slider').value = savedCellBorderOpacity;
+    if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = savedCellBorderOpacity;
     document.getElementById('cell-background-color-picker').value = savedCellBgColor;
-    document.getElementById('cell-background-opacity-input').value = savedCellBgOpacity;
+    document.getElementById('cell-background-opacity-slider').value = savedCellBgOpacity;
+    if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = savedCellBgOpacity;
     document.getElementById('cell-background-image-url-input').value = savedCellBgImageUrl;
     // Styles are applied during board creation loop above
     // --- End Restore Default Cell Style Settings ---
@@ -959,7 +967,8 @@ function loadFromLocalStorage() {
     // --- Restore Board Background Settings ---
     document.getElementById('board-bg-color-picker').value = savedBoardBgColor;
     document.getElementById('board-bg-image-url-input').value = savedBoardBgImageUrl;
-    document.getElementById('board-bg-color-opacity-input').value = savedBoardBgColorOpacity;
+    document.getElementById('board-bg-color-opacity-slider').value = savedBoardBgColorOpacity;
+    if(document.getElementById('board-bg-color-opacity-value')) document.getElementById('board-bg-color-opacity-value').textContent = savedBoardBgColorOpacity;
     applyBoardBgStyle(); // Apply loaded style
     // --- End Restore Board Background Settings ---
 
@@ -997,7 +1006,8 @@ function loadFromLocalStorage() {
         saveCellStyleSettings();
         refreshCellStyles(); // Update all non-marked cells
     });
-    document.getElementById('cell-border-opacity-input').addEventListener('input', () => {
+    document.getElementById('cell-border-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = e.target.value;
         saveCellStyleSettings();
         refreshCellStyles(); // Update all non-marked cells
     });
@@ -1005,7 +1015,8 @@ function loadFromLocalStorage() {
         saveCellStyleSettings();
         refreshCellStyles();
     });
-    document.getElementById('cell-background-opacity-input').addEventListener('input', () => {
+    document.getElementById('cell-background-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = e.target.value;
         saveCellStyleSettings();
         refreshCellStyles();
     });
@@ -1023,7 +1034,8 @@ function loadFromLocalStorage() {
         saveBoardBgSettings();
         applyBoardBgStyle();
     });
-    document.getElementById('board-bg-color-opacity-input').addEventListener('input', () => {
+    document.getElementById('board-bg-color-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('board-bg-color-opacity-value')) document.getElementById('board-bg-color-opacity-value').textContent = e.target.value;
         saveBoardBgSettings();
         applyBoardBgStyle();
     });
@@ -1205,7 +1217,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackground();
         saveBackgroundSettings();
     });
-    document.getElementById('background-color-opacity-input').addEventListener('input', () => {
+    document.getElementById('background-color-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('background-color-opacity-value')) document.getElementById('background-color-opacity-value').textContent = e.target.value;
         setBackground();
         saveBackgroundSettings();
     });
@@ -1213,7 +1226,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackground();
         saveBackgroundSettings();
     });
-     document.getElementById('gradient-color-1-opacity-input').addEventListener('input', () => {
+     document.getElementById('gradient-color-1-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('gradient-color-1-opacity-value')) document.getElementById('gradient-color-1-opacity-value').textContent = e.target.value;
         setBackground();
         saveBackgroundSettings();
     });
@@ -1221,7 +1235,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackground();
         saveBackgroundSettings();
     });
-      document.getElementById('gradient-color-2-opacity-input').addEventListener('input', () => {
+      document.getElementById('gradient-color-2-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('gradient-color-2-opacity-value')) document.getElementById('gradient-color-2-opacity-value').textContent = e.target.value;
         setBackground();
         saveBackgroundSettings();
     });
@@ -1243,7 +1258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveHeaderSettings();
         updateHeaderDisplay();
     });
-    document.getElementById('header-text-color-opacity-input').addEventListener('input', () => {
+    document.getElementById('header-text-color-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('header-text-color-opacity-value')) document.getElementById('header-text-color-opacity-value').textContent = e.target.value;
         saveHeaderSettings();
         updateHeaderDisplay();
     });
@@ -1253,7 +1269,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
-    document.getElementById('marked-color-opacity-input').addEventListener('input', () => {
+    document.getElementById('marked-color-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('marked-color-opacity-value')) document.getElementById('marked-color-opacity-value').textContent = e.target.value;
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
@@ -1265,7 +1282,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
-     document.getElementById('marked-border-opacity-input').addEventListener('input', () => {
+     document.getElementById('marked-border-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('marked-border-opacity-value')) document.getElementById('marked-border-opacity-value').textContent = e.target.value;
         saveMarkedStyleSettings();
         refreshMarkedCellStyles();
     });
@@ -1275,7 +1293,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCellStyleSettings();
         refreshCellStyles(); // Update all non-marked cells
     });
-    document.getElementById('cell-border-opacity-input').addEventListener('input', () => {
+    document.getElementById('cell-border-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-border-opacity-value')) document.getElementById('cell-border-opacity-value').textContent = e.target.value;
         saveCellStyleSettings();
         refreshCellStyles(); // Update all non-marked cells
     });
@@ -1283,7 +1302,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCellStyleSettings();
         refreshCellStyles();
     });
-    document.getElementById('cell-background-opacity-input').addEventListener('input', () => {
+    document.getElementById('cell-background-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('cell-background-opacity-value')) document.getElementById('cell-background-opacity-value').textContent = e.target.value;
         saveCellStyleSettings();
         refreshCellStyles();
     });
@@ -1301,7 +1321,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBoardBgSettings();
         applyBoardBgStyle();
     });
-    document.getElementById('board-bg-color-opacity-input').addEventListener('input', () => {
+    document.getElementById('board-bg-color-opacity-slider').addEventListener('input', (e) => {
+        if(document.getElementById('board-bg-color-opacity-value')) document.getElementById('board-bg-color-opacity-value').textContent = e.target.value;
         saveBoardBgSettings();
         applyBoardBgStyle();
     });

@@ -92,12 +92,12 @@
                         <input type="text" id="header-text-input" name="header-text-input" value="Beango!" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
                         <div class="mt-2">
                             <label for="header-text-color-picker" class="block text-sm font-medium text-gray-700">Header Text Color:</label>
-                            <div class="flex items-center space-x-2 mt-1">
-                                 <input type="color" id="header-text-color-picker" name="header-text-color-picker" value="#15803d" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                                 <div class="w-20">
-                                     <label for="header-text-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                     <input type="number" id="header-text-color-opacity-input" name="header-text-color-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
-                                 </div>
+                             <div class="flex items-center space-x-2 mt-1">
+                                  <input type="color" id="header-text-color-picker" name="header-text-color-picker" value="#15803d" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
+                                <div class="w-28 flex flex-col items-center">
+                                    <label for="header-text-color-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="header-text-color-opacity-value">100</span>%</label>
+                                    <input type="range" id="header-text-color-opacity-slider" name="header-text-color-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                                </div>
                              </div>
                         </div>
                     </div>
@@ -126,9 +126,9 @@
                         <label for="background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
                         <div class="flex items-center space-x-2 mt-1">
                              <input type="color" id="background-color-picker" name="background-color-picker" value="#ff7e5f" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                             <div class="w-20">
-                                 <label for="background-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                 <input type="number" id="background-color-opacity-input" name="background-color-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                             <div class="w-28 flex flex-col items-center">
+                                <label for="background-color-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="background-color-opacity-value">100</span>%</label>
+                                <input type="range" id="background-color-opacity-slider" name="background-color-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                              </div>
                          </div>
                     </div>
@@ -137,9 +137,9 @@
                              <label for="gradient-color-1" class="block text-sm font-medium text-gray-700">Gradient Start Color:</label>
                               <div class="flex items-center space-x-2 mt-1">
                                  <input type="color" id="gradient-color-1" name="gradient-color-1" value="#ff7e5f" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                                 <div class="w-20">
-                                     <label for="gradient-color-1-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                     <input type="number" id="gradient-color-1-opacity-input" name="gradient-color-1-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                                 <div class="w-28 flex flex-col items-center">
+                                    <label for="gradient-color-1-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="gradient-color-1-opacity-value">100</span>%</label>
+                                    <input type="range" id="gradient-color-1-opacity-slider" name="gradient-color-1-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                                  </div>
                              </div>
                          </div>
@@ -147,9 +147,9 @@
                              <label for="gradient-color-2" class="block text-sm font-medium text-gray-700">Gradient End Color:</label>
                              <div class="flex items-center space-x-2 mt-1">
                                  <input type="color" id="gradient-color-2" name="gradient-color-2" value="#feb47b" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                                 <div class="w-20">
-                                     <label for="gradient-color-2-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                     <input type="number" id="gradient-color-2-opacity-input" name="gradient-color-2-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                                 <div class="w-28 flex flex-col items-center">
+                                    <label for="gradient-color-2-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="gradient-color-2-opacity-value">100</span>%</label>
+                                    <input type="range" id="gradient-color-2-opacity-slider" name="gradient-color-2-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                                  </div>
                               </div>
                          </div>
@@ -177,9 +177,9 @@
                         <label for="marked-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Background Color:</label>
                         <div class="flex items-center space-x-2 mt-1">
                             <input type="color" id="marked-color-picker" name="marked-color-picker" value="#fde047" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                             <div class="w-20">
-                                 <label for="marked-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                 <input type="number" id="marked-color-opacity-input" name="marked-color-opacity-input" min="0" max="100" value="80" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                             <div class="w-28 flex flex-col items-center">
+                                <label for="marked-color-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="marked-color-opacity-value">80</span>%</label>
+                                <input type="range" id="marked-color-opacity-slider" name="marked-color-opacity-slider" min="0" max="100" value="80" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                              </div>
                         </div>
                     </div>
@@ -192,9 +192,9 @@
                         <label for="marked-border-color-picker" class="block text-sm font-medium text-gray-700">Marked Cell Border Color:</label>
                          <div class="flex items-center space-x-2 mt-1">
                             <input type="color" id="marked-border-color-picker" name="marked-border-color-picker" value="#ca8a04" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                             <div class="w-20">
-                                 <label for="marked-border-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                 <input type="number" id="marked-border-opacity-input" name="marked-border-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                             <div class="w-28 flex flex-col items-center">
+                                <label for="marked-border-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="marked-border-opacity-value">100</span>%</label>
+                                <input type="range" id="marked-border-opacity-slider" name="marked-border-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                              </div>
                          </div>
                      </div>
@@ -208,9 +208,9 @@
                         <label for="cell-border-color-picker" class="block text-sm font-medium text-gray-700">Border Color:</label>
                          <div class="flex items-center space-x-2 mt-1">
                             <input type="color" id="cell-border-color-picker" name="cell-border-color-picker" value="#8B4513" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                            <div class="w-20">
-                                <label for="cell-border-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                <input type="number" id="cell-border-opacity-input" name="cell-border-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                            <div class="w-28 flex flex-col items-center">
+                                <label for="cell-border-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="cell-border-opacity-value">100</span>%</label>
+                                <input type="range" id="cell-border-opacity-slider" name="cell-border-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                             </div>
                         </div>
                     </div>
@@ -218,10 +218,10 @@
                         <label for="cell-background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
                          <div class="flex items-center space-x-2 mt-1">
                             <input type="color" id="cell-background-color-picker" name="cell-background-color-picker" value="#F5F5DC" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                             <div class="w-20">
-                                <label for="cell-background-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                <input type="number" id="cell-background-opacity-input" name="cell-background-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
-                            </div>
+                             <div class="w-28 flex flex-col items-center">
+                                <label for="cell-background-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="cell-background-opacity-value">100</span>%</label>
+                                <input type="range" id="cell-background-opacity-slider" name="cell-background-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                             </div>
                          </div>
                     </div>
                      <div>
@@ -238,9 +238,9 @@
                         <label for="board-bg-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
                          <div class="flex items-center space-x-2 mt-1">
                             <input type="color" id="board-bg-color-picker" name="board-bg-color-picker" value="#ffffff" class="h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500 flex-grow">
-                            <div class="w-20">
-                                <label for="board-bg-color-opacity-input" class="block text-xs font-medium text-gray-500 text-center">Opacity</label>
-                                <input type="number" id="board-bg-color-opacity-input" name="board-bg-color-opacity-input" min="0" max="100" value="100" class="block w-full px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm">
+                            <div class="w-28 flex flex-col items-center">
+                                <label for="board-bg-color-opacity-slider" class="block text-xs font-medium text-gray-500">Opacity: <span id="board-bg-color-opacity-value">100</span>%</label>
+                                <input type="range" id="board-bg-color-opacity-slider" name="board-bg-color-opacity-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                             </div>
                         </div>
                     </div>
