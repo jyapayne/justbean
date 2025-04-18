@@ -74,9 +74,9 @@ body {
 /* NEW: Styles for the text span inside the cell */
 .bingo-cell-text {
     display: inline-block; /* Or block, depending on desired wrapping */
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+    word-wrap: normal;
+    overflow-wrap: normal;
+    hyphens: none;
     font-size: 1.5rem; /* Moved font size here */
     color: var(--cell-text-color, #000);
     text-shadow: var(--cell-text-outline, none);

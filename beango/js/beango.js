@@ -465,8 +465,11 @@ function updateHeaderDisplay() {
     if (headerText === null) { // Check if key exists
         headerText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
     }
-    // Read image URL, applying default if missing OR empty (standard || pattern)
-    const headerImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
+    // Read image URL: use stored value if key exists, otherwise use default
+    let headerImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL);
+    if (headerImageUrl === null) { // Check if key exists in localStorage
+        headerImageUrl = DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
+    }
     const headerContainer = document.getElementById("custom-header-content");
 
     if (!headerContainer) return;
@@ -475,8 +478,10 @@ function updateHeaderDisplay() {
     headerContainer.innerHTML = "";
 
     let hasText = headerText && headerText.trim() !== "";
-    let hasCustomText = headerText && headerText.trim() !== "" && headerText !== DEFAULT_HEADER_TEXT;
-    let hasCustomImage = headerImageUrl && headerImageUrl.trim() !== "" && headerImageUrl !== DEFAULT_HEADER_IMAGE_URL;
+    // Determine if we are currently using the default bean URL
+    let isUsingDefaultBeanUrl = headerImageUrl === DEFAULT_HEADER_IMAGE_URL;
+    // Determine if there is a custom image (non-empty URL that isn't the default bean)
+    let hasCustomImage = headerImageUrl && headerImageUrl.trim() !== "" && !isUsingDefaultBeanUrl;
 
     // Add text if it exists
     if (hasText) {
@@ -495,7 +500,7 @@ function updateHeaderDisplay() {
         headerContainer.appendChild(h1);
     }
 
-    // Add custom image if URL exists
+    // Add custom image if URL exists and it's not the default bean URL
     if (hasCustomImage) {
         // create a div and an image element
         const div = document.createElement('div');
@@ -508,20 +513,17 @@ function updateHeaderDisplay() {
         img.onerror = () => {
             img.remove(); // Remove broken image placeholder
             showNotification("Could not load custom header image.", "warning");
-            // If there was no text either, maybe add bean?
-            if (!hasText && !document.getElementById("bean")) {
-                 addDefaultBean(headerContainer);
-            }
+            // No fallback logic here. If custom image fails, it's just gone.
         };
         div.appendChild(img);
         headerContainer.appendChild(div);
     }
-    // If there is NO text and NO custom image, add the default bean
-    else {
+    // If there is NO text and NO custom image, AND we ended up using the default bean URL, add the default bean
+    else if (!hasText && !hasCustomImage && isUsingDefaultBeanUrl) {
         addDefaultBean(headerContainer);
     }
-    // Implicitly, if there IS text but NO custom image, nothing else is added here
-    // (the bean is not automatically added alongside text anymore unless specified by lack of custom image AND lack of text)
+    // Implicitly, if there IS text but NO custom image, nothing else is added here.
+    // If the user set the URL to "", hasCustomImage will be false, and isUsingDefaultBeanUrl will be false, so nothing is added.
 }
 
 // Helper to add the default bean image
@@ -775,47 +777,6 @@ function generateBoard() {
     // Reload the page to ensure correct rendering based on saved state
     location.reload();
 
-    // Reset global variables
-    currentItems = [];
-    displayedItems = [];
-
-    // Reset form inputs
-    document.getElementById('board-size').value = 5; // Default size
-    document.getElementById('cell-contents').value = '';
-    document.getElementById('file-input').value = ''; // Clear file input
-
-    // Reset background inputs to defaults
-    document.querySelector('input[name="background-type"][value="gradient"]').checked = true; // Default to gradient
-    document.getElementById('background-color-picker').value = DEFAULT_SOLID_COLOR;
-    document.getElementById('background-color-opacity-slider').value = DEFAULT_SOLID_COLOR_OPACITY;
-    document.getElementById('gradient-color-1').value = DEFAULT_GRADIENT_COLOR_1;
-    document.getElementById('gradient-color-1-opacity-slider').value = DEFAULT_GRADIENT_COLOR_1_OPACITY;
-    document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
-    document.getElementById('gradient-color-2-opacity-slider').value = DEFAULT_GRADIENT_COLOR_2_OPACITY;
-    document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
-    toggleBackgroundControls(); // Ensure correct controls are visible
-
-    // Reset header inputs to defaults
-    document.getElementById('header-text-input').value = DEFAULT_HEADER_TEXT;
-    document.getElementById('header-image-url-input').value = DEFAULT_HEADER_IMAGE_URL;
-    document.getElementById('header-text-color-picker').value = DEFAULT_HEADER_TEXT_COLOR;
-    document.getElementById('header-text-color-opacity-slider').value = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
-    updateHeaderDisplay(); // Apply default header display
-
-    // Reset marked style inputs to defaults
-    document.getElementById('marked-color-picker').value = DEFAULT_MARKED_COLOR;
-    document.getElementById('marked-color-opacity-slider').value = DEFAULT_MARKED_COLOR_OPACITY;
-    document.getElementById('marked-image-url-input').value = DEFAULT_MARKED_IMAGE_URL;
-    document.getElementById('marked-border-color-picker').value = DEFAULT_MARKED_BORDER_COLOR;
-    document.getElementById('marked-border-opacity-slider').value = DEFAULT_MARKED_BORDER_OPACITY;
-    refreshMarkedCellStyles(); // Apply default styles (which is none, effectively)
-
-    // Clear the board display
-    const boardHeader = document.getElementById('board-header');
-    if (boardHeader) boardHeader.style.maxWidth = '';
-
-    setBackground(); // Apply default background
-    showNotification('Settings and board reset.', 'success');
 }
 
 function randomizeBoard() {
@@ -1330,7 +1291,10 @@ function loadFromLocalStorage() {
     if (savedHeaderText === null) { // Check if key exists
         savedHeaderText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
     }
-    const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL) || DEFAULT_HEADER_IMAGE_URL;
+    const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL);
+    if (savedHeaderImageUrl === null) { // Check if key exists in localStorage
+        savedHeaderImageUrl = DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
+    }
     let savedHeaderTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
     if (savedHeaderTextColor === null) {
         savedHeaderTextColor = DEFAULT_HEADER_TEXT_COLOR;
@@ -1632,7 +1596,6 @@ document.addEventListener('DOMContentLoaded', () => {
     equalizeCellSizes(); // <-- MOVED HERE
 
     clearSearch(); // Clear search highlights and input
-    saveBoardState(); // Save the new randomized state (including cleared marks)
 
     // Apply marked styles *after* all other styles/settings are restored
     refreshMarkedCellStyles(); // <-- Keep here
