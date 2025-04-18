@@ -850,7 +850,7 @@ function shuffleArray(array) {
     return array;
 }
 
-// Function to reset settings and clear board
+// --- Function to reset ONLY board content/structure settings ---
 function resetSettings() {
     // Clear localStorage relevant ONLY to the board structure/content
     localStorage.removeItem(LS_BOARD_SIZE);
@@ -858,27 +858,6 @@ function resetSettings() {
     localStorage.removeItem(LS_DISPLAYED_ITEMS); // The current layout
     localStorage.removeItem(LS_MARKED_INDICES);
     localStorage.removeItem(LS_ORIGINAL_ITEMS); // User's raw input
-
-    // DO NOT clear these:
-    // localStorage.removeItem(LS_CONFIG_OPEN);
-    // localStorage.removeItem(LS_BACKGROUND_TYPE);
-    // localStorage.removeItem(LS_SOLID_COLOR);
-    // localStorage.removeItem(LS_GRADIENT_COLOR_1);
-    // localStorage.removeItem(LS_GRADIENT_COLOR_1_OPACITY);
-    // localStorage.removeItem(LS_GRADIENT_COLOR_2);
-    // localStorage.removeItem(LS_GRADIENT_COLOR_2_OPACITY);
-    // localStorage.removeItem(LS_GRADIENT_DIRECTION);
-    // localStorage.removeItem(LS_HEADER_TEXT);
-    // localStorage.removeItem(LS_HEADER_IMAGE_URL);
-    // localStorage.removeItem(LS_MARKED_STYLE_TYPE);
-    // localStorage.removeItem(LS_MARKED_COLOR);
-    // localStorage.removeItem(LS_MARKED_IMAGE_URL);
-    // localStorage.removeItem(LS_MARKED_COLOR_OPACITY);
-    // localStorage.removeItem(LS_CELL_BORDER_COLOR); // Keep style on board reset
-    // localStorage.removeItem(LS_CELL_BORDER_OPACITY);
-    // localStorage.removeItem(LS_CELL_BG_COLOR);
-    // localStorage.removeItem(LS_CELL_BG_OPACITY);
-    // localStorage.removeItem(LS_CELL_BG_IMAGE_URL);
 
     // Reset global variables for board content
     currentItems = [];
@@ -915,6 +894,31 @@ function resetSettings() {
     // refreshMarkedCellStyles();
 
     showNotification('Board settings reset. Generate a new board to apply.', 'success');
+}
+
+// --- Function to reset ALL application settings ---
+function resetAllSettings() {
+    if (confirm('Are you sure you want to reset ALL settings (styles, header, board content, etc.) to their defaults? This cannot be undone.')) {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('beango_')) {
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+            console.log(`Removed setting: ${key}`); // Optional: log removed keys
+        });
+
+        showNotification('Resetting all settings to defaults...', 'warning', 1500); // Show brief message before reload
+
+        // Use a short delay before reload to ensure the notification is visible
+        setTimeout(() => {
+             location.reload();
+        }, 1600); // Slightly longer than notification duration
+    }
 }
 
 // --- Helper to get indices of marked cells ---
