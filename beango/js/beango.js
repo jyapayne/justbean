@@ -806,6 +806,11 @@ function randomizeBoard() {
         applyMarkedCellStyle(cell); // Reset marked styles (which also calls applyCellStyle)
     });
 
+    // Explicitly remove any existing highlights BEFORE clearing the search input
+    const currentlyHighlighted = board.querySelectorAll('.bingo-cell.highlighted');
+    currentlyHighlighted.forEach(cell => cell.classList.remove('highlighted'));
+
+    clearSearch(); // Clear search highlights and input
     clearMarks(false); // Clear visual marks
     saveBoardState(); // Save the new randomized state (including cleared marks)
     showNotification('Board randomized!', 'success');
@@ -928,6 +933,22 @@ function getMarkedIndices() {
         }
     });
     return indices;
+}
+
+// --- Clear Search Input and Highlights ---
+function clearSearch() {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.value = ''; // Clear the input field
+        // Trigger the input event listener to ensure highlights are removed
+        searchInput.dispatchEvent(new Event('input'));
+    }
+    // It's technically redundant to remove the class here now, as the
+    // event listener triggered above should handle it, but it doesn't hurt.
+    const highlightedCells = document.querySelectorAll('#bingo-board .bingo-cell.highlighted');
+    highlightedCells.forEach(cell => {
+        cell.classList.remove('highlighted'); // Remove highlight class
+    });
 }
 
 // --- Load State on Page Load ---
@@ -1391,6 +1412,10 @@ function loadFromLocalStorage() {
         saveCellStyleSettings();
         refreshCellStyles();
     });
+
+    clearSearch(); // Clear search highlights and input
+    clearMarks(false); // Clear visual marks
+    saveBoardState(); // Save the new randomized state (including cleared marks)
 }
 
 // --- Function to make all cells square and equal size ---
