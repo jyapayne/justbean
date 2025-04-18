@@ -66,8 +66,44 @@
                 <input type="file" id="file-input" name="file-input" accept=".txt" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
             </div>
             <div>
+                <label class="block text-sm font-medium text-gray-700">Background Type:</label>
+                <div class="mt-1 flex space-x-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" class="form-radio text-green-600" name="background-type" value="solid">
+                        <span class="ml-2">Solid</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" class="form-radio text-green-600" name="background-type" value="gradient" checked>
+                        <span class="ml-2">Gradient</span>
+                    </label>
+                </div>
+            </div>
+            <div id="solid-color-settings">
                 <label for="background-color-picker" class="block text-sm font-medium text-gray-700">Background Color:</label>
-                <input type="color" id="background-color-picker" name="background-color-picker" value="#FFFFFF" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                <input type="color" id="background-color-picker" name="background-color-picker" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+            </div>
+            <div id="gradient-color-settings" class="space-y-2 hidden">
+                 <div>
+                     <label for="gradient-color-1" class="block text-sm font-medium text-gray-700">Gradient Start Color:</label>
+                     <input type="color" id="gradient-color-1" name="gradient-color-1" value="#ff7e5f" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                 </div>
+                 <div>
+                     <label for="gradient-color-2" class="block text-sm font-medium text-gray-700">Gradient End Color:</label>
+                     <input type="color" id="gradient-color-2" name="gradient-color-2" value="#feb47b" class="mt-1 block w-full h-10 border border-gray-300 rounded-md shadow-sm cursor-pointer focus:outline-none focus:ring-green-500 focus:border-green-500">
+                 </div>
+                 <div>
+                     <label for="gradient-direction" class="block text-sm font-medium text-gray-700">Gradient Direction:</label>
+                     <select id="gradient-direction" name="gradient-direction" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                         <option value="to bottom">Top to Bottom</option>
+                         <option value="to right">Left to Right</option>
+                         <option value="to top">Bottom to Top</option>
+                         <option value="to left">Right to Left</option>
+                         <option value="to top right">Bottom Left to Top Right</option>
+                         <option value="to bottom left">Top Right to Bottom Left</option>
+                         <option value="135deg" selected>Diagonal (135deg)</option>
+                         <option value="radial">Radial (Circle)</option>
+                     </select>
+                 </div>
             </div>
              <button onclick="generateBoard()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                  Apply Settings & Generate

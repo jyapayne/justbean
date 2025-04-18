@@ -8,10 +8,17 @@ const LS_CELL_ITEMS = 'beango_cellItems'; // Original items from textarea/file
 const LS_DISPLAYED_ITEMS = 'beango_displayedItems'; // Items currently shown on the board
 const LS_MARKED_INDICES = 'beango_markedIndices';
 const LS_CONFIG_OPEN = 'beango_configOpen'; // Changed from minimized
-const LS_BACKGROUND_COLOR = 'beango_backgroundColor'; // New key
+const LS_BACKGROUND_TYPE = 'beango_backgroundType'; // 'solid' or 'gradient'
+const LS_SOLID_COLOR = 'beango_solidColor';
+const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
+const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
+const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
 
 // --- Default Values ---
-const DEFAULT_BACKGROUND_COLOR = '#F0F0F0'; // Light gray
+const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
+const DEFAULT_GRADIENT_COLOR_1 = '#ff7e5f'; // From main page gradient
+const DEFAULT_GRADIENT_COLOR_2 = '#feb47b'; // From main page gradient
+const DEFAULT_GRADIENT_DIRECTION = '135deg'; // From main page gradient
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -53,9 +60,76 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 // --- Functions ---
 
-// --- Function to set the HTML background color ---
-function setBackgroundColor(color) {
-    document.documentElement.style.backgroundColor = color;
+// --- Function to set the HTML background (solid or gradient) ---
+function setBackground() {
+    const backgroundType = document.querySelector('input[name="background-type"]:checked').value;
+    const solidColorPicker = document.getElementById('background-color-picker');
+    const gradientColor1Picker = document.getElementById('gradient-color-1');
+    const gradientColor2Picker = document.getElementById('gradient-color-2');
+    const gradientDirectionSelect = document.getElementById('gradient-direction');
+    const htmlStyle = document.documentElement.style;
+    let backgroundValue = '';
+
+    if (backgroundType === 'solid') {
+        const color = solidColorPicker.value;
+        backgroundValue = color;
+        htmlStyle.background = color; // Set solid color as background
+        htmlStyle.backgroundRepeat = 'no-repeat';
+        htmlStyle.backgroundAttachment = 'fixed';
+    } else { // gradient
+        const color1 = gradientColor1Picker.value;
+        const color2 = gradientColor2Picker.value;
+        const direction = gradientDirectionSelect.value;
+        let gradientValue;
+        if (direction === 'radial') {
+            gradientValue = `radial-gradient(circle, ${color1}, ${color2})`;
+        } else if (direction.includes('deg')) { // Handle degree values
+            gradientValue = `linear-gradient(${direction}, ${color1}, ${color2})`;
+        } else {
+            gradientValue = `linear-gradient(${direction}, ${color1}, ${color2})`;
+        }
+        backgroundValue = gradientValue;
+        htmlStyle.background = gradientValue;
+        htmlStyle.backgroundRepeat = 'no-repeat';
+        htmlStyle.backgroundAttachment = 'fixed';
+    }
+    htmlStyle.background = backgroundValue; // Apply the calculated background
+    return backgroundValue; // Return the CSS value for injection
+}
+
+// --- Function to manage visibility of background controls ---
+function toggleBackgroundControls() {
+    const backgroundType = document.querySelector('input[name="background-type"]:checked').value;
+    const solidSettings = document.getElementById('solid-color-settings');
+    const gradientSettings = document.getElementById('gradient-color-settings');
+
+    if (backgroundType === 'solid') {
+        solidSettings.style.display = 'block';
+        gradientSettings.style.display = 'none';
+    } else {
+        solidSettings.style.display = 'none';
+        gradientSettings.style.display = 'block';
+    }
+}
+
+// --- Save current background settings to localStorage ---
+function saveBackgroundSettings() {
+    const backgroundType = document.querySelector('input[name="background-type"]:checked').value;
+    localStorage.setItem(LS_BACKGROUND_TYPE, backgroundType);
+
+    if (backgroundType === 'solid') {
+        localStorage.setItem(LS_SOLID_COLOR, document.getElementById('background-color-picker').value);
+        // Optionally remove gradient keys to keep localStorage clean
+        localStorage.removeItem(LS_GRADIENT_COLOR_1);
+        localStorage.removeItem(LS_GRADIENT_COLOR_2);
+        localStorage.removeItem(LS_GRADIENT_DIRECTION);
+    } else {
+        localStorage.setItem(LS_GRADIENT_COLOR_1, document.getElementById('gradient-color-1').value);
+        localStorage.setItem(LS_GRADIENT_COLOR_2, document.getElementById('gradient-color-2').value);
+        localStorage.setItem(LS_GRADIENT_DIRECTION, document.getElementById('gradient-direction').value);
+        // Optionally remove solid key
+        localStorage.removeItem(LS_SOLID_COLOR);
+    }
 }
 
 function toggleConfig() {
@@ -160,11 +234,50 @@ function generateBoard() {
 
     clearMarks(false); // Clear previous marks visually but don't save yet
     equalizeCellSizes(); // Add this call
-    saveBoardState(); // Save the newly generated state
+    saveBoardState(); // Save the newly generated board state (size, items, displayed, marks)
+
+    // Explicitly save background settings before reload
+    saveBackgroundSettings();
+
+    // Get the new background value and inject a style override before reload
+    const newBackgroundValue = setBackground(); // Apply and get value
+    let overrideStyle = document.getElementById('background-override-style');
+    if (!overrideStyle) {
+        overrideStyle = document.createElement('style');
+        overrideStyle.id = 'background-override-style';
+        document.head.appendChild(overrideStyle);
+    }
+    // Use !important to try and force application during reload flash
+    overrideStyle.textContent = `html { background: ${newBackgroundValue} !important; background-repeat: no-repeat !important; background-attachment: fixed !important; }`;
+
     showNotification(notificationMessage, notificationType);
 
     // Reload the page to ensure correct rendering based on saved state
     location.reload();
+
+    // Reset global variables
+    currentItems = [];
+    displayedItems = [];
+
+    // Reset form inputs
+    document.getElementById('board-size').value = 5; // Default size
+    document.getElementById('cell-contents').value = '';
+    document.getElementById('file-input').value = ''; // Clear file input
+
+    // Reset background inputs to defaults
+    document.querySelector('input[name="background-type"][value="gradient"]').checked = true; // Default to gradient
+    document.getElementById('background-color-picker').value = DEFAULT_SOLID_COLOR;
+    document.getElementById('gradient-color-1').value = DEFAULT_GRADIENT_COLOR_1;
+    document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
+    document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
+    toggleBackgroundControls(); // Ensure correct controls are visible
+
+    // Clear the board display
+    const boardHeader = document.getElementById('board-header');
+    if (boardHeader) boardHeader.style.maxWidth = '';
+
+    setBackground(); // Apply default background
+    showNotification('Settings and board reset.', 'success');
 }
 
 function randomizeBoard() {
@@ -255,7 +368,11 @@ function resetSettings() {
     localStorage.removeItem(LS_MARKED_INDICES);
     // Optionally reset config pane state too?
     // localStorage.removeItem(LS_CONFIG_OPEN);
-    localStorage.removeItem(LS_BACKGROUND_COLOR); // Remove saved color
+    localStorage.removeItem(LS_BACKGROUND_TYPE);
+    localStorage.removeItem(LS_SOLID_COLOR);
+    localStorage.removeItem(LS_GRADIENT_COLOR_1);
+    localStorage.removeItem(LS_GRADIENT_COLOR_2);
+    localStorage.removeItem(LS_GRADIENT_DIRECTION);
 
     // Reset global variables
     currentItems = [];
@@ -265,7 +382,14 @@ function resetSettings() {
     document.getElementById('board-size').value = 5; // Default size
     document.getElementById('cell-contents').value = '';
     document.getElementById('file-input').value = ''; // Clear file input
-    document.getElementById('background-color-picker').value = DEFAULT_BACKGROUND_COLOR; // Reset color picker
+
+    // Reset background inputs to defaults
+    document.querySelector('input[name="background-type"][value="gradient"]').checked = true; // Default to gradient
+    document.getElementById('background-color-picker').value = DEFAULT_SOLID_COLOR;
+    document.getElementById('gradient-color-1').value = DEFAULT_GRADIENT_COLOR_1;
+    document.getElementById('gradient-color-2').value = DEFAULT_GRADIENT_COLOR_2;
+    document.getElementById('gradient-direction').value = DEFAULT_GRADIENT_DIRECTION;
+    toggleBackgroundControls(); // Ensure correct controls are visible
 
     // Clear the board display
     const board = document.getElementById('bingo-board');
@@ -282,7 +406,7 @@ function resetSettings() {
     if (boardContainer) boardContainer.style.maxWidth = '';
     if (boardHeader) boardHeader.style.maxWidth = '';
 
-    setBackgroundColor(DEFAULT_BACKGROUND_COLOR); // Reset background color
+    setBackground(); // Apply default background
     showNotification('Settings and board reset.', 'success');
 }
 
@@ -311,7 +435,6 @@ function loadFromLocalStorage() {
     const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
     const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
     const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === 'true';
-    const savedBackgroundColor = localStorage.getItem(LS_BACKGROUND_COLOR);
 
     // Restore Config Pane State
     const pane = document.getElementById('config-pane');
@@ -326,32 +449,6 @@ function loadFromLocalStorage() {
     // Restore Config Inputs
     const size = parseInt(savedSize, 10); // Parse size here
     document.getElementById('board-size').value = savedSize;
-
-    // Restore Background Color
-    const colorPicker = document.getElementById('background-color-picker');
-    if (savedBackgroundColor) {
-        colorPicker.value = savedBackgroundColor;
-        setBackgroundColor(savedBackgroundColor);
-    } else {
-        colorPicker.value = DEFAULT_BACKGROUND_COLOR;
-        setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
-    }
-
-    // Update container width based on loaded size - REMOVED
-    // updateBoardContainerMaxWidth(size);
-    // updateBoardContainerMaxWidth(size, '#board-header');
-
-    if (savedItemsText) {
-        try {
-            currentItems = JSON.parse(savedItemsText); // Restore original items array
-            document.getElementById('cell-contents').value = currentItems.join('\n');
-        } catch (e) {
-            showNotification('Error parsing saved items. Resetting items.', 'error');
-            localStorage.removeItem(LS_CELL_ITEMS);
-            currentItems = [];
-            document.getElementById('cell-contents').value = '';
-        }
-    }
 
     // Restore Board only if essential data exists
     if (savedDisplayedItems) {
@@ -403,6 +500,44 @@ function loadFromLocalStorage() {
              board.innerHTML = '<div class="bingo-cell">Generate a board using the config panel!</div>';
          }
     }
+
+    // --- Restore Background Settings ---
+    const savedBackgroundType = localStorage.getItem(LS_BACKGROUND_TYPE) || 'gradient'; // Default to gradient
+    const savedSolidColor = localStorage.getItem(LS_SOLID_COLOR) || DEFAULT_SOLID_COLOR;
+    const savedGradientColor1 = localStorage.getItem(LS_GRADIENT_COLOR_1) || DEFAULT_GRADIENT_COLOR_1;
+    const savedGradientColor2 = localStorage.getItem(LS_GRADIENT_COLOR_2) || DEFAULT_GRADIENT_COLOR_2;
+    const savedGradientDirection = localStorage.getItem(LS_GRADIENT_DIRECTION) || DEFAULT_GRADIENT_DIRECTION;
+
+    // Set radio button
+    document.querySelector(`input[name="background-type"][value="${savedBackgroundType}"]`).checked = true;
+
+    // Set input values
+    document.getElementById('background-color-picker').value = savedSolidColor;
+    document.getElementById('gradient-color-1').value = savedGradientColor1;
+    document.getElementById('gradient-color-2').value = savedGradientColor2;
+    document.getElementById('gradient-direction').value = savedGradientDirection;
+
+    // Show/hide controls and apply background
+    toggleBackgroundControls();
+    setBackground();
+    // --- End Restore Background Settings ---
+
+    // Restore Config Inputs
+    if (savedItemsText) {
+        try {
+            currentItems = JSON.parse(savedItemsText); // Restore original items array
+            document.getElementById('cell-contents').value = currentItems.join('\n');
+        } catch (e) {
+            showNotification('Error parsing saved items. Resetting items.', 'error');
+            localStorage.removeItem(LS_CELL_ITEMS);
+            currentItems = [];
+            document.getElementById('cell-contents').value = '';
+        }
+    }
+
+    // Update container width based on loaded size - REMOVED
+    // updateBoardContainerMaxWidth(size);
+    // updateBoardContainerMaxWidth(size, '#board-header');
 }
 
 // --- Helper to manage board container width --- DEPRECATED
@@ -564,13 +699,32 @@ function explodeBeans() {
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
 
-    // Add listener for the color picker
-    const colorPicker = document.getElementById('background-color-picker');
-    if (colorPicker) {
-        colorPicker.addEventListener('input', (event) => {
-            const newColor = event.target.value;
-            setBackgroundColor(newColor);
-            localStorage.setItem(LS_BACKGROUND_COLOR, newColor);
+    // Add listeners for background controls
+    document.querySelectorAll('input[name="background-type"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            toggleBackgroundControls();
+            setBackground();
+            saveBackgroundSettings();
         });
-    }
+    });
+
+    document.getElementById('background-color-picker').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
+
+    document.getElementById('gradient-color-1').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
+
+     document.getElementById('gradient-color-2').addEventListener('input', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
+
+     document.getElementById('gradient-direction').addEventListener('change', () => {
+        setBackground();
+        saveBackgroundSettings();
+    });
 });
