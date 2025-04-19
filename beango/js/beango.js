@@ -231,6 +231,8 @@ function refreshMarkedCellStyles() {
     markedCells.forEach(cell => {
         applyMarkedCellStyle(cell); // Re-apply based on current settings
     });
+    // After refreshing marked styles, check for wins
+    checkWinConditions();
 }
 
 // --- Save current header settings to localStorage ---
@@ -726,6 +728,7 @@ export function randomizeBoard() {
 
     clearSearch(); // Clear search highlights and input
     clearMarks(false); // Clear visual marks
+    checkWinConditions(); // Check for wins after randomization (should be none)
     saveBoardState(); // Save the new randomized state (including cleared marks)
     showNotification('Board randomized!', 'success');
 }
@@ -734,6 +737,7 @@ function selectCell(cell) {
     cell.classList.toggle("marked"); // Toggle the dedicated 'marked' class
     applyMarkedCellStyle(cell); // Apply/remove styles based on new state and settings
     saveBoardState(); // RE-ADD: Save updated marks immediately after click
+    checkWinConditions(); // Check for wins after a cell is selected/deselected
 }
 
 export function clearMarks(save = true) {
@@ -741,17 +745,19 @@ export function clearMarks(save = true) {
     cells.forEach(cell => {
         if (cell.classList.contains('marked')) {
             cell.classList.remove('marked');
-            // applyMarkedCellStyle(cell); // Redundant call removed
             // Apply default style ONLY to the cell just unmarked
             applyCellStyle(cell);
         }
-        // Ensure styles are reset even if class was somehow missing
-        // applyCellStyle(cell); // REMOVED Unconditional call
+        cell.classList.remove('win-cell'); // NEW: Remove win highlight
     });
+    // Remove win class from all cells, even unmarked ones
+    cells.forEach(cell => cell.classList.remove('win-cell'));
+
     if (save) {
         saveBoardState(); // Save cleared marks
         showNotification('Marks cleared.', 'info');
     }
+    // No need to call checkWinConditions here, as all marks are cleared
 }
 
 // Fisher-Yates (aka Knuth) Shuffle Algorithm
@@ -1494,7 +1500,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Equalize sizes as the very last step after all content and styles are set
     equalizeCellSizes(); // <-- MOVED HERE
+    // Check for win conditions after loading everything
+    checkWinConditions();
 });
+
+// --- Function to check win conditions ---
+function checkWinConditions() {
+    const board = document.getElementById('bingo-board');
+    if (!board) return;
+    const cells = board.querySelectorAll('.bingo-cell');
+    if (cells.length === 0) return; // No cells to check
+
+    const size = parseInt(localStorage.getItem(vars.LS_BOARD_SIZE) || '5', 10);
+    const markedIndices = getMarkedIndices(); // Get the indices of marked cells
+
+    if (markedIndices.length < size) { // Not enough marks for a win
+        // Ensure no win class remains if marks are removed below threshold
+        cells.forEach(cell => cell.classList.remove('win-cell'));
+        return;
+    }
+
+    const winningIndices = new Set();
+
+    // Create a representation of the board (e.g., 2D array or set)
+    const markedSet = new Set(markedIndices);
+
+    // Check Rows
+    for (let r = 0; r < size; r++) {
+        let rowWin = true;
+        const rowIndices = [];
+        for (let c = 0; c < size; c++) {
+            const index = r * size + c;
+            rowIndices.push(index);
+            if (!markedSet.has(index)) {
+                rowWin = false;
+                break;
+            }
+        }
+        if (rowWin) {
+            rowIndices.forEach(idx => winningIndices.add(idx));
+        }
+    }
+
+    // Check Columns
+    for (let c = 0; c < size; c++) {
+        let colWin = true;
+        const colIndices = [];
+        for (let r = 0; r < size; r++) {
+            const index = r * size + c;
+            colIndices.push(index);
+            if (!markedSet.has(index)) {
+                colWin = false;
+                break;
+            }
+        }
+        if (colWin) {
+            colIndices.forEach(idx => winningIndices.add(idx));
+        }
+    }
+
+    // Check Diagonal (Top-Left to Bottom-Right)
+    let diag1Win = true;
+    const diag1Indices = [];
+    for (let i = 0; i < size; i++) {
+        const index = i * size + i;
+        diag1Indices.push(index);
+        if (!markedSet.has(index)) {
+            diag1Win = false;
+            break;
+        }
+    }
+    if (diag1Win) {
+        diag1Indices.forEach(idx => winningIndices.add(idx));
+    }
+
+    // Check Diagonal (Top-Right to Bottom-Left)
+    let diag2Win = true;
+    const diag2Indices = [];
+    for (let i = 0; i < size; i++) {
+        const index = i * size + (size - 1 - i);
+        diag2Indices.push(index);
+        if (!markedSet.has(index)) {
+            diag2Win = false;
+            break;
+        }
+    }
+    if (diag2Win) {
+        diag2Indices.forEach(idx => winningIndices.add(idx));
+    }
+
+    // Apply 'win-cell' class
+    cells.forEach((cell, index) => {
+        if (winningIndices.has(index)) {
+            cell.classList.add('win-cell');
+        } else {
+            cell.classList.remove('win-cell');
+        }
+    });
+}
+
 
 // --- Settings Import/Export ---
 export function exportSettings() {

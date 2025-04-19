@@ -233,3 +233,35 @@ details[open] > .config-summary::before {
 .config-content {
     padding-left: 1.5rem; /* Indent content */
 }
+
+/* --- Animation for winning cells --- */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 110, 0.7); /* Emerald-400 */
+    }
+    70% {
+        transform: scale(1.02);
+        box-shadow: 0 0 10px 10px rgba(0, 255, 110, 0.5); /* Emerald-400 transparent */
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 110, 0.2);
+    }
+}
+
+/* --- Style for winning cells --- */
+.bingo-cell.win-cell {
+    /* Apply a distinct border to indicate win */
+    border-color: #10b981; /* Emerald-500 */
+    border-width: 3px; /* Make border more prominent */
+    animation: pulse 1.5s infinite;
+    z-index: 15; /* Ensure winning cells are on top of highlighted/others */
+    /* Optional: Slightly different background tint? */
+    /* Example: background-color: rgba(16, 185, 129, 0.1); /* Light emerald tint */
+}
+
+/* Ensure winning cell text is still readable over potential background tint */
+.bingo-cell.win-cell .bingo-cell-text {
+    z-index: 16; /* Keep text above the cell's base styles/animations */
+}
