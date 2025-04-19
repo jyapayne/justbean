@@ -1,5 +1,5 @@
 import * as vars from './variables.js';
-import { showNotification, hexToRgba, setupInputListener, setupOpacitySliderListener, _restoreOpacitySetting, _restoreColorPickerSetting, _restoreInputSetting } from './utils.js';
+import { showNotification, hexToRgba, setupInputListener, setupOpacitySliderListener, _restoreOpacitySetting, _restoreColorPickerSetting, _restoreInputSetting, _restoreCheckboxSetting } from './utils.js';
 
 let currentItems = []; // Holds the original list of items provided by the user
 let displayedItems = []; // Holds the items currently displayed on the board
@@ -570,7 +570,7 @@ function saveBoardState() {
     saveBoardBgSettings(); // Save board background settings
 }
 
-function generateBoard() {
+export function generateBoard() {
     const sizeInput = document.getElementById('board-size');
     const size = parseInt(sizeInput.value, 10);
     if (isNaN(size) || size < 1) {
@@ -663,7 +663,7 @@ function generateBoard() {
 
 }
 
-function randomizeBoard() {
+export function randomizeBoard() {
     const storedItemsRaw = localStorage.getItem(vars.LS_CELL_ITEMS);
     const sizeRaw = localStorage.getItem(vars.LS_BOARD_SIZE);
 
@@ -736,7 +736,7 @@ function selectCell(cell) {
     saveBoardState(); // RE-ADD: Save updated marks immediately after click
 }
 
-function clearMarks(save = true) {
+export function clearMarks(save = true) {
     const cells = document.querySelectorAll('#bingo-board .bingo-cell');
     cells.forEach(cell => {
         if (cell.classList.contains('marked')) {
@@ -767,7 +767,7 @@ function shuffleArray(array) {
 }
 
 // --- Function to reset ONLY board content/structure settings ---
-function resetSettings() {
+export function resetSettings() {
     // Clear localStorage relevant ONLY to the board structure/content
     localStorage.removeItem(vars.LS_BOARD_SIZE);
     localStorage.removeItem(vars.LS_CELL_ITEMS); // The items configured for the board (padded/sliced)
