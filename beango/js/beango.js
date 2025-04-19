@@ -55,6 +55,8 @@ const LS_HEADER_TEXT_OUTLINE_OPACITY = 'beango_headerTextOutlineOpacity';
 const LS_HEADER_TEXT_OUTLINE_WIDTH = 'beango_headerTextOutlineWidth';
 const LS_HEADER_TEXT_FONT_SIZE = 'beango_headerTextFontSize'; // New key
 const LS_HEADER_TEXT_FONT_FAMILY = 'beango_headerTextFontFamily'; // New key
+const LS_HEADER_TEXT_STYLE_ITALIC = 'beango_headerTextStyleItalic'; // New key for italic
+const LS_HEADER_TEXT_STYLE_BOLD = 'beango_headerTextStyleBold'; // New key for bold
 
 // --- Default Values ---
 const DEFAULT_SAMPLE_ITEMS = [
@@ -109,6 +111,8 @@ const DEFAULT_HEADER_TEXT_OUTLINE_OPACITY = 100;
 const DEFAULT_HEADER_TEXT_OUTLINE_WIDTH = 0; // Default no outline
 const DEFAULT_HEADER_TEXT_FONT_SIZE = 36; // New default (approx text-4xl)
 const DEFAULT_HEADER_TEXT_FONT_FAMILY = 'sans-serif'; // New default
+const DEFAULT_HEADER_TEXT_STYLE_ITALIC = false; // Default not italic
+const DEFAULT_HEADER_TEXT_STYLE_BOLD = true; // Default bold
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -461,6 +465,9 @@ function saveHeaderSettings() {
     localStorage.setItem(LS_HEADER_TEXT_OUTLINE_COLOR, document.getElementById('header-text-outline-color-picker').value);
     localStorage.setItem(LS_HEADER_TEXT_OUTLINE_OPACITY, document.getElementById('header-text-outline-opacity-slider').value);
     localStorage.setItem(LS_HEADER_TEXT_OUTLINE_WIDTH, document.getElementById('header-text-outline-width-input').value);
+    // Save header font style
+    localStorage.setItem(LS_HEADER_TEXT_STYLE_ITALIC, document.getElementById('header-text-style-italic').checked);
+    localStorage.setItem(LS_HEADER_TEXT_STYLE_BOLD, document.getElementById('header-text-style-bold').checked);
 }
 
 // --- Function to apply header background style ---
@@ -502,6 +509,8 @@ function updateHeaderDisplay() {
      if (headerTextOpacity === null) {
          headerTextOpacity = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
      }
+    let headerStyleItalic = localStorage.getItem(LS_HEADER_TEXT_STYLE_ITALIC) === 'true'; // Convert string to boolean
+    let headerStyleBold = localStorage.getItem(LS_HEADER_TEXT_STYLE_BOLD) === 'true'; // Convert string to boolean
     const rgbaDefaultColor = hexToRgba(headerTextColor, parseInt(headerTextOpacity, 10));
 
     // Get outline settings
@@ -523,7 +532,8 @@ function updateHeaderDisplay() {
     // Add text if it exists
     if (hasText) {
         const h1 = document.createElement("h1");
-        h1.className = "font-bold"; // Remove default text-4xl, apply font size/family via style
+        // Remove default text-4xl and font-bold, apply font size/family/style/weight via style
+        // h1.className = "";
         // Get and apply font size
         let headerFontSize = parseInt(localStorage.getItem(LS_HEADER_TEXT_FONT_SIZE), 10);
         if (isNaN(headerFontSize) || headerFontSize <= 0) {
@@ -533,6 +543,10 @@ function updateHeaderDisplay() {
         // Get and apply font family
         const headerFontFamily = localStorage.getItem(LS_HEADER_TEXT_FONT_FAMILY) || DEFAULT_HEADER_TEXT_FONT_FAMILY;
         h1.style.fontFamily = headerFontFamily; // Apply font family
+
+        // Apply font style and weight
+        h1.style.fontStyle = headerStyleItalic ? 'italic' : 'normal';
+        h1.style.fontWeight = headerStyleBold ? 'bold' : 'normal';
 
         h1.style.color = rgbaDefaultColor; // Apply default color+opacity to H1
         // Apply outline to H1
@@ -1233,7 +1247,8 @@ function restoreBackgroundSettings() {
 }
 
 function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity,
-                                savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth, savedHeaderFontSize, savedHeaderFontFamily) {
+                                savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth, savedHeaderFontSize, savedHeaderFontFamily,
+                                savedHeaderStyleItalic, savedHeaderStyleBold) {
     _restoreInputSetting('header-text-input', savedHeaderText);
     // if the header image is the default bean, then add the explodeBeans function to the onclick event
     _restoreInputSetting('header-image-url-input', savedHeaderImageUrl);
@@ -1250,6 +1265,9 @@ function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeader
     _restoreColorPickerSetting('header-text-outline-color-picker', savedHeaderOutlineColor);
     _restoreOpacitySetting('header-text-outline-opacity-slider', 'header-text-outline-opacity-value', savedHeaderOutlineOpacity);
     _restoreInputSetting('header-text-outline-width-input', savedHeaderOutlineWidth);
+    // Restore header font style checkboxes
+    _restoreCheckboxSetting('header-text-style-italic', savedHeaderStyleItalic);
+    _restoreCheckboxSetting('header-text-style-bold', savedHeaderStyleBold);
 
     applyHeaderBgStyle(); // Apply header background style
     updateHeaderDisplay(); // Apply the loaded header content
@@ -1454,7 +1472,9 @@ function loadFromLocalStorage() {
         savedHeaderBgColor, savedHeaderBgOpacity,
         savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth,
         savedHeaderFontSize, // Pass font size
-        savedHeaderFontFamily // Pass font family
+        savedHeaderFontFamily, // Pass font family
+        localStorage.getItem(LS_HEADER_TEXT_STYLE_ITALIC) === 'true', // Pass italic style
+        localStorage.getItem(LS_HEADER_TEXT_STYLE_BOLD) === 'true' // Pass bold style
     );
 
     restoreMarkedStyleSettings(
@@ -1640,6 +1660,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInputListener('header-text-font-family-select', 'change', saveHeaderSettings, updateHeaderDisplay); // Add listener for font family
     setupInputListener('header-bg-color-picker', 'input', saveHeaderSettings, applyHeaderBgStyle);
     setupOpacitySliderListener('header-bg-opacity-slider', 'header-bg-opacity-value', saveHeaderSettings, applyHeaderBgStyle);
+    // Header Font Style Listeners
+    setupInputListener('header-text-style-italic', 'change', saveHeaderSettings, updateHeaderDisplay);
+    setupInputListener('header-text-style-bold', 'change', saveHeaderSettings, updateHeaderDisplay);
     // Header Text Outline Listeners
     setupInputListener('header-text-outline-color-picker', 'input', saveHeaderSettings, updateHeaderDisplay);
     setupOpacitySliderListener('header-text-outline-opacity-slider', 'header-text-outline-opacity-value', saveHeaderSettings, updateHeaderDisplay);
@@ -1840,4 +1863,12 @@ function importSettings() {
     // Append to body and trigger click to open file dialog
     document.body.appendChild(tempInput);
     tempInput.click();
+}
+
+// Helper function to restore a checkbox state
+function _restoreCheckboxSetting(checkboxId, savedValue) {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+        checkbox.checked = savedValue; // savedValue should be boolean
+    }
 }
