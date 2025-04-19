@@ -54,6 +54,7 @@ const LS_HEADER_TEXT_OUTLINE_COLOR = 'beango_headerTextOutlineColor';
 const LS_HEADER_TEXT_OUTLINE_OPACITY = 'beango_headerTextOutlineOpacity';
 const LS_HEADER_TEXT_OUTLINE_WIDTH = 'beango_headerTextOutlineWidth';
 const LS_HEADER_TEXT_FONT_SIZE = 'beango_headerTextFontSize'; // New key
+const LS_HEADER_TEXT_FONT_FAMILY = 'beango_headerTextFontFamily'; // New key
 
 // --- Default Values ---
 const DEFAULT_SAMPLE_ITEMS = [
@@ -107,6 +108,7 @@ const DEFAULT_HEADER_TEXT_OUTLINE_COLOR = '#ffffff'; // Default outline white
 const DEFAULT_HEADER_TEXT_OUTLINE_OPACITY = 100;
 const DEFAULT_HEADER_TEXT_OUTLINE_WIDTH = 0; // Default no outline
 const DEFAULT_HEADER_TEXT_FONT_SIZE = 36; // New default (approx text-4xl)
+const DEFAULT_HEADER_TEXT_FONT_FAMILY = 'sans-serif'; // New default
 
 // --- Notification Function ---
 function showNotification(message, type = 'info', duration = 3000) {
@@ -451,6 +453,7 @@ function saveHeaderSettings() {
     localStorage.setItem(LS_HEADER_TEXT_COLOR, document.getElementById('header-text-color-picker').value);
     localStorage.setItem(LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-slider').value);
     localStorage.setItem(LS_HEADER_TEXT_FONT_SIZE, document.getElementById('header-text-font-size-input').value); // Save font size
+    localStorage.setItem(LS_HEADER_TEXT_FONT_FAMILY, document.getElementById('header-text-font-family-select').value); // Save font family
     // Save header background
     localStorage.setItem(LS_HEADER_BG_COLOR, document.getElementById('header-bg-color-picker').value);
     localStorage.setItem(LS_HEADER_BG_OPACITY, document.getElementById('header-bg-opacity-slider').value);
@@ -520,13 +523,16 @@ function updateHeaderDisplay() {
     // Add text if it exists
     if (hasText) {
         const h1 = document.createElement("h1");
-        h1.className = "font-bold"; // Remove default text-4xl, apply font size via style
+        h1.className = "font-bold"; // Remove default text-4xl, apply font size/family via style
         // Get and apply font size
         let headerFontSize = parseInt(localStorage.getItem(LS_HEADER_TEXT_FONT_SIZE), 10);
         if (isNaN(headerFontSize) || headerFontSize <= 0) {
             headerFontSize = DEFAULT_HEADER_TEXT_FONT_SIZE;
         }
         h1.style.fontSize = `${headerFontSize}px`; // Apply font size
+        // Get and apply font family
+        const headerFontFamily = localStorage.getItem(LS_HEADER_TEXT_FONT_FAMILY) || DEFAULT_HEADER_TEXT_FONT_FAMILY;
+        h1.style.fontFamily = headerFontFamily; // Apply font family
 
         h1.style.color = rgbaDefaultColor; // Apply default color+opacity to H1
         // Apply outline to H1
@@ -1227,7 +1233,7 @@ function restoreBackgroundSettings() {
 }
 
 function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity,
-                                savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth, savedHeaderFontSize) {
+                                savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth, savedHeaderFontSize, savedHeaderFontFamily) {
     _restoreInputSetting('header-text-input', savedHeaderText);
     // if the header image is the default bean, then add the explodeBeans function to the onclick event
     _restoreInputSetting('header-image-url-input', savedHeaderImageUrl);
@@ -1235,6 +1241,8 @@ function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeader
     _restoreOpacitySetting('header-text-color-opacity-slider', 'header-text-color-opacity-value', savedHeaderTextOpacity);
     // Restore header font size input
     _restoreInputSetting('header-text-font-size-input', savedHeaderFontSize);
+    // Restore header font family select
+    _restoreInputSetting('header-text-font-family-select', savedHeaderFontFamily);
     // Restore header background inputs
     _restoreColorPickerSetting('header-bg-color-picker', savedHeaderBgColor);
     _restoreOpacitySetting('header-bg-opacity-slider', 'header-bg-opacity-value', savedHeaderBgOpacity);
@@ -1396,6 +1404,7 @@ function loadFromLocalStorage() {
     const savedHeaderOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY) || DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
     const savedHeaderOutlineWidth = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH) || DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
     const savedHeaderFontSize = localStorage.getItem(LS_HEADER_TEXT_FONT_SIZE) || DEFAULT_HEADER_TEXT_FONT_SIZE; // Load font size
+    const savedHeaderFontFamily = localStorage.getItem(LS_HEADER_TEXT_FONT_FAMILY) || DEFAULT_HEADER_TEXT_FONT_FAMILY; // Load font family
     const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
     const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
     const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
@@ -1444,7 +1453,8 @@ function loadFromLocalStorage() {
         savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity,
         savedHeaderBgColor, savedHeaderBgOpacity,
         savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth,
-        savedHeaderFontSize // Pass font size
+        savedHeaderFontSize, // Pass font size
+        savedHeaderFontFamily // Pass font family
     );
 
     restoreMarkedStyleSettings(
@@ -1627,6 +1637,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInputListener('header-text-color-picker', 'input', saveHeaderSettings, updateHeaderDisplay);
     setupOpacitySliderListener('header-text-color-opacity-slider', 'header-text-color-opacity-value', saveHeaderSettings, updateHeaderDisplay);
     setupInputListener('header-text-font-size-input', 'input', saveHeaderSettings, updateHeaderDisplay); // Add listener for font size
+    setupInputListener('header-text-font-family-select', 'change', saveHeaderSettings, updateHeaderDisplay); // Add listener for font family
     setupInputListener('header-bg-color-picker', 'input', saveHeaderSettings, applyHeaderBgStyle);
     setupOpacitySliderListener('header-bg-opacity-slider', 'header-bg-opacity-value', saveHeaderSettings, applyHeaderBgStyle);
     // Header Text Outline Listeners
