@@ -439,6 +439,14 @@
         </div>
     </div>
 
-    <script src="js/beango.js?v=1.0.1"></script>
+    <script type="module" src="js/beango.js?v=1.0.1"></script>
+    <script type="module">
+        import { toggleConfig, exportSettings, importSettings, resetAllSettings, explodeBeans } from './js/beango.js';
+        window.explodeBeans = explodeBeans;
+        window.toggleConfig = toggleConfig;
+        window.exportSettings = exportSettings;
+        window.importSettings = importSettings;
+        window.resetAllSettings = resetAllSettings;
+    </script>
 </body>
 </html>

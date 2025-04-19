@@ -1,227 +1,8 @@
+import * as vars from './variables.js';
+import { showNotification, hexToRgba, setupInputListener, setupOpacitySliderListener, _restoreOpacitySetting, _restoreColorPickerSetting, _restoreInputSetting } from './utils.js';
+
 let currentItems = []; // Holds the original list of items provided by the user
 let displayedItems = []; // Holds the items currently displayed on the board
-let notificationTimeout = null; // To manage hiding notifications
-
-// --- localStorage Keys ---
-const LS_BOARD_SIZE = 'beango_boardSize';
-const LS_CELL_ITEMS = 'beango_cellItems'; // Original items from textarea/file
-const LS_DISPLAYED_ITEMS = 'beango_displayedItems'; // Items currently shown on the board
-const LS_MARKED_INDICES = 'beango_markedIndices';
-const LS_CONFIG_OPEN = 'beango_configOpen'; // Changed from minimized
-const LS_BACKGROUND_TYPE = 'beango_backgroundType'; // 'solid' or 'gradient'
-const LS_SOLID_COLOR = 'beango_solidColor';
-const LS_SOLID_COLOR_OPACITY = 'beango_solidColorOpacity';
-const LS_GRADIENT_COLOR_1 = 'beango_gradientColor1';
-const LS_GRADIENT_COLOR_1_OPACITY = 'beango_gradientColor1Opacity';
-const LS_GRADIENT_COLOR_2 = 'beango_gradientColor2';
-const LS_GRADIENT_COLOR_2_OPACITY = 'beango_gradientColor2Opacity';
-const LS_GRADIENT_DIRECTION = 'beango_gradientDirection';
-const LS_ORIGINAL_ITEMS = 'beango_originalItems'; // User's raw input
-const LS_HEADER_TEXT = 'beango_headerText';
-const LS_HEADER_IMAGE_URL = 'beango_headerImageUrl';
-const LS_HEADER_TEXT_COLOR = 'beango_headerTextColor';
-const LS_HEADER_TEXT_COLOR_OPACITY = 'beango_headerTextColorOpacity';
-const LS_HEADER_BG_COLOR = 'beango_headerBgColor';
-const LS_HEADER_BG_OPACITY = 'beango_headerBgOpacity';
-const LS_MARKED_COLOR = 'beango_markedColor';
-const LS_MARKED_COLOR_OPACITY = 'beango_markedColorOpacity'; // (replaces LS_MARKED_OPACITY)
-const LS_MARKED_IMAGE_URL = 'beango_markedImageUrl';
-const LS_MARKED_IMAGE_OPACITY = 'beango_markedImageOpacity';
-const LS_CELL_BORDER_COLOR = 'beango_cellBorderColor';
-const LS_CELL_BORDER_OPACITY = 'beango_cellBorderOpacity';
-const LS_CELL_BORDER_WIDTH = 'beango_cellBorderWidth';
-const LS_CELL_BG_COLOR = 'beango_cellBgColor';
-const LS_CELL_BG_OPACITY = 'beango_cellBgOpacity';
-const LS_CELL_BG_IMAGE_URL = 'beango_cellBgImageUrl';
-const LS_CELL_BG_IMAGE_OPACITY = 'beango_cellBgImageOpacity';
-const LS_CELL_TEXT_COLOR = 'beango_cellTextColor';
-const LS_CELL_TEXT_OPACITY = 'beango_cellTextOpacity';
-const LS_CELL_OUTLINE_COLOR = 'beango_cellOutlineColor';
-const LS_CELL_OUTLINE_OPACITY = 'beango_cellOutlineOpacity';
-const LS_CELL_OUTLINE_WIDTH = 'beango_cellOutlineWidth';
-const LS_MARKED_BORDER_COLOR = 'beango_markedBorderColor';
-const LS_MARKED_BORDER_OPACITY = 'beango_markedBorderOpacity';
-const LS_MARKED_BORDER_WIDTH = 'beango_markedBorderWidth';
-const LS_BOARD_BG_COLOR = 'beango_boardBgColor';
-const LS_BOARD_BG_COLOR_OPACITY = 'beango_boardBgColorOpacity'; // (replaces LS_BOARD_BG_OPACITY)
-const LS_BOARD_BG_IMAGE_URL = 'beango_boardBgImageUrl';
-const LS_BOARD_BG_IMAGE_OPACITY = 'beango_boardBgImageOpacity'; // NEW
-const LS_MARKED_CELL_TEXT_COLOR = 'beango_markedCellTextColor';
-const LS_MARKED_CELL_TEXT_OPACITY = 'beango_markedCellTextOpacity';
-const LS_MARKED_CELL_OUTLINE_COLOR = 'beango_markedCellOutlineColor';
-const LS_MARKED_CELL_OUTLINE_OPACITY = 'beango_markedCellOutlineOpacity';
-const LS_MARKED_CELL_OUTLINE_WIDTH = 'beango_markedCellOutlineWidth';
-const LS_HEADER_TEXT_OUTLINE_COLOR = 'beango_headerTextOutlineColor';
-const LS_HEADER_TEXT_OUTLINE_OPACITY = 'beango_headerTextOutlineOpacity';
-const LS_HEADER_TEXT_OUTLINE_WIDTH = 'beango_headerTextOutlineWidth';
-const LS_HEADER_TEXT_FONT_SIZE = 'beango_headerTextFontSize'; // New key
-const LS_HEADER_TEXT_FONT_FAMILY = 'beango_headerTextFontFamily'; // New key
-const LS_HEADER_TEXT_STYLE_ITALIC = 'beango_headerTextStyleItalic'; // New key for italic
-const LS_HEADER_TEXT_STYLE_BOLD = 'beango_headerTextStyleBold'; // New key for bold
-
-// --- Default Values ---
-const DEFAULT_SAMPLE_ITEMS = [
-    "Sample Item 1", "Sample Item 2", "Sample Item 3", "Sample Item 4", "Sample Item 5",
-    "Sample Item 6", "Sample Item 7", "Free Space", "Sample Item 9", "Sample Item 10",
-    "Sample Item 11", "Sample Item 12", "Sample Item 13", "Sample Item 14", "Sample Item 15",
-    "Sample Item 16", "Sample Item 17", "Sample Item 18", "Sample Item 19", "Sample Item 20",
-    "Sample Item 21", "Sample Item 22", "Sample Item 23", "Sample Item 24", "Sample Item 25"
-];
-const DEFAULT_SOLID_COLOR = '#ff7e5f'; // Default to first color of gradient
-const DEFAULT_SOLID_COLOR_OPACITY = 100; //
-const DEFAULT_GRADIENT_COLOR_1 = '#faaca8'; // Softer pink/orange
-const DEFAULT_GRADIENT_COLOR_1_OPACITY = 100; //
-const DEFAULT_GRADIENT_COLOR_2 = '#ddd6f3'; // Soft purple
-const DEFAULT_GRADIENT_COLOR_2_OPACITY = 100; //
-const DEFAULT_GRADIENT_DIRECTION = 'to right top'; // Changed direction
-const DEFAULT_HEADER_TEXT = 'Beango!'; // REVERTED default back to Beango!
-const DEFAULT_HEADER_IMAGE_URL = '/bean.svg'; // No default image
-const DEFAULT_HEADER_TEXT_COLOR = '#15803d'; // Tailwind green-700 (approx)
-const DEFAULT_HEADER_TEXT_COLOR_OPACITY = 100; //
-const DEFAULT_HEADER_BG_COLOR = '#ffffff';
-const DEFAULT_HEADER_BG_OPACITY = 100;
-const DEFAULT_MARKED_COLOR = '#e9ecef'; // Light grey for marked cells
-const DEFAULT_MARKED_COLOR_OPACITY = 40; // (replaces DEFAULT_MARKED_OPACITY) - Significantly lower
-const DEFAULT_MARKED_IMAGE_URL = 'https://www.svgrepo.com/download/286496/cross.svg'; // Default cross image
-const DEFAULT_MARKED_IMAGE_OPACITY = 70; //
-const DEFAULT_CELL_BORDER_COLOR = '#808080'; // Default dark grey
-const DEFAULT_CELL_BORDER_OPACITY = 80; // Slightly transparent
-const DEFAULT_CELL_BORDER_WIDTH = 1; //
-const DEFAULT_CELL_BG_COLOR = '#f8f9fa'; // Off-white
-const DEFAULT_CELL_BG_OPACITY = 95; // Slightly transparent
-const DEFAULT_CELL_BG_IMAGE_URL = ''; // Default no image
-const DEFAULT_CELL_BG_IMAGE_OPACITY = 100; //
-const DEFAULT_CELL_TEXT_COLOR = '#000000';
-const DEFAULT_CELL_TEXT_OPACITY = 100;
-const DEFAULT_CELL_OUTLINE_COLOR = '#ffffff';
-const DEFAULT_CELL_OUTLINE_OPACITY = 100;
-const DEFAULT_CELL_OUTLINE_WIDTH = 0; // Default 0px - Cleaner look
-const DEFAULT_MARKED_BORDER_COLOR = DEFAULT_CELL_BORDER_COLOR; // Match default border color
-const DEFAULT_MARKED_BORDER_OPACITY = 50; // Less opaque than default border
-const DEFAULT_MARKED_BORDER_WIDTH = 0; // No border for marked cells
-const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
-const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // (replaces DEFAULT_BOARD_BG_OPACITY)
-const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
-const DEFAULT_BOARD_BG_IMAGE_OPACITY = 100; // NEW
-const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000'; // Keep black for readability
-const DEFAULT_MARKED_CELL_TEXT_OPACITY = 50;
-const DEFAULT_MARKED_CELL_OUTLINE_COLOR = '#ffffff';
-const DEFAULT_MARKED_CELL_OUTLINE_OPACITY = 100;
-const DEFAULT_MARKED_CELL_OUTLINE_WIDTH = 0; // Default 0px - No outline for marked
-const DEFAULT_HEADER_TEXT_OUTLINE_COLOR = '#ffffff'; // Default outline white
-const DEFAULT_HEADER_TEXT_OUTLINE_OPACITY = 100;
-const DEFAULT_HEADER_TEXT_OUTLINE_WIDTH = 0; // Default no outline
-const DEFAULT_HEADER_TEXT_FONT_SIZE = 36; // New default (approx text-4xl)
-const DEFAULT_HEADER_TEXT_FONT_FAMILY = 'sans-serif'; // New default
-const DEFAULT_HEADER_TEXT_STYLE_ITALIC = false; // Default not italic
-const DEFAULT_HEADER_TEXT_STYLE_BOLD = true; // Default bold
-
-// --- Notification Function ---
-function showNotification(message, type = 'info', duration = 3000) {
-    const notificationArea = document.getElementById('notification-area');
-    if (!notificationArea) return;
-
-    // Clear any existing timeout
-    if (notificationTimeout) {
-        clearTimeout(notificationTimeout);
-    }
-
-    notificationArea.textContent = message;
-    // Apply Tailwind classes based on type
-    notificationArea.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-sm transition-opacity duration-300'; // Reset classes
-    switch (type) {
-        case 'success':
-            notificationArea.classList.add('bg-green-500');
-            break;
-        case 'warning':
-            notificationArea.classList.add('bg-yellow-500');
-            break;
-        case 'error':
-            notificationArea.classList.add('bg-red-500');
-            break;
-        default: // info
-            notificationArea.classList.add('bg-blue-500');
-            break;
-    }
-
-    // Make it visible
-    notificationArea.classList.add('opacity-100');
-
-    // Set timeout to hide
-    notificationTimeout = setTimeout(() => {
-        notificationArea.classList.remove('opacity-100');
-        notificationArea.classList.add('opacity-0');
-    }, duration);
-}
-
-// --- Helper Function ---
-function hexToRgba(hex, opacityPercent = 100) {
-    // Ensure opacityPercent is a number before using it
-    let numericOpacity = parseInt(opacityPercent, 10); // Try parsing
-    // If parsing failed (e.g., input was not a number string) or input was null/undefined, default to 100
-    if (isNaN(numericOpacity)) {
-        numericOpacity = 100;
-    }
-
-    // Remove hash if it exists
-    hex = hex.replace('#', '');
-
-    // Handle short hex codes
-    if (hex.length === 3) {
-        hex = hex.split('').map(char => char + char).join('');
-    }
-
-    // Ensure hex is 6 digits
-    if (hex.length !== 6) {
-        console.warn(`Invalid hex color: ${hex}. Using fallback.`);
-        hex = '000000'; // Default to black on error
-    }
-
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-
-    // Clamp and normalize opacity using the correctly parsed/defaulted value
-    const clampedOpacityPercent = Math.max(0, Math.min(100, numericOpacity));
-    const opacity = clampedOpacityPercent / 100;
-
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-}
-
-// --- Event Listener Helper Functions --- START
-
-// Helper function for standard input/select elements
-function setupInputListener(elementId, eventType, saveFn, refreshFn) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.addEventListener(eventType, () => {
-            if (saveFn) saveFn();
-            if (refreshFn) refreshFn();
-        });
-    } else {
-        console.warn(`Element with ID ${elementId} not found for listener setup.`);
-    }
-}
-
-// Helper function for opacity sliders with value display
-function setupOpacitySliderListener(sliderId, valueSpanId, saveFn, refreshFn) {
-    const slider = document.getElementById(sliderId);
-    const valueSpan = document.getElementById(valueSpanId);
-    if (slider) {
-        slider.addEventListener('input', (e) => {
-            if (valueSpan) valueSpan.textContent = e.target.value;
-            if (saveFn) saveFn();
-            if (refreshFn) refreshFn();
-        });
-    } else {
-        console.warn(`Element with ID ${sliderId} not found for listener setup.`);
-    }
-}
-
-// --- Event Listener Helper Functions --- END
-
-
-// --- Functions ---
 
 // --- Function to set the HTML background (solid or gradient) ---
 function setBackground() {
@@ -283,53 +64,53 @@ function toggleBackgroundControls() {
 // --- Save current background settings to localStorage ---
 function saveBackgroundSettings() {
     const backgroundType = document.querySelector('input[name="background-type"]:checked').value;
-    localStorage.setItem(LS_BACKGROUND_TYPE, backgroundType);
+    localStorage.setItem(vars.LS_BACKGROUND_TYPE, backgroundType);
 
     if (backgroundType === 'solid') {
-        localStorage.setItem(LS_SOLID_COLOR, document.getElementById('background-color-picker').value);
-        localStorage.setItem(LS_SOLID_COLOR_OPACITY, document.getElementById('background-color-opacity-slider').value);
+        localStorage.setItem(vars.LS_SOLID_COLOR, document.getElementById('background-color-picker').value);
+        localStorage.setItem(vars.LS_SOLID_COLOR_OPACITY, document.getElementById('background-color-opacity-slider').value);
         // Optionally remove gradient keys
-        localStorage.removeItem(LS_GRADIENT_COLOR_1);
-        localStorage.removeItem(LS_GRADIENT_COLOR_1_OPACITY);
-        localStorage.removeItem(LS_GRADIENT_COLOR_2);
-        localStorage.removeItem(LS_GRADIENT_COLOR_2_OPACITY);
-        localStorage.removeItem(LS_GRADIENT_DIRECTION);
+        localStorage.removeItem(vars.LS_GRADIENT_COLOR_1);
+        localStorage.removeItem(vars.LS_GRADIENT_COLOR_1_OPACITY);
+        localStorage.removeItem(vars.LS_GRADIENT_COLOR_2);
+        localStorage.removeItem(vars.LS_GRADIENT_COLOR_2_OPACITY);
+        localStorage.removeItem(vars.LS_GRADIENT_DIRECTION);
     } else {
-        localStorage.setItem(LS_GRADIENT_COLOR_1, document.getElementById('gradient-color-1').value);
-        localStorage.setItem(LS_GRADIENT_COLOR_1_OPACITY, document.getElementById('gradient-color-1-opacity-slider').value);
-        localStorage.setItem(LS_GRADIENT_COLOR_2, document.getElementById('gradient-color-2').value);
-        localStorage.setItem(LS_GRADIENT_COLOR_2_OPACITY, document.getElementById('gradient-color-2-opacity-slider').value);
-        localStorage.setItem(LS_GRADIENT_DIRECTION, document.getElementById('gradient-direction').value);
+        localStorage.setItem(vars.LS_GRADIENT_COLOR_1, document.getElementById('gradient-color-1').value);
+        localStorage.setItem(vars.LS_GRADIENT_COLOR_1_OPACITY, document.getElementById('gradient-color-1-opacity-slider').value);
+        localStorage.setItem(vars.LS_GRADIENT_COLOR_2, document.getElementById('gradient-color-2').value);
+        localStorage.setItem(vars.LS_GRADIENT_COLOR_2_OPACITY, document.getElementById('gradient-color-2-opacity-slider').value);
+        localStorage.setItem(vars.LS_GRADIENT_DIRECTION, document.getElementById('gradient-direction').value);
         // Optionally remove solid key
-        localStorage.removeItem(LS_SOLID_COLOR);
-        localStorage.removeItem(LS_SOLID_COLOR_OPACITY);
+        localStorage.removeItem(vars.LS_SOLID_COLOR);
+        localStorage.removeItem(vars.LS_SOLID_COLOR_OPACITY);
     }
 }
 
-function toggleConfig() {
+export function toggleConfig() {
     const pane = document.getElementById('config-pane');
     const isOpen = pane.classList.contains('config-pane-open');
 
     if (isOpen) {
         pane.classList.remove('config-pane-open');
         pane.classList.add('config-pane-closed');
-        localStorage.setItem(LS_CONFIG_OPEN, 'false');
+        localStorage.setItem(vars.LS_CONFIG_OPEN, 'false');
     } else {
         pane.classList.remove('config-pane-closed');
         pane.classList.add('config-pane-open');
-        localStorage.setItem(LS_CONFIG_OPEN, 'true');
+        localStorage.setItem(vars.LS_CONFIG_OPEN, 'true');
     }
 }
 
-document.getElementById('file-input').addEventListener('change', function(event) {
+document.getElementById('file-input').addEventListener('change', function (event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             document.getElementById('cell-contents').value = e.target.result;
             showNotification('File loaded. Click Generate/Update to use items.', 'success');
         };
-        reader.onerror = function() {
+        reader.onerror = function () {
             showNotification('Error reading file.', 'error');
         };
         reader.readAsText(file);
@@ -343,23 +124,23 @@ function getItemsFromInput() {
 
 // --- Save current marked style settings to localStorage ---
 function saveMarkedStyleSettings() {
-    localStorage.setItem(LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
-    localStorage.setItem(LS_MARKED_COLOR_OPACITY, document.getElementById('marked-color-opacity-slider').value);
-    localStorage.setItem(LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
-    localStorage.setItem(LS_MARKED_IMAGE_OPACITY, document.getElementById('marked-image-opacity-slider').value); // Save image opacity
+    localStorage.setItem(vars.LS_MARKED_COLOR, document.getElementById('marked-color-picker').value);
+    localStorage.setItem(vars.LS_MARKED_COLOR_OPACITY, document.getElementById('marked-color-opacity-slider').value);
+    localStorage.setItem(vars.LS_MARKED_IMAGE_URL, document.getElementById('marked-image-url-input').value);
+    localStorage.setItem(vars.LS_MARKED_IMAGE_OPACITY, document.getElementById('marked-image-opacity-slider').value); // Save image opacity
 
     // Save marked border color and its opacity
-    localStorage.setItem(LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
-    localStorage.setItem(LS_MARKED_BORDER_OPACITY, document.getElementById('marked-border-opacity-slider').value);
+    localStorage.setItem(vars.LS_MARKED_BORDER_COLOR, document.getElementById('marked-border-color-picker').value);
+    localStorage.setItem(vars.LS_MARKED_BORDER_OPACITY, document.getElementById('marked-border-opacity-slider').value);
     // Save marked border width
-    localStorage.setItem(LS_MARKED_BORDER_WIDTH, document.getElementById('marked-border-width-input').value);
+    localStorage.setItem(vars.LS_MARKED_BORDER_WIDTH, document.getElementById('marked-border-width-input').value);
 
     // Save marked text styles
-    localStorage.setItem(LS_MARKED_CELL_TEXT_COLOR, document.getElementById('marked-cell-text-color-picker').value);
-    localStorage.setItem(LS_MARKED_CELL_TEXT_OPACITY, document.getElementById('marked-cell-text-opacity-slider').value);
-    localStorage.setItem(LS_MARKED_CELL_OUTLINE_COLOR, document.getElementById('marked-cell-outline-color-picker').value);
-    localStorage.setItem(LS_MARKED_CELL_OUTLINE_OPACITY, document.getElementById('marked-cell-outline-opacity-slider').value);
-    localStorage.setItem(LS_MARKED_CELL_OUTLINE_WIDTH, document.getElementById('marked-cell-outline-width-input').value);
+    localStorage.setItem(vars.LS_MARKED_CELL_TEXT_COLOR, document.getElementById('marked-cell-text-color-picker').value);
+    localStorage.setItem(vars.LS_MARKED_CELL_TEXT_OPACITY, document.getElementById('marked-cell-text-opacity-slider').value);
+    localStorage.setItem(vars.LS_MARKED_CELL_OUTLINE_COLOR, document.getElementById('marked-cell-outline-color-picker').value);
+    localStorage.setItem(vars.LS_MARKED_CELL_OUTLINE_OPACITY, document.getElementById('marked-cell-outline-opacity-slider').value);
+    localStorage.setItem(vars.LS_MARKED_CELL_OUTLINE_WIDTH, document.getElementById('marked-cell-outline-width-input').value);
 }
 
 // --- Apply saved marked styles to a cell ---
@@ -367,12 +148,12 @@ function applyMarkedCellStyle(cell) {
     if (!cell) return;
 
     const isMarked = cell.classList.contains('marked');
-    const color = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
-    const colorOpacity = parseInt(localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY, 10);
-    const imageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
-    const imageOpacity = parseInt(localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY, 10);
-    const borderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
-    const borderOpacity = parseInt(localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY, 10);
+    const color = localStorage.getItem(vars.LS_MARKED_COLOR) || vars.DEFAULT_MARKED_COLOR;
+    const colorOpacity = parseInt(localStorage.getItem(vars.LS_MARKED_COLOR_OPACITY) || vars.DEFAULT_MARKED_COLOR_OPACITY, 10);
+    const imageUrl = localStorage.getItem(vars.LS_MARKED_IMAGE_URL) || vars.DEFAULT_MARKED_IMAGE_URL;
+    const imageOpacity = parseInt(localStorage.getItem(vars.LS_MARKED_IMAGE_OPACITY) || vars.DEFAULT_MARKED_IMAGE_OPACITY, 10);
+    const borderColor = localStorage.getItem(vars.LS_MARKED_BORDER_COLOR) || vars.DEFAULT_MARKED_BORDER_COLOR;
+    const borderOpacity = parseInt(localStorage.getItem(vars.LS_MARKED_BORDER_OPACITY) || vars.DEFAULT_MARKED_BORDER_OPACITY, 10);
 
     // Reset potentially conflicting styles before applying new ones
     cell.style.backgroundColor = '';
@@ -383,9 +164,9 @@ function applyMarkedCellStyle(cell) {
         // Apply marked border color + opacity
         cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
         // Apply marked border width
-        let markedBorderWidth = parseInt(localStorage.getItem(LS_MARKED_BORDER_WIDTH) || DEFAULT_MARKED_BORDER_WIDTH, 10);
+        let markedBorderWidth = parseInt(localStorage.getItem(vars.LS_MARKED_BORDER_WIDTH) || vars.DEFAULT_MARKED_BORDER_WIDTH, 10);
         if (isNaN(markedBorderWidth) || markedBorderWidth < 0) { // Add check for NaN and negative
-            markedBorderWidth = DEFAULT_MARKED_BORDER_WIDTH;
+            markedBorderWidth = vars.DEFAULT_MARKED_BORDER_WIDTH;
         }
         cell.style.borderWidth = `${markedBorderWidth}px`;
 
@@ -407,14 +188,14 @@ function applyMarkedCellStyle(cell) {
         // Apply marked text styles
         const textSpan = cell.querySelector('.bingo-cell-text');
         if (textSpan) {
-            const textColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
-            const textOpacity = parseInt(localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY, 10);
-            const outlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
-            const outlineOpacity = parseInt(localStorage.getItem(LS_MARKED_CELL_OUTLINE_OPACITY) || DEFAULT_MARKED_CELL_OUTLINE_OPACITY, 10);
-            let outlineWidth = parseFloat(localStorage.getItem(LS_MARKED_CELL_OUTLINE_WIDTH));
+            const textColor = localStorage.getItem(vars.LS_MARKED_CELL_TEXT_COLOR) || vars.DEFAULT_MARKED_CELL_TEXT_COLOR;
+            const textOpacity = parseInt(localStorage.getItem(vars.LS_MARKED_CELL_TEXT_OPACITY) || vars.DEFAULT_MARKED_CELL_TEXT_OPACITY, 10);
+            const outlineColor = localStorage.getItem(vars.LS_MARKED_CELL_OUTLINE_COLOR) || vars.DEFAULT_MARKED_CELL_OUTLINE_COLOR;
+            const outlineOpacity = parseInt(localStorage.getItem(vars.LS_MARKED_CELL_OUTLINE_OPACITY) || vars.DEFAULT_MARKED_CELL_OUTLINE_OPACITY, 10);
+            let outlineWidth = parseFloat(localStorage.getItem(vars.LS_MARKED_CELL_OUTLINE_WIDTH));
             // Default check: // Add log before default check
             if (isNaN(outlineWidth) || outlineWidth < 0) {
-                outlineWidth = DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
+                outlineWidth = vars.DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
             }
 
             const rgbaTextColor = hexToRgba(textColor, textOpacity);
@@ -454,22 +235,22 @@ function refreshMarkedCellStyles() {
 
 // --- Save current header settings to localStorage ---
 function saveHeaderSettings() {
-    localStorage.setItem(LS_HEADER_TEXT, document.getElementById('header-text-input').value);
-    localStorage.setItem(LS_HEADER_IMAGE_URL, document.getElementById('header-image-url-input').value);
-    localStorage.setItem(LS_HEADER_TEXT_COLOR, document.getElementById('header-text-color-picker').value);
-    localStorage.setItem(LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-slider').value);
-    localStorage.setItem(LS_HEADER_TEXT_FONT_SIZE, document.getElementById('header-text-font-size-input').value); // Save font size
-    localStorage.setItem(LS_HEADER_TEXT_FONT_FAMILY, document.getElementById('header-text-font-family-select').value); // Save font family
+    localStorage.setItem(vars.LS_HEADER_TEXT, document.getElementById('header-text-input').value);
+    localStorage.setItem(vars.LS_HEADER_IMAGE_URL, document.getElementById('header-image-url-input').value);
+    localStorage.setItem(vars.LS_HEADER_TEXT_COLOR, document.getElementById('header-text-color-picker').value);
+    localStorage.setItem(vars.LS_HEADER_TEXT_COLOR_OPACITY, document.getElementById('header-text-color-opacity-slider').value);
+    localStorage.setItem(vars.LS_HEADER_TEXT_FONT_SIZE, document.getElementById('header-text-font-size-input').value); // Save font size
+    localStorage.setItem(vars.LS_HEADER_TEXT_FONT_FAMILY, document.getElementById('header-text-font-family-select').value); // Save font family
     // Save header background
-    localStorage.setItem(LS_HEADER_BG_COLOR, document.getElementById('header-bg-color-picker').value);
-    localStorage.setItem(LS_HEADER_BG_OPACITY, document.getElementById('header-bg-opacity-slider').value);
+    localStorage.setItem(vars.LS_HEADER_BG_COLOR, document.getElementById('header-bg-color-picker').value);
+    localStorage.setItem(vars.LS_HEADER_BG_OPACITY, document.getElementById('header-bg-opacity-slider').value);
     // Save header text outline
-    localStorage.setItem(LS_HEADER_TEXT_OUTLINE_COLOR, document.getElementById('header-text-outline-color-picker').value);
-    localStorage.setItem(LS_HEADER_TEXT_OUTLINE_OPACITY, document.getElementById('header-text-outline-opacity-slider').value);
-    localStorage.setItem(LS_HEADER_TEXT_OUTLINE_WIDTH, document.getElementById('header-text-outline-width-input').value);
+    localStorage.setItem(vars.LS_HEADER_TEXT_OUTLINE_COLOR, document.getElementById('header-text-outline-color-picker').value);
+    localStorage.setItem(vars.LS_HEADER_TEXT_OUTLINE_OPACITY, document.getElementById('header-text-outline-opacity-slider').value);
+    localStorage.setItem(vars.LS_HEADER_TEXT_OUTLINE_WIDTH, document.getElementById('header-text-outline-width-input').value);
     // Save header font style
-    localStorage.setItem(LS_HEADER_TEXT_STYLE_ITALIC, document.getElementById('header-text-style-italic').checked);
-    localStorage.setItem(LS_HEADER_TEXT_STYLE_BOLD, document.getElementById('header-text-style-bold').checked);
+    localStorage.setItem(vars.LS_HEADER_TEXT_STYLE_ITALIC, document.getElementById('header-text-style-italic').checked);
+    localStorage.setItem(vars.LS_HEADER_TEXT_STYLE_BOLD, document.getElementById('header-text-style-bold').checked);
 }
 
 // --- Function to apply header background style ---
@@ -477,8 +258,8 @@ function applyHeaderBgStyle() {
     const headerElement = document.getElementById('board-header');
     if (!headerElement) return;
 
-    const bgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
-    const opacity = parseInt(localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY, 10);
+    const bgColor = localStorage.getItem(vars.LS_HEADER_BG_COLOR) || vars.DEFAULT_HEADER_BG_COLOR;
+    const opacity = parseInt(localStorage.getItem(vars.LS_HEADER_BG_OPACITY) || vars.DEFAULT_HEADER_BG_OPACITY, 10);
 
     headerElement.style.backgroundColor = hexToRgba(bgColor, opacity);
 }
@@ -486,14 +267,14 @@ function applyHeaderBgStyle() {
 // --- Function to update the header display ---
 function updateHeaderDisplay() {
     // Read text, applying default ONLY if the key is missing
-    let headerText = localStorage.getItem(LS_HEADER_TEXT);
+    let headerText = localStorage.getItem(vars.LS_HEADER_TEXT);
     if (headerText === null) { // Check if key exists
-        headerText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
+        headerText = vars.DEFAULT_HEADER_TEXT; // Apply default only if key missing
     }
     // Read image URL: use stored value if key exists, otherwise use default
-    let headerImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL);
+    let headerImageUrl = localStorage.getItem(vars.LS_HEADER_IMAGE_URL);
     if (headerImageUrl === null) { // Check if key exists in localStorage
-        headerImageUrl = DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
+        headerImageUrl = vars.DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
     }
     const headerContainer = document.getElementById("custom-header-content");
 
@@ -503,31 +284,31 @@ function updateHeaderDisplay() {
     headerContainer.innerHTML = "";
 
     // Get default color and opacity
-    let headerTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
+    let headerTextColor = localStorage.getItem(vars.LS_HEADER_TEXT_COLOR);
     if (headerTextColor === null) { // Check if key exists before applying default
-        headerTextColor = DEFAULT_HEADER_TEXT_COLOR;
+        headerTextColor = vars.DEFAULT_HEADER_TEXT_COLOR;
     }
-    let headerTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY);
-     if (headerTextOpacity === null) {
-         headerTextOpacity = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
-     }
-    let headerStyleItalic = localStorage.getItem(LS_HEADER_TEXT_STYLE_ITALIC) === 'true'; // Convert string to boolean
-    let headerStyleBold = localStorage.getItem(LS_HEADER_TEXT_STYLE_BOLD) === 'true'; // Convert string to boolean
+    let headerTextOpacity = localStorage.getItem(vars.LS_HEADER_TEXT_COLOR_OPACITY);
+    if (headerTextOpacity === null) {
+        headerTextOpacity = vars.DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+    }
+    let headerStyleItalic = localStorage.getItem(vars.LS_HEADER_TEXT_STYLE_ITALIC) === 'true'; // Convert string to boolean
+    let headerStyleBold = localStorage.getItem(vars.LS_HEADER_TEXT_STYLE_BOLD) === 'true'; // Convert string to boolean
     const rgbaDefaultColor = hexToRgba(headerTextColor, parseInt(headerTextOpacity, 10));
 
     // Get outline settings
-    let headerOutlineColor = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_COLOR);
-    if (headerOutlineColor === null) headerOutlineColor = DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
-    let headerOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY);
-    if (headerOutlineOpacity === null) headerOutlineOpacity = DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
-    let headerOutlineWidth = parseFloat(localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH));
+    let headerOutlineColor = localStorage.getItem(vars.LS_HEADER_TEXT_OUTLINE_COLOR);
+    if (headerOutlineColor === null) headerOutlineColor = vars.DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
+    let headerOutlineOpacity = localStorage.getItem(vars.LS_HEADER_TEXT_OUTLINE_OPACITY);
+    if (headerOutlineOpacity === null) headerOutlineOpacity = vars.DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
+    let headerOutlineWidth = parseFloat(localStorage.getItem(vars.LS_HEADER_TEXT_OUTLINE_WIDTH));
     if (isNaN(headerOutlineWidth) || headerOutlineWidth < 0) {
-        headerOutlineWidth = DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
+        headerOutlineWidth = vars.DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
     }
 
     let hasText = headerText && headerText.trim() !== "";
     // Determine if we are currently using the default bean URL
-    let isUsingDefaultBeanUrl = headerImageUrl === DEFAULT_HEADER_IMAGE_URL;
+    let isUsingDefaultBeanUrl = headerImageUrl === vars.DEFAULT_HEADER_IMAGE_URL;
     // Determine if there is a custom image (non-empty URL that isn't the default bean)
     let hasCustomImage = headerImageUrl && headerImageUrl.trim() !== "" && !isUsingDefaultBeanUrl;
 
@@ -537,13 +318,13 @@ function updateHeaderDisplay() {
         // Remove default text-4xl and font-bold, apply font size/family/style/weight via style
         // h1.className = "";
         // Get and apply font size
-        let headerFontSize = parseInt(localStorage.getItem(LS_HEADER_TEXT_FONT_SIZE), 10);
+        let headerFontSize = parseInt(localStorage.getItem(vars.LS_HEADER_TEXT_FONT_SIZE), 10);
         if (isNaN(headerFontSize) || headerFontSize <= 0) {
-            headerFontSize = DEFAULT_HEADER_TEXT_FONT_SIZE;
+            headerFontSize = vars.DEFAULT_HEADER_TEXT_FONT_SIZE;
         }
         h1.style.fontSize = `${headerFontSize}px`; // Apply font size
         // Get and apply font family
-        const headerFontFamily = localStorage.getItem(LS_HEADER_TEXT_FONT_FAMILY) || DEFAULT_HEADER_TEXT_FONT_FAMILY;
+        const headerFontFamily = localStorage.getItem(vars.LS_HEADER_TEXT_FONT_FAMILY) || vars.DEFAULT_HEADER_TEXT_FONT_FAMILY;
         h1.style.fontFamily = headerFontFamily; // Apply font family
 
         // Apply font style and weight
@@ -588,7 +369,7 @@ function updateHeaderDisplay() {
                     const span = document.createElement("span");
                     span.textContent = word; // Only the word part
                     if (color) { // Check if color is not empty after trim
-                       span.style.color = color; // Apply specific color
+                        span.style.color = color; // Apply specific color
                     }
                     // If color was empty or invalid, it inherits the default from h1
                     h1.appendChild(span);
@@ -648,19 +429,19 @@ function addDefaultBean(container) {
 
 // --- Save current default cell style settings to localStorage ---
 function saveCellStyleSettings() {
-    localStorage.setItem(LS_CELL_BORDER_COLOR, document.getElementById('cell-border-color-picker').value);
-    localStorage.setItem(LS_CELL_BORDER_OPACITY, document.getElementById('cell-border-opacity-slider').value);
-    localStorage.setItem(LS_CELL_BORDER_WIDTH, document.getElementById('cell-border-width-input').value);
-    localStorage.setItem(LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
-    localStorage.setItem(LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-slider').value);
-    localStorage.setItem(LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
-    localStorage.setItem(LS_CELL_BG_IMAGE_OPACITY, document.getElementById('cell-background-image-opacity-slider').value); // Save image opacity
+    localStorage.setItem(vars.LS_CELL_BORDER_COLOR, document.getElementById('cell-border-color-picker').value);
+    localStorage.setItem(vars.LS_CELL_BORDER_OPACITY, document.getElementById('cell-border-opacity-slider').value);
+    localStorage.setItem(vars.LS_CELL_BORDER_WIDTH, document.getElementById('cell-border-width-input').value);
+    localStorage.setItem(vars.LS_CELL_BG_COLOR, document.getElementById('cell-background-color-picker').value);
+    localStorage.setItem(vars.LS_CELL_BG_OPACITY, document.getElementById('cell-background-opacity-slider').value);
+    localStorage.setItem(vars.LS_CELL_BG_IMAGE_URL, document.getElementById('cell-background-image-url-input').value);
+    localStorage.setItem(vars.LS_CELL_BG_IMAGE_OPACITY, document.getElementById('cell-background-image-opacity-slider').value); // Save image opacity
     // Save text styles
-    localStorage.setItem(LS_CELL_TEXT_COLOR, document.getElementById('cell-text-color-picker').value);
-    localStorage.setItem(LS_CELL_TEXT_OPACITY, document.getElementById('cell-text-opacity-slider').value);
-    localStorage.setItem(LS_CELL_OUTLINE_COLOR, document.getElementById('cell-outline-color-picker').value);
-    localStorage.setItem(LS_CELL_OUTLINE_OPACITY, document.getElementById('cell-outline-opacity-slider').value);
-    localStorage.setItem(LS_CELL_OUTLINE_WIDTH, document.getElementById('cell-outline-width-input').value);
+    localStorage.setItem(vars.LS_CELL_TEXT_COLOR, document.getElementById('cell-text-color-picker').value);
+    localStorage.setItem(vars.LS_CELL_TEXT_OPACITY, document.getElementById('cell-text-opacity-slider').value);
+    localStorage.setItem(vars.LS_CELL_OUTLINE_COLOR, document.getElementById('cell-outline-color-picker').value);
+    localStorage.setItem(vars.LS_CELL_OUTLINE_OPACITY, document.getElementById('cell-outline-opacity-slider').value);
+    localStorage.setItem(vars.LS_CELL_OUTLINE_WIDTH, document.getElementById('cell-outline-width-input').value);
 }
 
 // --- Apply saved default cell styles to a cell ---
@@ -668,21 +449,21 @@ function applyCellStyle(cell) {
     if (!cell || cell.classList.contains('marked')) return; // Only apply to non-marked cells
 
     // Borders
-    const borderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
-    const borderOpacity = parseInt(localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY, 10);
+    const borderColor = localStorage.getItem(vars.LS_CELL_BORDER_COLOR) || vars.DEFAULT_CELL_BORDER_COLOR;
+    const borderOpacity = parseInt(localStorage.getItem(vars.LS_CELL_BORDER_OPACITY) || vars.DEFAULT_CELL_BORDER_OPACITY, 10);
     cell.style.borderColor = hexToRgba(borderColor, borderOpacity);
     // Apply border width
-    let borderWidth = parseInt(localStorage.getItem(LS_CELL_BORDER_WIDTH) || DEFAULT_CELL_BORDER_WIDTH, 10);
+    let borderWidth = parseInt(localStorage.getItem(vars.LS_CELL_BORDER_WIDTH) || vars.DEFAULT_CELL_BORDER_WIDTH, 10);
     if (isNaN(borderWidth) || borderWidth < 0) { // Add check for NaN and negative
-        borderWidth = DEFAULT_CELL_BORDER_WIDTH;
+        borderWidth = vars.DEFAULT_CELL_BORDER_WIDTH;
     }
     cell.style.borderWidth = `${borderWidth}px`;
 
     // Background Color / Image
-    const bgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
-    const bgOpacity = parseInt(localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY, 10);
-    const bgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
-    const bgImageOpacity = parseInt(localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY, 10);
+    const bgColor = localStorage.getItem(vars.LS_CELL_BG_COLOR) || vars.DEFAULT_CELL_BG_COLOR;
+    const bgOpacity = parseInt(localStorage.getItem(vars.LS_CELL_BG_OPACITY) || vars.DEFAULT_CELL_BG_OPACITY, 10);
+    const bgImageUrl = localStorage.getItem(vars.LS_CELL_BG_IMAGE_URL) || vars.DEFAULT_CELL_BG_IMAGE_URL;
+    const bgImageOpacity = parseInt(localStorage.getItem(vars.LS_CELL_BG_IMAGE_OPACITY) || vars.DEFAULT_CELL_BG_IMAGE_OPACITY, 10);
     cell.style.opacity = ''; // Reset direct opacity
 
     if (bgImageUrl) {
@@ -698,12 +479,12 @@ function applyCellStyle(cell) {
     // Text Styles
     const textSpan = cell.querySelector('.bingo-cell-text');
     if (textSpan) {
-        const textColor = localStorage.getItem(LS_CELL_TEXT_COLOR) || DEFAULT_CELL_TEXT_COLOR;
-        const textOpacity = parseInt(localStorage.getItem(LS_CELL_TEXT_OPACITY) || DEFAULT_CELL_TEXT_OPACITY, 10);
-        const outlineColor = localStorage.getItem(LS_CELL_OUTLINE_COLOR) || DEFAULT_CELL_OUTLINE_COLOR;
-        const outlineOpacity = parseInt(localStorage.getItem(LS_CELL_OUTLINE_OPACITY) || DEFAULT_CELL_OUTLINE_OPACITY, 10);
-        let outlineWidth = parseFloat(localStorage.getItem(LS_CELL_OUTLINE_WIDTH));
-        if (isNaN(outlineWidth) || outlineWidth < 0) outlineWidth = DEFAULT_CELL_OUTLINE_WIDTH;
+        const textColor = localStorage.getItem(vars.LS_CELL_TEXT_COLOR) || vars.DEFAULT_CELL_TEXT_COLOR;
+        const textOpacity = parseInt(localStorage.getItem(vars.LS_CELL_TEXT_OPACITY) || vars.DEFAULT_CELL_TEXT_OPACITY, 10);
+        const outlineColor = localStorage.getItem(vars.LS_CELL_OUTLINE_COLOR) || vars.DEFAULT_CELL_OUTLINE_COLOR;
+        const outlineOpacity = parseInt(localStorage.getItem(vars.LS_CELL_OUTLINE_OPACITY) || vars.DEFAULT_CELL_OUTLINE_OPACITY, 10);
+        let outlineWidth = parseFloat(localStorage.getItem(vars.LS_CELL_OUTLINE_WIDTH));
+        if (isNaN(outlineWidth) || outlineWidth < 0) outlineWidth = vars.DEFAULT_CELL_OUTLINE_WIDTH;
 
         const rgbaTextColor = hexToRgba(textColor, textOpacity);
         textSpan.style.color = rgbaTextColor;
@@ -741,10 +522,10 @@ function refreshCellStyles() {
 
 // --- Save board background settings to localStorage ---
 function saveBoardBgSettings() {
-    localStorage.setItem(LS_BOARD_BG_COLOR, document.getElementById('board-bg-color-picker').value);
-    localStorage.setItem(LS_BOARD_BG_IMAGE_URL, document.getElementById('board-bg-image-url-input').value);
-    localStorage.setItem(LS_BOARD_BG_COLOR_OPACITY, document.getElementById('board-bg-color-opacity-slider').value); // Use new ID & key
-    localStorage.setItem(LS_BOARD_BG_IMAGE_OPACITY, document.getElementById('board-bg-image-opacity-slider').value); // NEW
+    localStorage.setItem(vars.LS_BOARD_BG_COLOR, document.getElementById('board-bg-color-picker').value);
+    localStorage.setItem(vars.LS_BOARD_BG_IMAGE_URL, document.getElementById('board-bg-image-url-input').value);
+    localStorage.setItem(vars.LS_BOARD_BG_COLOR_OPACITY, document.getElementById('board-bg-color-opacity-slider').value); // Use new ID & key
+    localStorage.setItem(vars.LS_BOARD_BG_IMAGE_OPACITY, document.getElementById('board-bg-image-opacity-slider').value); // NEW
 }
 
 // --- Apply board background style ---
@@ -752,10 +533,10 @@ function applyBoardBgStyle() {
     const container = document.getElementById('bingo-board-container');
     if (!container) return;
 
-    const bgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
-    const bgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
-    const bgColorOpacity = parseInt(localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY, 10);
-    const bgImageOpacity = parseInt(localStorage.getItem(LS_BOARD_BG_IMAGE_OPACITY) || DEFAULT_BOARD_BG_IMAGE_OPACITY, 10); // NEW
+    const bgColor = localStorage.getItem(vars.LS_BOARD_BG_COLOR) || vars.DEFAULT_BOARD_BG_COLOR;
+    const bgImageUrl = localStorage.getItem(vars.LS_BOARD_BG_IMAGE_URL) || vars.DEFAULT_BOARD_BG_IMAGE_URL;
+    const bgColorOpacity = parseInt(localStorage.getItem(vars.LS_BOARD_BG_COLOR_OPACITY) || vars.DEFAULT_BOARD_BG_COLOR_OPACITY, 10);
+    const bgImageOpacity = parseInt(localStorage.getItem(vars.LS_BOARD_BG_IMAGE_OPACITY) || vars.DEFAULT_BOARD_BG_IMAGE_OPACITY, 10); // NEW
 
     // Apply background color directly to the container
     container.style.backgroundColor = hexToRgba(bgColor, bgColorOpacity);
@@ -777,11 +558,11 @@ function saveBoardState() {
     const markedIndices = getMarkedIndices();
     const originalUserItems = getItemsFromInput(); // Get current text from textarea
 
-    localStorage.setItem(LS_BOARD_SIZE, size);
-    localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save items potentially on board (padded/sliced)
-    localStorage.setItem(LS_DISPLAYED_ITEMS, JSON.stringify(displayedItems)); // Save displayed items
-    localStorage.setItem(LS_MARKED_INDICES, JSON.stringify(markedIndices));
-    localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Save user's raw input from textarea
+    localStorage.setItem(vars.LS_BOARD_SIZE, size);
+    localStorage.setItem(vars.LS_CELL_ITEMS, JSON.stringify(currentItems)); // Save items potentially on board (padded/sliced)
+    localStorage.setItem(vars.LS_DISPLAYED_ITEMS, JSON.stringify(displayedItems)); // Save displayed items
+    localStorage.setItem(vars.LS_MARKED_INDICES, JSON.stringify(markedIndices));
+    localStorage.setItem(vars.LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Save user's raw input from textarea
     saveBackgroundSettings(); // Save background settings from inputs
     saveHeaderSettings(); // Save header settings from inputs
     saveMarkedStyleSettings(); // Save marked cell style settings
@@ -800,7 +581,7 @@ function generateBoard() {
 
     // Get items from input and store them as the canonical list
     const originalUserItems = getItemsFromInput();
-    // localStorage.setItem(LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Moved to saveBoardState
+    // localStorage.setItem(vars.LS_ORIGINAL_ITEMS, JSON.stringify(originalUserItems)); // Moved to saveBoardState
 
     const requiredItems = size * size;
     let itemsForBoard = [...originalUserItems]; // Start with a copy of the user's raw input
@@ -812,7 +593,7 @@ function generateBoard() {
         notificationMessage = `Warning: Needed ${requiredItems} items, found ${itemsForBoard.length}. Padding with ${diff} placeholder(s).`;
         notificationType = 'warning';
         for (let i = 0; i < diff; i++) {
-            itemsForBoard.push(`Placeholder ${i+1}`);
+            itemsForBoard.push(`Placeholder ${i + 1}`);
         }
         // currentItems will now hold the padded list for the board
         currentItems = [...itemsForBoard];
@@ -828,7 +609,7 @@ function generateBoard() {
     }
 
     // Save the items that are actually available for the board (potentially padded/sliced)
-    // localStorage.setItem(LS_CELL_ITEMS, JSON.stringify(currentItems)); // Moved to saveBoardState
+    // localStorage.setItem(vars.LS_CELL_ITEMS, JSON.stringify(currentItems)); // Moved to saveBoardState
 
     // Shuffle the items specifically for display (use currentItems which has the right size)
     displayedItems = shuffleArray([...currentItems]);
@@ -883,12 +664,12 @@ function generateBoard() {
 }
 
 function randomizeBoard() {
-    const storedItemsRaw = localStorage.getItem(LS_CELL_ITEMS);
-    const sizeRaw = localStorage.getItem(LS_BOARD_SIZE);
+    const storedItemsRaw = localStorage.getItem(vars.LS_CELL_ITEMS);
+    const sizeRaw = localStorage.getItem(vars.LS_BOARD_SIZE);
 
     if (!storedItemsRaw || !sizeRaw) {
-         showNotification("Cannot randomize: Board state not found. Please generate the board first.", 'warning');
-         return;
+        showNotification("Cannot randomize: Board state not found. Please generate the board first.", 'warning');
+        return;
     }
 
     const storedItems = JSON.parse(storedItemsRaw);
@@ -901,17 +682,17 @@ function randomizeBoard() {
     }
 
     // Ensure we use the correct set if placeholders were added or items were sliced
-     let itemsToShuffle = [...storedItems];
-     if (itemsToShuffle.length > requiredItems) {
-         // This case implies items were sliced during generation, which is stored in currentItems
-         // Randomizing should still use the items that *could* be on the board
-          itemsToShuffle = itemsToShuffle.slice(0, requiredItems);
+    let itemsToShuffle = [...storedItems];
+    if (itemsToShuffle.length > requiredItems) {
+        // This case implies items were sliced during generation, which is stored in currentItems
+        // Randomizing should still use the items that *could* be on the board
+        itemsToShuffle = itemsToShuffle.slice(0, requiredItems);
 
-     } else if (itemsToShuffle.length < requiredItems) {
+    } else if (itemsToShuffle.length < requiredItems) {
         // This case shouldn't happen if generateBoard saved padded items
-         showNotification("Cannot randomize: Item count mismatch. Please regenerate the board.", 'error');
-         return;
-     }
+        showNotification("Cannot randomize: Item count mismatch. Please regenerate the board.", 'error');
+        return;
+    }
 
     displayedItems = shuffleArray([...itemsToShuffle]); // Shuffle the items for display
 
@@ -931,7 +712,7 @@ function randomizeBoard() {
             textSpan = document.createElement("span");
             textSpan.classList.add("bingo-cell-text");
             cell.innerHTML =
-            cell.appendChild(textSpan);
+                cell.appendChild(textSpan);
         }
         textSpan.textContent = displayedItems[index];
 
@@ -988,11 +769,11 @@ function shuffleArray(array) {
 // --- Function to reset ONLY board content/structure settings ---
 function resetSettings() {
     // Clear localStorage relevant ONLY to the board structure/content
-    localStorage.removeItem(LS_BOARD_SIZE);
-    localStorage.removeItem(LS_CELL_ITEMS); // The items configured for the board (padded/sliced)
-    localStorage.removeItem(LS_DISPLAYED_ITEMS); // The current layout
-    localStorage.removeItem(LS_MARKED_INDICES);
-    localStorage.removeItem(LS_ORIGINAL_ITEMS); // User's raw input
+    localStorage.removeItem(vars.LS_BOARD_SIZE);
+    localStorage.removeItem(vars.LS_CELL_ITEMS); // The items configured for the board (padded/sliced)
+    localStorage.removeItem(vars.LS_DISPLAYED_ITEMS); // The current layout
+    localStorage.removeItem(vars.LS_MARKED_INDICES);
+    localStorage.removeItem(vars.LS_ORIGINAL_ITEMS); // User's raw input
 
     // Reset global variables for board content
     currentItems = [];
@@ -1032,7 +813,7 @@ function resetSettings() {
 }
 
 // --- Function to reset ALL application settings ---
-function resetAllSettings() {
+export function resetAllSettings() {
     if (confirm('Are you sure you want to reset ALL settings (styles, header, board content, etc.) to their defaults? This cannot be undone.')) {
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -1051,7 +832,7 @@ function resetAllSettings() {
 
         // Use a short delay before reload to ensure the notification is visible
         setTimeout(() => {
-             location.reload();
+            location.reload();
         }, 1600); // Slightly longer than notification duration
     }
 }
@@ -1105,9 +886,9 @@ function generateDefaultBoard() {
     // --- No saved board state, GENERATE DEFAULT board ---
     console.log('No saved board state found. Generating default 5x5 board.');
     const defaultSize = 5;
-    currentItems = [...DEFAULT_SAMPLE_ITEMS]; // Set global variable
-    displayedItems = shuffleArray([...DEFAULT_SAMPLE_ITEMS]); // Set global variable
-    const originalItems = [...DEFAULT_SAMPLE_ITEMS]; // For text area
+    currentItems = [...vars.DEFAULT_SAMPLE_ITEMS]; // Set global variable
+    displayedItems = shuffleArray([...vars.DEFAULT_SAMPLE_ITEMS]); // Set global variable
+    const originalItems = [...vars.DEFAULT_SAMPLE_ITEMS]; // For text area
 
     const board = document.getElementById('bingo-board');
     board.innerHTML = ''; // Clear placeholder or previous error message
@@ -1147,31 +928,31 @@ function generateBoardFromSavedState(savedDisplayedItems, savedItemsText, savedM
         displayedItems = JSON.parse(savedDisplayedItems); // Restore displayed items array
         // *** ADDED: Restore currentItems as well ***
         if (savedItemsText) {
-                try {
-                    currentItems = JSON.parse(savedItemsText);
-                    if (!Array.isArray(currentItems)) {
-                        console.warn('Loaded LS_CELL_ITEMS was not an array, resetting.');
-                        currentItems = [];
-                    }
-                } catch (e) {
-                    showNotification('Error parsing saved cell item pool (LS_CELL_ITEMS). Board may not randomize correctly.', 'warning');
-                    currentItems = []; // Reset on parse error
+            try {
+                currentItems = JSON.parse(savedItemsText);
+                if (!Array.isArray(currentItems)) {
+                    console.warn('Loaded vars.LS_CELL_ITEMS was not an array, resetting.');
+                    currentItems = [];
                 }
+            } catch (e) {
+                showNotification('Error parsing saved cell item pool (vars.LS_CELL_ITEMS). Board may not randomize correctly.', 'warning');
+                currentItems = []; // Reset on parse error
+            }
         } else {
-                // If LS_CELL_ITEMS doesn't exist but LS_DISPLAYED_ITEMS does, it's an inconsistent state.
-                console.warn('Inconsistent state: LS_DISPLAYED_ITEMS exists but LS_CELL_ITEMS is missing. Randomization might fail.');
-                currentItems = [];
+            // If vars.LS_CELL_ITEMS doesn't exist but vars.LS_DISPLAYED_ITEMS does, it's an inconsistent state.
+            console.warn('Inconsistent state: vars.LS_DISPLAYED_ITEMS exists but vars.LS_CELL_ITEMS is missing. Randomization might fail.');
+            currentItems = [];
         }
         // *** END ADDED section ***
     } catch (e) {
-            showNotification('Error parsing saved board state. Please generate again.', 'error');
-            localStorage.removeItem(LS_DISPLAYED_ITEMS);
-            localStorage.removeItem(LS_MARKED_INDICES);
-            localStorage.removeItem(LS_CELL_ITEMS); // Also remove potentially corrupted items
-            displayedItems = [];
-            currentItems = []; // Also reset currentItems
-            document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Error loading board. Generate New.</div>';
-            // Don't return yet, let style loading proceed with defaults
+        showNotification('Error parsing saved board state. Please generate again.', 'error');
+        localStorage.removeItem(vars.LS_DISPLAYED_ITEMS);
+        localStorage.removeItem(vars.LS_MARKED_INDICES);
+        localStorage.removeItem(vars.LS_CELL_ITEMS); // Also remove potentially corrupted items
+        displayedItems = [];
+        currentItems = []; // Also reset currentItems
+        document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Error loading board. Generate New.</div>';
+        // Don't return yet, let style loading proceed with defaults
     }
 
     const requiredItems = size * size;
@@ -1179,13 +960,13 @@ function generateBoardFromSavedState(savedDisplayedItems, savedItemsText, savedM
     // Check if the loaded data is consistent
     if (!Array.isArray(displayedItems) || displayedItems.length !== requiredItems) {
         showNotification("Saved board data mismatch. Please generate again.", 'warning');
-            localStorage.removeItem(LS_DISPLAYED_ITEMS);
-            localStorage.removeItem(LS_MARKED_INDICES);
-            localStorage.removeItem(LS_CELL_ITEMS);
-            displayedItems = [];
-            currentItems = [];
-            document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Data Mismatch. Generate New.</div>';
-            // Don't return yet
+        localStorage.removeItem(vars.LS_DISPLAYED_ITEMS);
+        localStorage.removeItem(vars.LS_MARKED_INDICES);
+        localStorage.removeItem(vars.LS_CELL_ITEMS);
+        displayedItems = [];
+        currentItems = [];
+        document.getElementById('bingo-board').innerHTML = '<div class="bingo-cell">Data Mismatch. Generate New.</div>';
+        // Don't return yet
     } else {
         // --- Populate board from SAVED state ---
         const board = document.getElementById('bingo-board');
@@ -1219,14 +1000,14 @@ function generateBoardFromSavedState(savedDisplayedItems, savedItemsText, savedM
 
 function restoreBackgroundSettings() {
     // --- Restore Background Settings ---
-    const savedBackgroundType = localStorage.getItem(LS_BACKGROUND_TYPE) || 'gradient'; // Default to gradient
-    const savedSolidColor = localStorage.getItem(LS_SOLID_COLOR) || DEFAULT_SOLID_COLOR;
-    const savedSolidColorOpacity = localStorage.getItem(LS_SOLID_COLOR_OPACITY) || DEFAULT_SOLID_COLOR_OPACITY;
-    const savedGradientColor1 = localStorage.getItem(LS_GRADIENT_COLOR_1) || DEFAULT_GRADIENT_COLOR_1;
-    const savedGradientColor1Opacity = localStorage.getItem(LS_GRADIENT_COLOR_1_OPACITY) || DEFAULT_GRADIENT_COLOR_1_OPACITY;
-    const savedGradientColor2 = localStorage.getItem(LS_GRADIENT_COLOR_2) || DEFAULT_GRADIENT_COLOR_2;
-    const savedGradientColor2Opacity = localStorage.getItem(LS_GRADIENT_COLOR_2_OPACITY) || DEFAULT_GRADIENT_COLOR_2_OPACITY;
-    const savedGradientDirection = localStorage.getItem(LS_GRADIENT_DIRECTION) || DEFAULT_GRADIENT_DIRECTION;
+    const savedBackgroundType = localStorage.getItem(vars.LS_BACKGROUND_TYPE) || 'gradient'; // Default to gradient
+    const savedSolidColor = localStorage.getItem(vars.LS_SOLID_COLOR) || vars.DEFAULT_SOLID_COLOR;
+    const savedSolidColorOpacity = localStorage.getItem(vars.LS_SOLID_COLOR_OPACITY) || vars.DEFAULT_SOLID_COLOR_OPACITY;
+    const savedGradientColor1 = localStorage.getItem(vars.LS_GRADIENT_COLOR_1) || vars.DEFAULT_GRADIENT_COLOR_1;
+    const savedGradientColor1Opacity = localStorage.getItem(vars.LS_GRADIENT_COLOR_1_OPACITY) || vars.DEFAULT_GRADIENT_COLOR_1_OPACITY;
+    const savedGradientColor2 = localStorage.getItem(vars.LS_GRADIENT_COLOR_2) || vars.DEFAULT_GRADIENT_COLOR_2;
+    const savedGradientColor2Opacity = localStorage.getItem(vars.LS_GRADIENT_COLOR_2_OPACITY) || vars.DEFAULT_GRADIENT_COLOR_2_OPACITY;
+    const savedGradientDirection = localStorage.getItem(vars.LS_GRADIENT_DIRECTION) || vars.DEFAULT_GRADIENT_DIRECTION;
 
     // Set radio button
     document.querySelector(`input[name="background-type"][value="${savedBackgroundType}"]`).checked = true;
@@ -1247,8 +1028,8 @@ function restoreBackgroundSettings() {
 }
 
 function restoreHeaderSettings(savedHeaderText, savedHeaderImageUrl, savedHeaderTextColor, savedHeaderTextOpacity, savedHeaderBgColor, savedHeaderBgOpacity,
-                                savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth, savedHeaderFontSize, savedHeaderFontFamily,
-                                savedHeaderStyleItalic, savedHeaderStyleBold) {
+    savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth, savedHeaderFontSize, savedHeaderFontFamily,
+    savedHeaderStyleItalic, savedHeaderStyleBold) {
     _restoreInputSetting('header-text-input', savedHeaderText);
     // if the header image is the default bean, then add the explodeBeans function to the onclick event
     _restoreInputSetting('header-image-url-input', savedHeaderImageUrl);
@@ -1298,33 +1079,6 @@ function restoreMarkedStyleSettings(savedMarkedColor, savedMarkedColorOpacity, s
     _restoreInputSetting('marked-cell-outline-width-input', savedMarkedCellOutlineWidth);
 }
 
-// Helper function to restore opacity slider and value display
-function _restoreOpacitySetting(sliderId, valueSpanId, savedOpacityValue) {
-    const slider = document.getElementById(sliderId);
-    const valueSpan = document.getElementById(valueSpanId);
-    if (slider) {
-        slider.value = savedOpacityValue;
-    }
-    if (valueSpan) {
-        valueSpan.textContent = savedOpacityValue;
-    }
-}
-
-// Helper function to restore a color picker value
-function _restoreColorPickerSetting(pickerId, savedColorValue) {
-    const picker = document.getElementById(pickerId);
-    if (picker) {
-        picker.value = savedColorValue;
-    }
-}
-
-// Helper function to restore a generic input value
-function _restoreInputSetting(inputId, savedValue) {
-    const input = document.getElementById(inputId);
-    if (input) {
-        input.value = savedValue;
-    }
-}
 
 function restoreCellStyleSettings(savedCellBorderColor, savedCellBorderOpacity, savedCellBgColor, savedCellBgOpacity, savedCellBgImageUrl, savedCellBgImageOpacity, savedCellTextColor, savedCellTextOpacity, savedCellOutlineColor, savedCellOutlineOpacity, savedCellOutlineWidth, savedCellBorderWidth) {
     // Border
@@ -1371,87 +1125,87 @@ function restoreSavedItems(savedDisplayedItems, savedItemsText, savedOriginalIte
                 const originalItemsFromStorage = JSON.parse(savedOriginalItemsText);
                 // Only update textarea if it wasn't populated by default gen
                 if (document.getElementById('cell-contents').value === '') {
-                     document.getElementById('cell-contents').value = originalItemsFromStorage.join('\n');
+                    document.getElementById('cell-contents').value = originalItemsFromStorage.join('\n');
                 }
             } catch (e) {
                 showNotification('Error parsing saved original items.', 'error');
-                localStorage.removeItem(LS_ORIGINAL_ITEMS);
-                 // Fallback to cell items if original fails and textarea is empty
-                 if (savedItemsText && document.getElementById('cell-contents').value === '') {
-                     try {
-                         document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
-                     } catch { /* ignore inner error */ }
-                 }
+                localStorage.removeItem(vars.LS_ORIGINAL_ITEMS);
+                // Fallback to cell items if original fails and textarea is empty
+                if (savedItemsText && document.getElementById('cell-contents').value === '') {
+                    try {
+                        document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
+                    } catch { /* ignore inner error */ }
+                }
             }
         } else if (savedItemsText && document.getElementById('cell-contents').value === '') {
-             // If no original items saved, use the cell items as fallback for textarea
-             try {
-                  document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
-             } catch (e) {
-                 // Already handled loading currentItems above, just ensure textarea is cleared on error
-                 document.getElementById('cell-contents').value = '';
-             }
+            // If no original items saved, use the cell items as fallback for textarea
+            try {
+                document.getElementById('cell-contents').value = JSON.parse(savedItemsText).join('\n');
+            } catch (e) {
+                // Already handled loading currentItems above, just ensure textarea is cleared on error
+                document.getElementById('cell-contents').value = '';
+            }
         }
     }
 }
 
 // --- Load State on Page Load ---
 function loadFromLocalStorage() {
-    const savedSize = localStorage.getItem(LS_BOARD_SIZE); // Keep checking for size first
-    const savedItemsText = localStorage.getItem(LS_CELL_ITEMS);
-    const savedDisplayedItems = localStorage.getItem(LS_DISPLAYED_ITEMS);
-    const savedMarkedIndices = localStorage.getItem(LS_MARKED_INDICES);
-    const configIsOpen = localStorage.getItem(LS_CONFIG_OPEN) === "true";
-    const savedOriginalItemsText = localStorage.getItem(LS_ORIGINAL_ITEMS);
+    const savedSize = localStorage.getItem(vars.LS_BOARD_SIZE); // Keep checking for size first
+    const savedItemsText = localStorage.getItem(vars.LS_CELL_ITEMS);
+    const savedDisplayedItems = localStorage.getItem(vars.LS_DISPLAYED_ITEMS);
+    const savedMarkedIndices = localStorage.getItem(vars.LS_MARKED_INDICES);
+    const configIsOpen = localStorage.getItem(vars.LS_CONFIG_OPEN) === "true";
+    const savedOriginalItemsText = localStorage.getItem(vars.LS_ORIGINAL_ITEMS);
     // Load header text, applying default ONLY if key is missing
-    let savedHeaderText = localStorage.getItem(LS_HEADER_TEXT);
+    let savedHeaderText = localStorage.getItem(vars.LS_HEADER_TEXT);
     if (savedHeaderText === null) { // Check if key exists
-        savedHeaderText = DEFAULT_HEADER_TEXT; // Apply default only if key missing
+        savedHeaderText = vars.DEFAULT_HEADER_TEXT; // Apply default only if key missing
     }
-    const savedHeaderImageUrl = localStorage.getItem(LS_HEADER_IMAGE_URL);
+    const savedHeaderImageUrl = localStorage.getItem(vars.LS_HEADER_IMAGE_URL);
     if (savedHeaderImageUrl === null) { // Check if key exists in localStorage
-        savedHeaderImageUrl = DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
+        savedHeaderImageUrl = vars.DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
     }
-    let savedHeaderTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
+    let savedHeaderTextColor = localStorage.getItem(vars.LS_HEADER_TEXT_COLOR);
     if (savedHeaderTextColor === null) {
-        savedHeaderTextColor = DEFAULT_HEADER_TEXT_COLOR;
+        savedHeaderTextColor = vars.DEFAULT_HEADER_TEXT_COLOR;
     }
-    const savedHeaderTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY) || DEFAULT_HEADER_TEXT_COLOR_OPACITY;
-    const savedHeaderBgColor = localStorage.getItem(LS_HEADER_BG_COLOR) || DEFAULT_HEADER_BG_COLOR;
-    const savedHeaderBgOpacity = localStorage.getItem(LS_HEADER_BG_OPACITY) || DEFAULT_HEADER_BG_OPACITY;
-    const savedHeaderOutlineColor = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_COLOR) || DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
-    const savedHeaderOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY) || DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
-    const savedHeaderOutlineWidth = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH) || DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
-    const savedHeaderFontSize = localStorage.getItem(LS_HEADER_TEXT_FONT_SIZE) || DEFAULT_HEADER_TEXT_FONT_SIZE; // Load font size
-    const savedHeaderFontFamily = localStorage.getItem(LS_HEADER_TEXT_FONT_FAMILY) || DEFAULT_HEADER_TEXT_FONT_FAMILY; // Load font family
-    const savedMarkedColor = localStorage.getItem(LS_MARKED_COLOR) || DEFAULT_MARKED_COLOR;
-    const savedMarkedColorOpacity = localStorage.getItem(LS_MARKED_COLOR_OPACITY) || DEFAULT_MARKED_COLOR_OPACITY;
-    const savedMarkedImageUrl = localStorage.getItem(LS_MARKED_IMAGE_URL) || DEFAULT_MARKED_IMAGE_URL;
-    const savedMarkedImageOpacity = localStorage.getItem(LS_MARKED_IMAGE_OPACITY) || DEFAULT_MARKED_IMAGE_OPACITY;
-    const savedCellBorderColor = localStorage.getItem(LS_CELL_BORDER_COLOR) || DEFAULT_CELL_BORDER_COLOR;
-    const savedCellBorderOpacity = localStorage.getItem(LS_CELL_BORDER_OPACITY) || DEFAULT_CELL_BORDER_OPACITY;
-    const savedCellBorderWidth = localStorage.getItem(LS_CELL_BORDER_WIDTH) || DEFAULT_CELL_BORDER_WIDTH;
-    const savedCellBgColor = localStorage.getItem(LS_CELL_BG_COLOR) || DEFAULT_CELL_BG_COLOR;
-    const savedCellBgOpacity = localStorage.getItem(LS_CELL_BG_OPACITY) || DEFAULT_CELL_BG_OPACITY;
-    const savedCellBgImageUrl = localStorage.getItem(LS_CELL_BG_IMAGE_URL) || DEFAULT_CELL_BG_IMAGE_URL;
-    const savedCellBgImageOpacity = localStorage.getItem(LS_CELL_BG_IMAGE_OPACITY) || DEFAULT_CELL_BG_IMAGE_OPACITY;
-    const savedCellTextColor = localStorage.getItem(LS_CELL_TEXT_COLOR) || DEFAULT_CELL_TEXT_COLOR;
-    const savedCellTextOpacity = localStorage.getItem(LS_CELL_TEXT_OPACITY) || DEFAULT_CELL_TEXT_OPACITY;
-    const savedCellOutlineColor = localStorage.getItem(LS_CELL_OUTLINE_COLOR) || DEFAULT_CELL_OUTLINE_COLOR;
-    const savedCellOutlineOpacity = localStorage.getItem(LS_CELL_OUTLINE_OPACITY) || DEFAULT_CELL_OUTLINE_OPACITY;
-    const savedCellOutlineWidth = localStorage.getItem(LS_CELL_OUTLINE_WIDTH) || DEFAULT_CELL_OUTLINE_WIDTH;
-    const savedMarkedBorderColor = localStorage.getItem(LS_MARKED_BORDER_COLOR) || DEFAULT_MARKED_BORDER_COLOR;
-    const savedMarkedBorderOpacity = localStorage.getItem(LS_MARKED_BORDER_OPACITY) || DEFAULT_MARKED_BORDER_OPACITY;
-    const savedMarkedBorderWidth = localStorage.getItem(LS_MARKED_BORDER_WIDTH) || DEFAULT_MARKED_BORDER_WIDTH;
-    const savedMarkedCellTextColor = localStorage.getItem(LS_MARKED_CELL_TEXT_COLOR) || DEFAULT_MARKED_CELL_TEXT_COLOR;
-    const savedMarkedCellTextOpacity = localStorage.getItem(LS_MARKED_CELL_TEXT_OPACITY) || DEFAULT_MARKED_CELL_TEXT_OPACITY;
-    const savedMarkedCellOutlineColor = localStorage.getItem(LS_MARKED_CELL_OUTLINE_COLOR) || DEFAULT_MARKED_CELL_OUTLINE_COLOR;
-    const savedMarkedCellOutlineOpacity = localStorage.getItem(LS_MARKED_CELL_OUTLINE_OPACITY) || DEFAULT_MARKED_CELL_OUTLINE_OPACITY;
-    const savedMarkedCellOutlineWidth = localStorage.getItem(LS_MARKED_CELL_OUTLINE_WIDTH) || DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
-    const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
-    const savedBoardBgColorOpacity = localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY;
-    const savedBoardBgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
-    const savedBoardBgImageOpacity = localStorage.getItem(LS_BOARD_BG_IMAGE_OPACITY) || DEFAULT_BOARD_BG_IMAGE_OPACITY; // NEW
+    const savedHeaderTextOpacity = localStorage.getItem(vars.LS_HEADER_TEXT_COLOR_OPACITY) || vars.DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+    const savedHeaderBgColor = localStorage.getItem(vars.LS_HEADER_BG_COLOR) || vars.DEFAULT_HEADER_BG_COLOR;
+    const savedHeaderBgOpacity = localStorage.getItem(vars.LS_HEADER_BG_OPACITY) || vars.DEFAULT_HEADER_BG_OPACITY;
+    const savedHeaderOutlineColor = localStorage.getItem(vars.LS_HEADER_TEXT_OUTLINE_COLOR) || vars.DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
+    const savedHeaderOutlineOpacity = localStorage.getItem(vars.LS_HEADER_TEXT_OUTLINE_OPACITY) || vars.DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
+    const savedHeaderOutlineWidth = localStorage.getItem(vars.LS_HEADER_TEXT_OUTLINE_WIDTH) || vars.DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
+    const savedHeaderFontSize = localStorage.getItem(vars.LS_HEADER_TEXT_FONT_SIZE) || vars.DEFAULT_HEADER_TEXT_FONT_SIZE; // Load font size
+    const savedHeaderFontFamily = localStorage.getItem(vars.LS_HEADER_TEXT_FONT_FAMILY) || vars.DEFAULT_HEADER_TEXT_FONT_FAMILY; // Load font family
+    const savedMarkedColor = localStorage.getItem(vars.LS_MARKED_COLOR) || vars.DEFAULT_MARKED_COLOR;
+    const savedMarkedColorOpacity = localStorage.getItem(vars.LS_MARKED_COLOR_OPACITY) || vars.DEFAULT_MARKED_COLOR_OPACITY;
+    const savedMarkedImageUrl = localStorage.getItem(vars.LS_MARKED_IMAGE_URL) || vars.DEFAULT_MARKED_IMAGE_URL;
+    const savedMarkedImageOpacity = localStorage.getItem(vars.LS_MARKED_IMAGE_OPACITY) || vars.DEFAULT_MARKED_IMAGE_OPACITY;
+    const savedCellBorderColor = localStorage.getItem(vars.LS_CELL_BORDER_COLOR) || vars.DEFAULT_CELL_BORDER_COLOR;
+    const savedCellBorderOpacity = localStorage.getItem(vars.LS_CELL_BORDER_OPACITY) || vars.DEFAULT_CELL_BORDER_OPACITY;
+    const savedCellBorderWidth = localStorage.getItem(vars.LS_CELL_BORDER_WIDTH) || vars.DEFAULT_CELL_BORDER_WIDTH;
+    const savedCellBgColor = localStorage.getItem(vars.LS_CELL_BG_COLOR) || vars.DEFAULT_CELL_BG_COLOR;
+    const savedCellBgOpacity = localStorage.getItem(vars.LS_CELL_BG_OPACITY) || vars.DEFAULT_CELL_BG_OPACITY;
+    const savedCellBgImageUrl = localStorage.getItem(vars.LS_CELL_BG_IMAGE_URL) || vars.DEFAULT_CELL_BG_IMAGE_URL;
+    const savedCellBgImageOpacity = localStorage.getItem(vars.LS_CELL_BG_IMAGE_OPACITY) || vars.DEFAULT_CELL_BG_IMAGE_OPACITY;
+    const savedCellTextColor = localStorage.getItem(vars.LS_CELL_TEXT_COLOR) || vars.DEFAULT_CELL_TEXT_COLOR;
+    const savedCellTextOpacity = localStorage.getItem(vars.LS_CELL_TEXT_OPACITY) || vars.DEFAULT_CELL_TEXT_OPACITY;
+    const savedCellOutlineColor = localStorage.getItem(vars.LS_CELL_OUTLINE_COLOR) || vars.DEFAULT_CELL_OUTLINE_COLOR;
+    const savedCellOutlineOpacity = localStorage.getItem(vars.LS_CELL_OUTLINE_OPACITY) || vars.DEFAULT_CELL_OUTLINE_OPACITY;
+    const savedCellOutlineWidth = localStorage.getItem(vars.LS_CELL_OUTLINE_WIDTH) || vars.DEFAULT_CELL_OUTLINE_WIDTH;
+    const savedMarkedBorderColor = localStorage.getItem(vars.LS_MARKED_BORDER_COLOR) || vars.DEFAULT_MARKED_BORDER_COLOR;
+    const savedMarkedBorderOpacity = localStorage.getItem(vars.LS_MARKED_BORDER_OPACITY) || vars.DEFAULT_MARKED_BORDER_OPACITY;
+    const savedMarkedBorderWidth = localStorage.getItem(vars.LS_MARKED_BORDER_WIDTH) || vars.DEFAULT_MARKED_BORDER_WIDTH;
+    const savedMarkedCellTextColor = localStorage.getItem(vars.LS_MARKED_CELL_TEXT_COLOR) || vars.DEFAULT_MARKED_CELL_TEXT_COLOR;
+    const savedMarkedCellTextOpacity = localStorage.getItem(vars.LS_MARKED_CELL_TEXT_OPACITY) || vars.DEFAULT_MARKED_CELL_TEXT_OPACITY;
+    const savedMarkedCellOutlineColor = localStorage.getItem(vars.LS_MARKED_CELL_OUTLINE_COLOR) || vars.DEFAULT_MARKED_CELL_OUTLINE_COLOR;
+    const savedMarkedCellOutlineOpacity = localStorage.getItem(vars.LS_MARKED_CELL_OUTLINE_OPACITY) || vars.DEFAULT_MARKED_CELL_OUTLINE_OPACITY;
+    const savedMarkedCellOutlineWidth = localStorage.getItem(vars.LS_MARKED_CELL_OUTLINE_WIDTH) || vars.DEFAULT_MARKED_CELL_OUTLINE_WIDTH;
+    const savedBoardBgColor = localStorage.getItem(vars.LS_BOARD_BG_COLOR) || vars.DEFAULT_BOARD_BG_COLOR;
+    const savedBoardBgColorOpacity = localStorage.getItem(vars.LS_BOARD_BG_COLOR_OPACITY) || vars.DEFAULT_BOARD_BG_COLOR_OPACITY;
+    const savedBoardBgImageUrl = localStorage.getItem(vars.LS_BOARD_BG_IMAGE_URL) || vars.DEFAULT_BOARD_BG_IMAGE_URL;
+    const savedBoardBgImageOpacity = localStorage.getItem(vars.LS_BOARD_BG_IMAGE_OPACITY) || vars.DEFAULT_BOARD_BG_IMAGE_OPACITY; // NEW
 
     // Restore Config Pane State
     loadPaneState(configIsOpen);
@@ -1475,8 +1229,8 @@ function loadFromLocalStorage() {
         savedHeaderOutlineColor, savedHeaderOutlineOpacity, savedHeaderOutlineWidth,
         savedHeaderFontSize, // Pass font size
         savedHeaderFontFamily, // Pass font family
-        localStorage.getItem(LS_HEADER_TEXT_STYLE_ITALIC) === 'true', // Pass italic style
-        localStorage.getItem(LS_HEADER_TEXT_STYLE_BOLD) === 'true' // Pass bold style
+        localStorage.getItem(vars.LS_HEADER_TEXT_STYLE_ITALIC) === 'true', // Pass italic style
+        localStorage.getItem(vars.LS_HEADER_TEXT_STYLE_BOLD) === 'true' // Pass bold style
     );
 
     restoreMarkedStyleSettings(
@@ -1529,18 +1283,18 @@ function equalizeCellSizes() {
     if (size <= 0) {
         // Attempt to get size from a potentially existing grid setup if possible
         try {
-             const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
+            const gridStyle = window.getComputedStyle(board).gridTemplateColumns;
             const parts = gridStyle.split(" ");
             if (parts.length > 0 && parts[0] !== "none") {
-                 size = parts.length;
-             }
+                size = parts.length;
+            }
         } catch {
             /* ignore */
         }
         if (size <= 0) {
-             console.error("Failed to determine grid size.");
+            console.error("Failed to determine grid size.");
             showNotification("Cannot determine valid grid size. Please generate board again.", "warning");
-             return; // Cannot proceed
+            return; // Cannot proceed
         }
     }
 
@@ -1593,7 +1347,7 @@ function equalizeCellSizes() {
     }
 }
 
-function explodeBeans(event) {
+export function explodeBeans(event) {
     console.log(event);
     let container = event.target.parentElement;
     for (let i = 0; i < 20; i++) {
@@ -1743,7 +1497,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Settings Import/Export ---
-function exportSettings() {
+export function exportSettings() {
     const settingsToExport = {};
     const prefix = 'beango_';
 
@@ -1790,21 +1544,21 @@ function exportSettings() {
     }
 }
 
-function importSettings() {
+export function importSettings() {
     // Create a temporary file input element
     const tempInput = document.createElement('input');
     tempInput.type = 'file';
     tempInput.accept = '.json,.txt'; // Accept JSON or text files
     tempInput.style.display = 'none'; // Hide the element
 
-    tempInput.addEventListener('change', function(event) {
+    tempInput.addEventListener('change', function (event) {
         const file = event.target.files[0];
         if (!file) {
             return; // No file selected
         }
 
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const fileContent = e.target.result;
             let parsedSettings;
 
@@ -1853,7 +1607,7 @@ function importSettings() {
             }
         };
 
-        reader.onerror = function() {
+        reader.onerror = function () {
             showNotification('Error reading the selected file.', 'error');
         };
 
@@ -1866,12 +1620,4 @@ function importSettings() {
     // Append to body and trigger click to open file dialog
     document.body.appendChild(tempInput);
     tempInput.click();
-}
-
-// Helper function to restore a checkbox state
-function _restoreCheckboxSetting(checkboxId, savedValue) {
-    const checkbox = document.getElementById(checkboxId);
-    if (checkbox) {
-        checkbox.checked = savedValue; // savedValue should be boolean
-    }
 }
