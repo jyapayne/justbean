@@ -80,6 +80,7 @@ body {
     overflow-wrap: normal;
     hyphens: none;
     font-size: 1.5rem; /* Moved font size here */
+    font-weight: 500;
     line-height: 1.2;
     color: var(--cell-text-color, #000);
     text-shadow: var(--cell-text-outline, none);
