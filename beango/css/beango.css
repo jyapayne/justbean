@@ -96,7 +96,7 @@ body {
     border-color: #3b82f6; /* Tailwind blue-500 */
     border-width: 3px; /* Reverted from 4px */
     transform: scale(1.05); /* Reverted from 1.07 */
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); /* Increased opacity from 0.6 (Kept) */
+    box-shadow: 0 0 30px rgb(0, 0, 0); /* Increased opacity from 0.6 (Kept) */
     z-index: 10; /* Ensure highlighted cells are visually on top if overlapping happens during scale */
 }
 
@@ -161,7 +161,6 @@ body {
 #bingo-board-container {
     /* Background color/image/opacity set by JS */
     position: relative; /* Needed for pseudo-element positioning */
-    overflow: hidden; /* Clip pseudo-element */
 }
 
 /* NEW: Pseudo-element for board background image */
