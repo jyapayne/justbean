@@ -16,6 +16,8 @@ body {
 .bingo-board {
     display: grid;
     gap: 4px; /* Adjust gap as needed */
+    position: relative; /* Ensure it establishes a stacking context */
+    z-index: 1; /* Place above the container's ::before pseudo-element */
 }
 .centered {
     display: flex;
@@ -158,6 +160,25 @@ body {
 /* Basic styling for the board */
 #bingo-board-container {
     /* Background color/image/opacity set by JS */
+    position: relative; /* Needed for pseudo-element positioning */
+    overflow: hidden; /* Clip pseudo-element */
+}
+
+/* NEW: Pseudo-element for board background image */
+#bingo-board-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: var(--board-bg-image-url, none);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: var(--board-bg-image-opacity, 1);
+    z-index: 0; /* Default layer, behind explicit z-index on board */
+    border-radius: inherit; /* Inherit border radius from container */
 }
 
 /* Styling for config pane sections */

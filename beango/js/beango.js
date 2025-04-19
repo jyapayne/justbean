@@ -45,6 +45,7 @@ const LS_MARKED_BORDER_WIDTH = 'beango_markedBorderWidth';
 const LS_BOARD_BG_COLOR = 'beango_boardBgColor';
 const LS_BOARD_BG_COLOR_OPACITY = 'beango_boardBgColorOpacity'; // (replaces LS_BOARD_BG_OPACITY)
 const LS_BOARD_BG_IMAGE_URL = 'beango_boardBgImageUrl';
+const LS_BOARD_BG_IMAGE_OPACITY = 'beango_boardBgImageOpacity'; // NEW
 const LS_MARKED_CELL_TEXT_COLOR = 'beango_markedCellTextColor';
 const LS_MARKED_CELL_TEXT_OPACITY = 'beango_markedCellTextOpacity';
 const LS_MARKED_CELL_OUTLINE_COLOR = 'beango_markedCellOutlineColor';
@@ -101,6 +102,7 @@ const DEFAULT_MARKED_BORDER_WIDTH = 0; // No border for marked cells
 const DEFAULT_BOARD_BG_COLOR = '#ffffff'; // Default white
 const DEFAULT_BOARD_BG_COLOR_OPACITY = 100; // (replaces DEFAULT_BOARD_BG_OPACITY)
 const DEFAULT_BOARD_BG_IMAGE_URL = ''; // Default no image
+const DEFAULT_BOARD_BG_IMAGE_OPACITY = 100; // NEW
 const DEFAULT_MARKED_CELL_TEXT_COLOR = '#000000'; // Keep black for readability
 const DEFAULT_MARKED_CELL_TEXT_OPACITY = 50;
 const DEFAULT_MARKED_CELL_OUTLINE_COLOR = '#ffffff';
@@ -742,6 +744,7 @@ function saveBoardBgSettings() {
     localStorage.setItem(LS_BOARD_BG_COLOR, document.getElementById('board-bg-color-picker').value);
     localStorage.setItem(LS_BOARD_BG_IMAGE_URL, document.getElementById('board-bg-image-url-input').value);
     localStorage.setItem(LS_BOARD_BG_COLOR_OPACITY, document.getElementById('board-bg-color-opacity-slider').value); // Use new ID & key
+    localStorage.setItem(LS_BOARD_BG_IMAGE_OPACITY, document.getElementById('board-bg-image-opacity-slider').value); // NEW
 }
 
 // --- Apply board background style ---
@@ -751,22 +754,19 @@ function applyBoardBgStyle() {
 
     const bgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
     const bgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
-    const opacityValue = parseInt(localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY, 10);
+    const bgColorOpacity = parseInt(localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY, 10);
+    const bgImageOpacity = parseInt(localStorage.getItem(LS_BOARD_BG_IMAGE_OPACITY) || DEFAULT_BOARD_BG_IMAGE_OPACITY, 10); // NEW
 
-    // Apply opacity - REMOVED direct opacity setting
-    // container.style.opacity = opacityValue;
+    // Apply background color directly to the container
+    container.style.backgroundColor = hexToRgba(bgColor, bgColorOpacity);
 
-    // Apply background image or color
-    if (bgImageUrl) {
-        container.style.backgroundImage = `url('${bgImageUrl}')`;
-        container.style.backgroundSize = 'cover';
-        container.style.backgroundPosition = 'center center';
-        container.style.backgroundRepeat = 'no-repeat';
-        // Apply background color with its opacity as fallback / see-through
-        container.style.backgroundColor = hexToRgba(bgColor, opacityValue);
+    // Apply background image via CSS variables for the pseudo-element
+    if (bgImageUrl && bgImageUrl.trim() !== '') {
+        container.style.setProperty('--board-bg-image-url', `url('${bgImageUrl}')`);
+        container.style.setProperty('--board-bg-image-opacity', bgImageOpacity / 100);
     } else {
-        container.style.backgroundImage = 'none';
-        container.style.backgroundColor = hexToRgba(bgColor, opacityValue);
+        container.style.removeProperty('--board-bg-image-url');
+        container.style.removeProperty('--board-bg-image-opacity');
     }
 }
 
@@ -1353,10 +1353,11 @@ function restoreCellStyleSettings(savedCellBorderColor, savedCellBorderOpacity, 
     _restoreInputSetting('cell-outline-width-input', savedCellOutlineWidth);
 }
 
-function restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl) {
+function restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl, savedBoardBgImageOpacity) {
     _restoreColorPickerSetting('board-bg-color-picker', savedBoardBgColor);
     _restoreInputSetting('board-bg-image-url-input', savedBoardBgImageUrl);
     _restoreOpacitySetting('board-bg-color-opacity-slider', 'board-bg-color-opacity-value', savedBoardBgColorOpacity);
+    _restoreOpacitySetting('board-bg-image-opacity-slider', 'board-bg-image-opacity-value', savedBoardBgImageOpacity); // NEW
     applyBoardBgStyle(); // Apply loaded style
 }
 
@@ -1450,6 +1451,7 @@ function loadFromLocalStorage() {
     const savedBoardBgColor = localStorage.getItem(LS_BOARD_BG_COLOR) || DEFAULT_BOARD_BG_COLOR;
     const savedBoardBgColorOpacity = localStorage.getItem(LS_BOARD_BG_COLOR_OPACITY) || DEFAULT_BOARD_BG_COLOR_OPACITY;
     const savedBoardBgImageUrl = localStorage.getItem(LS_BOARD_BG_IMAGE_URL) || DEFAULT_BOARD_BG_IMAGE_URL;
+    const savedBoardBgImageOpacity = localStorage.getItem(LS_BOARD_BG_IMAGE_OPACITY) || DEFAULT_BOARD_BG_IMAGE_OPACITY; // NEW
 
     // Restore Config Pane State
     loadPaneState(configIsOpen);
@@ -1491,7 +1493,7 @@ function loadFromLocalStorage() {
         savedCellBorderWidth
     );
 
-    restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl);
+    restoreBoardBgSettings(savedBoardBgColor, savedBoardBgColorOpacity, savedBoardBgImageUrl, savedBoardBgImageOpacity); // Pass new value
 
     restoreSavedItems(savedDisplayedItems, savedItemsText, savedOriginalItemsText);
 
@@ -1703,6 +1705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupInputListener('board-bg-color-picker', 'input', saveBoardBgSettings, applyBoardBgStyle);
     setupInputListener('board-bg-image-url-input', 'input', saveBoardBgSettings, applyBoardBgStyle);
     setupOpacitySliderListener('board-bg-color-opacity-slider', 'board-bg-color-opacity-value', saveBoardBgSettings, applyBoardBgStyle);
+    setupOpacitySliderListener('board-bg-image-opacity-slider', 'board-bg-image-opacity-value', saveBoardBgSettings, applyBoardBgStyle); // NEW
 
 
     // --- Search Listener ---
