@@ -1568,7 +1568,7 @@ function equalizeCellSizes() {
     });
 
     // 4. Determine the target size for square cells
-    const targetSize = Math.max(maxWidthNeeded-maxWidthNeeded*0.1, maxHeightNeeded, minCellSize);
+    const targetSize = Math.max(maxWidthNeeded, maxHeightNeeded, minCellSize);
 
     // 5. Apply the calculated fixed size back to the grid
     board.style.gridTemplateColumns = `repeat(${size}, ${targetSize}px)`;
