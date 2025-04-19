@@ -487,6 +487,27 @@ function updateHeaderDisplay() {
     // Clear existing content
     headerContainer.innerHTML = "";
 
+    // Get default color and opacity
+    let headerTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
+    if (headerTextColor === null) { // Check if key exists before applying default
+        headerTextColor = DEFAULT_HEADER_TEXT_COLOR;
+    }
+    let headerTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY);
+     if (headerTextOpacity === null) {
+         headerTextOpacity = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
+     }
+    const rgbaDefaultColor = hexToRgba(headerTextColor, parseInt(headerTextOpacity, 10));
+
+    // Get outline settings
+    let headerOutlineColor = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_COLOR);
+    if (headerOutlineColor === null) headerOutlineColor = DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
+    let headerOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY);
+    if (headerOutlineOpacity === null) headerOutlineOpacity = DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
+    let headerOutlineWidth = parseFloat(localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH));
+    if (isNaN(headerOutlineWidth) || headerOutlineWidth < 0) {
+        headerOutlineWidth = DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
+    }
+
     let hasText = headerText && headerText.trim() !== "";
     // Determine if we are currently using the default bean URL
     let isUsingDefaultBeanUrl = headerImageUrl === DEFAULT_HEADER_IMAGE_URL;
@@ -496,27 +517,9 @@ function updateHeaderDisplay() {
     // Add text if it exists
     if (hasText) {
         const h1 = document.createElement("h1");
-        h1.className = "text-4xl font-bold"; // Keep other styles
-        h1.textContent = headerText;
-        let headerTextColor = localStorage.getItem(LS_HEADER_TEXT_COLOR);
-        if (headerTextColor === null) { // Check if key exists before applying default
-            headerTextColor = DEFAULT_HEADER_TEXT_COLOR;
-        }
-        let headerTextOpacity = localStorage.getItem(LS_HEADER_TEXT_COLOR_OPACITY);
-         if (headerTextOpacity === null) {
-             headerTextOpacity = DEFAULT_HEADER_TEXT_COLOR_OPACITY;
-         }
-        h1.style.color = hexToRgba(headerTextColor, parseInt(headerTextOpacity, 10));
-        // Apply Header Text Outline
-        let headerOutlineColor = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_COLOR);
-        if (headerOutlineColor === null) headerOutlineColor = DEFAULT_HEADER_TEXT_OUTLINE_COLOR;
-        let headerOutlineOpacity = localStorage.getItem(LS_HEADER_TEXT_OUTLINE_OPACITY);
-        if (headerOutlineOpacity === null) headerOutlineOpacity = DEFAULT_HEADER_TEXT_OUTLINE_OPACITY;
-        let headerOutlineWidth = parseFloat(localStorage.getItem(LS_HEADER_TEXT_OUTLINE_WIDTH));
-        if (isNaN(headerOutlineWidth) || headerOutlineWidth < 0) {
-            headerOutlineWidth = DEFAULT_HEADER_TEXT_OUTLINE_WIDTH;
-        }
-
+        h1.className = "text-4xl font-bold"; // Base styles
+        h1.style.color = rgbaDefaultColor; // Apply default color+opacity to H1
+        // Apply outline to H1
         if (headerOutlineWidth > 0) {
             const rgbaOutlineColor = hexToRgba(headerOutlineColor, parseInt(headerOutlineOpacity, 10));
             const shadow = `
@@ -533,6 +536,40 @@ function updateHeaderDisplay() {
         } else {
             h1.style.textShadow = "none";
         }
+
+        // Split the header text by spaces, but keep the spaces as separate elements
+        const parts = headerText.trim().split(/(\s+)/);
+
+        parts.forEach(part => {
+            if (!part) return; // Skip empty parts resulting from split
+
+            if (part.match(/^\s+$/)) {
+                // If the part is only whitespace, add it as a text node to preserve spacing
+                h1.appendChild(document.createTextNode(part));
+            } else {
+                // Check if the part matches the Word[color] pattern exactly
+                // Regex: Start (^), Word (\S+?), literal \[, capture color ([^\\\]]+?), literal \], End ($)
+                const tagMatch = part.match(/^(\S+?)\[([^\]]+?)\]$/);
+                if (tagMatch) {
+                    const word = tagMatch[1];
+                    const color = tagMatch[2].trim(); // Extract and trim color
+                    const span = document.createElement("span");
+                    span.textContent = word; // Only the word part
+                    if (color) { // Check if color is not empty after trim
+                       span.style.color = color; // Apply specific color
+                    }
+                    // If color was empty or invalid, it inherits the default from h1
+                    h1.appendChild(span);
+                } else {
+                    // Part is just a regular word (or doesn't match the pattern)
+                    const span = document.createElement("span");
+                    span.textContent = part; // Add the whole part as is
+                    // Inherits default color and outline from h1
+                    h1.appendChild(span);
+                }
+            }
+        });
+
         headerContainer.appendChild(h1);
     }
 
