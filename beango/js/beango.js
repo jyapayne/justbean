@@ -1168,7 +1168,7 @@ function loadFromLocalStorage() {
     if (savedHeaderText === null) { // Check if key exists
         savedHeaderText = vars.DEFAULT_HEADER_TEXT; // Apply default only if key missing
     }
-    const savedHeaderImageUrl = localStorage.getItem(vars.LS_HEADER_IMAGE_URL);
+    let savedHeaderImageUrl = localStorage.getItem(vars.LS_HEADER_IMAGE_URL);
     if (savedHeaderImageUrl === null) { // Check if key exists in localStorage
         savedHeaderImageUrl = vars.DEFAULT_HEADER_IMAGE_URL; // Apply default ONLY if key is missing
     }
